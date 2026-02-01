@@ -23,9 +23,9 @@ OpenCode skill for managing Fastmail email and calendar via JMAP and CalDAV APIs
 | Tool | Description |
 |------|-------------|
 | `list_calendars` | List all calendars |
-| `list_events` | List events in date range (UTC+7) |
-| `get_event` | Get event details (UTC+7) |
-| `create_event` | Create new event (input UTC+7) |
+| `list_events` | List events in date range |
+| `get_event` | Get event details |
+| `create_event` | Create new event |
 | `update_event` | Update existing event |
 | `delete_event` | Delete event |
 | `search_events` | Search events by title/description |
@@ -177,14 +177,24 @@ User: "สร้างนัด 'ประชุมทีม' พรุ่งน
 
 ## Timezone Information
 
-**All calendar times are displayed in UTC+7 (Asia/Bangkok)**
+**Calendar times use your local timezone by default**
 
-- **Input:** Accept times in UTC+7 format
+You can configure the timezone with the `FASTMAIL_TIMEZONE` environment variable:
+
+```bash
+# Use local system timezone (default - no configuration needed)
+# Or explicitly set a timezone:
+export FASTMAIL_TIMEZONE="America/New_York"  # or "Asia/Bangkok", "Europe/London", etc.
+```
+
+- **Default:** Auto-detects your system's local timezone
+- **Input:** Accept times in configured timezone format
 - **Storage:** Stored as UTC internally
-- **Display:** Converted to UTC+7 for user
+- **Display:** Converted to configured timezone for display
+- **DST:** Handles Daylight Saving Time automatically
 
-Example:
-- You say: "สร้างนัด 10:00" (assumed UTC+7)
+Example (with Asia/Bangkok timezone):
+- You say: "สร้างนัด 10:00" (assumed local timezone)
 - Stored as: 03:00 UTC
 - Displayed as: 10:00+07:00
 

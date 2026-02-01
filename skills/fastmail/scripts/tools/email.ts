@@ -1,4 +1,5 @@
 import { JMAPClient } from '../jmap-client.js';
+import { NotFoundError } from '../errors.js';
 
 export interface Email {
   id: string;
@@ -21,6 +22,15 @@ export interface Mailbox {
   role: string | null;
   totalEmails: number;
   unreadEmails: number;
+}
+
+export interface EmailThread {
+  id: string;
+  emails: Email[];
+  subject: string;
+  participants: { name: string; email: string }[];
+  latestDate: string;
+  emailCount: number;
 }
 
 export class EmailTools {
@@ -240,5 +250,161 @@ export class EmailTools {
     if (!trash) throw new Error('Trash folder not found');
     
     await this.moveToFolder(emailId, trash.id);
+  }
+
+  async getThread(emailId: string): Promise<EmailThread> {
+    const accountId = await this.client.getAccountId();
+    
+    // First get the email to find its threadId
+    const response = await this.client.call([
+      ['Email/get', {
+        accountId,
+        ids: [emailId],
+        properties: ['id', 'threadId'],
+      }, 'a'],
+    ]);
+    
+    const emailResult = response.methodResponses[0][1] as { list: { id: string; threadId: string }[] };
+    if (emailResult.list.length === 0) {
+      throw new NotFoundError('email', emailId);
+    }
+    
+    const threadId = emailResult.list[0].threadId;
+    
+    // Now get all emails in this thread
+    const threadResponse = await this.client.call([
+      ['Email/query', {
+        accountId,
+        filter: { inThread: threadId },
+        sort: [{ property: 'receivedAt', isAscending: true }], // Oldest first in thread
+      }, 'a'],
+      ['Email/get', {
+        accountId,
+        '#ids': { resultOf: 'a', name: 'Email/query', path: '/ids' },
+        properties: ['id', 'blobId', 'threadId', 'mailboxIds', 'subject', 'from', 'to', 'cc', 'receivedAt', 'preview', 'hasAttachment', 'keywords'],
+      }, 'b'],
+    ]);
+    
+    const emails = (threadResponse.methodResponses[1][1] as { list: Email[] }).list;
+    
+    if (emails.length === 0) {
+      throw new NotFoundError('thread', threadId);
+    }
+    
+    // Extract unique participants
+    const participantMap = new Map<string, { name: string; email: string }>();
+    for (const email of emails) {
+      const addParticipant = (p: { name: string; email: string } | null) => {
+        if (p && !participantMap.has(p.email)) {
+          participantMap.set(p.email, p);
+        }
+      };
+      
+      email.from?.forEach(addParticipant);
+      email.to?.forEach(addParticipant);
+      email.cc?.forEach(addParticipant);
+    }
+    
+    return {
+      id: threadId,
+      emails,
+      subject: emails[0].subject,
+      participants: Array.from(participantMap.values()),
+      latestDate: emails[emails.length - 1].receivedAt,
+      emailCount: emails.length,
+    };
+  }
+
+  async bulkMoveToFolder(
+    emailIds: string[],
+    targetMailboxId: string,
+    sourceMailboxId?: string
+  ): Promise<{ succeeded: string[]; failed: { id: string; error: string }[] }> {
+    const accountId = await this.client.getAccountId();
+    
+    // Build update object for all emails
+    const update: Record<string, Record<string, boolean | null>> = {};
+    
+    for (const emailId of emailIds) {
+      update[emailId] = {
+        [`mailboxIds/${targetMailboxId}`]: true,
+      };
+      
+      if (sourceMailboxId) {
+        update[emailId][`mailboxIds/${sourceMailboxId}`] = null;
+      }
+    }
+    
+    const response = await this.client.call([
+      ['Email/set', {
+        accountId,
+        update,
+      }, 'a'],
+    ]);
+    
+    const result = response.methodResponses[0][1] as {
+      updated?: Record<string, unknown>;
+      notUpdated?: Record<string, { type: string; description: string }>;
+    };
+    
+    const succeeded = Object.keys(result.updated || {});
+    const failed = Object.entries(result.notUpdated || {}).map(([id, err]) => ({
+      id,
+      error: err.description || err.type,
+    }));
+    
+    return { succeeded, failed };
+  }
+
+  async bulkSetKeywords(
+    emailIds: string[],
+    keywords: Record<string, boolean>
+  ): Promise<{ succeeded: string[]; failed: { id: string; error: string }[] }> {
+    const accountId = await this.client.getAccountId();
+    
+    // Build patch for keywords
+    const patch: Record<string, boolean | null> = {};
+    for (const [keyword, value] of Object.entries(keywords)) {
+      patch[`keywords/${keyword}`] = value || null;
+    }
+    
+    // Apply to all emails
+    const update: Record<string, Record<string, boolean | null>> = {};
+    for (const emailId of emailIds) {
+      update[emailId] = { ...patch };
+    }
+    
+    const response = await this.client.call([
+      ['Email/set', {
+        accountId,
+        update,
+      }, 'a'],
+    ]);
+    
+    const result = response.methodResponses[0][1] as {
+      updated?: Record<string, unknown>;
+      notUpdated?: Record<string, { type: string; description: string }>;
+    };
+    
+    const succeeded = Object.keys(result.updated || {});
+    const failed = Object.entries(result.notUpdated || {}).map(([id, err]) => ({
+      id,
+      error: err.description || err.type,
+    }));
+    
+    return { succeeded, failed };
+  }
+
+  async bulkDeleteEmails(
+    emailIds: string[]
+  ): Promise<{ succeeded: string[]; failed: { id: string; error: string }[] }> {
+    // Get trash folder
+    const mailboxes = await this.getMailboxes();
+    const trash = mailboxes.find(m => m.role === 'trash');
+    if (!trash) {
+      throw new NotFoundError('mailbox', 'Trash');
+    }
+    
+    return this.bulkMoveToFolder(emailIds, trash.id);
   }
 }

@@ -1,6 +1,49 @@
 import { CalDAVClient } from '../caldav-client.js';
 import { DAVCalendar } from 'tsdav';
 import { v4 as uuidv4 } from 'uuid';
+import { NotFoundError } from '../errors.js';
+
+// ============================================================================
+// Timezone Configuration
+// ============================================================================
+
+/**
+ * Get the configured timezone for calendar operations.
+ * Priority:
+ *   1. FASTMAIL_TIMEZONE environment variable (e.g., "Asia/Bangkok", "America/New_York")
+ *   2. System local timezone (auto-detected)
+ * 
+ * @returns IANA timezone identifier (e.g., "Asia/Bangkok", "America/New_York")
+ */
+export function getConfiguredTimezone(): string {
+  return process.env.FASTMAIL_TIMEZONE || Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
+/**
+ * Get the timezone offset in milliseconds for a given timezone.
+ * Uses the current date to account for DST changes.
+ * 
+ * @param timezone IANA timezone identifier
+ * @param date Optional date to calculate offset for (defaults to now)
+ * @returns Offset in milliseconds from UTC
+ */
+function getTimezoneOffsetMs(timezone: string, date: Date = new Date()): number {
+  // Get the offset by comparing UTC and local time representations
+  const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+  const tzDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+  return tzDate.getTime() - utcDate.getTime();
+}
+
+/**
+ * Format timezone offset for display (e.g., "+07:00", "-05:00")
+ */
+function formatTimezoneOffset(offsetMs: number): string {
+  const totalMinutes = Math.round(offsetMs / (60 * 1000));
+  const sign = totalMinutes >= 0 ? '+' : '-';
+  const hours = Math.floor(Math.abs(totalMinutes) / 60);
+  const minutes = Math.abs(totalMinutes) % 60;
+  return `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+}
 
 export interface Calendar {
   id: string;
@@ -33,8 +76,8 @@ export interface CalendarEvent {
   title: string;
   description?: string;
   location?: string;
-  start: string;      // ISO 8601 in UTC+7
-  end: string;        // ISO 8601 in UTC+7
+  start: string;      // ISO 8601 in configured timezone
+  end: string;        // ISO 8601 in configured timezone
   isAllDay: boolean;
   recurrence?: string;
   attendees?: { name?: string; email: string }[];
@@ -45,8 +88,8 @@ export interface CalendarEvent {
 
 export interface CreateEventOptions {
   title: string;
-  start: string;      // ISO 8601 in UTC+7
-  end: string;        // ISO 8601 in UTC+7
+  start: string;      // ISO 8601 in configured timezone
+  end: string;        // ISO 8601 in configured timezone
   description?: string;
   location?: string;
   allDay?: boolean;
@@ -60,31 +103,56 @@ export interface CreateRecurringEventOptions extends CreateEventOptions {
   recurrenceUntil?: string;  // YYYY-MM-DD
 }
 
-export class CalendarTools {
-  constructor(private client: CalDAVClient) {}
+export interface CalendarInvitation {
+  eventId: string;
+  calendarId: string;
+  title: string;
+  organizer: { name?: string; email: string };
+  start: string;
+  end: string;
+  description?: string;
+  location?: string;
+  myStatus: 'needs-action' | 'accepted' | 'declined' | 'tentative';
+}
 
-  // Convert UTC+7 to UTC for storage
+export class CalendarTools {
+  private timezone: string;
+  
+  constructor(private client: CalDAVClient) {
+    this.timezone = getConfiguredTimezone();
+  }
+
+  /**
+   * Get the current timezone being used for calendar operations.
+   */
+  getTimezone(): string {
+    return this.timezone;
+  }
+
+  // Convert local timezone datetime to UTC for storage
   private toUTC(localDate: string): string {
-    // Parse the UTC+7 datetime string properly
     let dateStr = localDate;
     
-    // Remove timezone indicator if present
-    if (dateStr.includes('+07:00')) {
-      dateStr = dateStr.replace('+07:00', '');
-    } else if (dateStr.includes('+0700')) {
-      dateStr = dateStr.replace('+0700', '');
-    }
+    // Remove any timezone indicator if present (we'll use configured timezone)
+    // Match patterns like +07:00, -05:00, +0700, -0500, Z
+    dateStr = dateStr.replace(/[+-]\d{2}:\d{2}$/, '');
+    dateStr = dateStr.replace(/[+-]\d{4}$/, '');
+    dateStr = dateStr.replace(/Z$/, '');
     
-    // Parse as UTC+7 by treating the input as local time in Bangkok
-    // Then convert to UTC by subtracting 7 hours
+    // Parse the datetime components
     const [datePart, timePart] = dateStr.split('T');
     const [year, month, day] = datePart.split('-').map(Number);
     const [hour, minute, second] = (timePart || '00:00:00').split(':').map(Number);
     
-    // Create date in UTC+7
-    const utc7Date = new Date(Date.UTC(year, month - 1, day, hour, minute, second || 0));
-    // Subtract 7 hours to get UTC
-    const utcDate = new Date(utc7Date.getTime() - (7 * 60 * 60 * 1000));
+    // Create a date representing this time in the configured timezone
+    // First, create a UTC date with these values
+    const dateAsUtc = new Date(Date.UTC(year, month - 1, day, hour, minute, second || 0));
+    
+    // Get the timezone offset for this specific date (handles DST)
+    const offsetMs = getTimezoneOffsetMs(this.timezone, dateAsUtc);
+    
+    // Subtract the offset to convert from local time to UTC
+    const utcDate = new Date(dateAsUtc.getTime() - offsetMs);
     
     return utcDate.toISOString();
   }
@@ -97,7 +165,7 @@ export class CalendarTools {
     return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   }
 
-  // Parse iCalendar date string and convert to UTC+7 string
+  // Parse iCalendar date string and convert to configured timezone string
   private parseICalDate(icalDate: string, isAllDay: boolean = false): string {
     if (isAllDay) {
       const year = icalDate.slice(0, 4);
@@ -114,12 +182,19 @@ export class CalendarTools {
     const minute = icalDate.slice(11, 13);
     const second = icalDate.slice(13, 15);
     
-    // Parse as UTC, then add 7 hours to get UTC+7
+    // Parse as UTC
     const utcDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
-    const utc7Date = new Date(utcDate.getTime() + (7 * 60 * 60 * 1000));
     
-    // Format as ISO string with UTC+7 timezone
-    return utc7Date.toISOString().replace('Z', '+07:00');
+    // Get the timezone offset for this specific date (handles DST)
+    const offsetMs = getTimezoneOffsetMs(this.timezone, utcDate);
+    
+    // Add the offset to convert from UTC to local time
+    const localDate = new Date(utcDate.getTime() + offsetMs);
+    
+    // Format as ISO string with timezone offset
+    const tzOffset = formatTimezoneOffset(offsetMs);
+    const isoWithoutTz = localDate.toISOString().replace('Z', '');
+    return isoWithoutTz.slice(0, -4) + tzOffset; // Remove .000 and add offset
   }
 
   // Parse ISO 8601 duration to minutes
@@ -703,5 +778,124 @@ END:VCALENDAR`;
   async listReminders(eventId: string): Promise<Reminder[]> {
     const event = await this.getEvent(eventId);
     return event.reminders || [];
+  }
+
+  // Helper to parse organizer from ICS
+  private parseOrganizer(icsData: string): { name?: string; email: string } | null {
+    const match = icsData.match(/ORGANIZER(?:;CN="?([^":]*)"?)?:mailto:([^\r\n]+)/i);
+    if (match) {
+      return {
+        name: match[1] || undefined,
+        email: match[2],
+      };
+    }
+    return null;
+  }
+
+  // Helper to parse my attendee status
+  private parseMyAttendeeStatus(icsData: string): 'needs-action' | 'accepted' | 'declined' | 'tentative' | null {
+    // Look for PARTSTAT in attendee lines
+    const attendeeMatch = icsData.match(/ATTENDEE[^:]*PARTSTAT=([^;:\r\n]+)/i);
+    if (attendeeMatch) {
+      const status = attendeeMatch[1].toLowerCase();
+      if (status === 'accepted' || status === 'declined' || status === 'tentative' || status === 'needs-action') {
+        return status as 'needs-action' | 'accepted' | 'declined' | 'tentative';
+      }
+    }
+    return 'needs-action';
+  }
+
+  async listInvitations(): Promise<CalendarInvitation[]> {
+    const calendars = await this.client.getCalendars();
+    const invitations: CalendarInvitation[] = [];
+    
+    for (const calendar of calendars) {
+      try {
+        const objects = await this.client.fetchCalendarObjects(calendar);
+        
+        for (const obj of objects) {
+          if (obj.data) {
+            // Check if this event has an organizer (invitation)
+            const hasOrganizer = obj.data.includes('ORGANIZER');
+            const hasAttendee = obj.data.includes('ATTENDEE');
+            
+            if (hasOrganizer && hasAttendee) {
+              const event = this.parseEventData(obj.data, calendar.url, obj.url || '', obj.etag || '');
+              
+              // Parse organizer and attendee status
+              const organizer = this.parseOrganizer(obj.data);
+              const myStatus = this.parseMyAttendeeStatus(obj.data);
+              
+              if (organizer && myStatus) {
+                invitations.push({
+                  eventId: event.id,
+                  calendarId: calendar.url,
+                  title: event.title,
+                  organizer,
+                  start: event.start,
+                  end: event.end,
+                  description: event.description,
+                  location: event.location,
+                  myStatus,
+                });
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error fetching invitations from ${calendar.displayName}:`, error);
+      }
+    }
+    
+    return invitations;
+  }
+
+  async respondToInvitation(
+    eventId: string,
+    response: 'accept' | 'decline' | 'tentative'
+  ): Promise<void> {
+    const calendars = await this.client.getCalendars();
+    
+    const partstatMap = {
+      accept: 'ACCEPTED',
+      decline: 'DECLINED',
+      tentative: 'TENTATIVE',
+    };
+    
+    const newPartstat = partstatMap[response];
+    
+    for (const calendar of calendars) {
+      try {
+        const objects = await this.client.fetchCalendarObjects(calendar);
+        
+        for (const obj of objects) {
+          if (obj.url?.includes(eventId) && obj.data && obj.etag) {
+            // Update the PARTSTAT in the attendee line
+            let updatedIcs = obj.data;
+            
+            // Replace PARTSTAT value
+            updatedIcs = updatedIcs.replace(
+              /ATTENDEE([^:]*?)PARTSTAT=[^;:\r\n]+/gi,
+              `ATTENDEE$1PARTSTAT=${newPartstat}`
+            );
+            
+            // If no PARTSTAT found, add it
+            if (!updatedIcs.includes(`PARTSTAT=${newPartstat}`)) {
+              updatedIcs = updatedIcs.replace(
+                /ATTENDEE([^:]*):mailto:/gi,
+                `ATTENDEE$1;PARTSTAT=${newPartstat}:mailto:`
+              );
+            }
+            
+            await this.client.updateEvent(calendar, obj, updatedIcs);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error(`Error in ${calendar.displayName}:`, error);
+      }
+    }
+    
+    throw new NotFoundError('event', eventId);
   }
 }

@@ -1,18 +1,19 @@
 # Fastmail Tools Reference
 
-Complete documentation for all 21 Fastmail tools organized by category. Each tool includes detailed parameter documentation, type definitions, and usage examples.
+Complete documentation for all 27 Fastmail tools organized by category. Each tool includes detailed parameter documentation, type definitions, and usage examples.
 
 ---
 
 ## Table of Contents
 
-1. [Email Tools (9)](#email-tools-9)
-2. [Calendar Tools (8)](#calendar-tools-8)
-3. [Reminder Tools (4)](#reminder-tools-4)
+1. [Email Tools (10)](#email-tools-10)
+2. [Bulk Email Tools (3)](#bulk-email-tools-3)
+3. [Calendar Tools (10)](#calendar-tools-10)
+4. [Reminder Tools (4)](#reminder-tools-4)
 
 ---
 
-## Email Tools (9)
+## Email Tools (10)
 
 ### 1. fastmail_list_mailboxes
 
@@ -369,9 +370,125 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_delete_email '{"email_
 
 ---
 
-## Calendar Tools (8)
+### 10. fastmail_get_thread
 
-### 10. fastmail_list_calendars
+**Description:** Get all emails in a conversation thread
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `email_id` | string | Yes | ID of any email in the thread |
+
+**Returns:**
+- Thread object with `id`, `emails[]`, `subject`, `participants[]`, `latestDate`, `emailCount`
+
+**Example Usage:**
+```bash
+bunx fastmail get_thread '{"email_id": "msg001"}'
+```
+
+**Example Response:**
+```json
+{
+  "id": "thread001",
+  "subject": "Project Discussion",
+  "emails": [...],
+  "participants": [
+    {"name": "John", "email": "john@example.com"},
+    {"name": "Jane", "email": "jane@example.com"}
+  ],
+  "latestDate": "2024-01-15T14:30:00+07:00",
+  "emailCount": 5
+}
+```
+
+---
+
+## Bulk Email Tools (3)
+
+### 11. fastmail_bulk_move_emails
+
+**Description:** Move multiple emails to a folder at once
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `email_ids` | string[] | Yes | Array of email IDs to move |
+| `target_mailbox_id` | string | Yes | Destination folder ID |
+| `source_mailbox_id` | string | No | Source folder ID (optional) |
+
+**Returns:**
+- Object with `succeeded[]` and `failed[]` arrays
+
+**Example Usage:**
+```bash
+bunx fastmail bulk_move_emails '{
+  "email_ids": ["msg001", "msg002", "msg003"],
+  "target_mailbox_id": "archive-folder-id"
+}'
+```
+
+**Example Response:**
+```json
+{
+  "succeeded": ["msg001", "msg002", "msg003"],
+  "failed": []
+}
+```
+
+---
+
+### 12. fastmail_bulk_set_labels
+
+**Description:** Apply labels to multiple emails at once
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `email_ids` | string[] | Yes | Array of email IDs |
+| `keywords` | object | Yes | Labels to apply: `{label: true/false}` |
+
+**Example Usage:**
+```bash
+bunx fastmail bulk_set_labels '{
+  "email_ids": ["msg001", "msg002"],
+  "keywords": {"$seen": true, "$flagged": true}
+}'
+```
+
+**Example Response:**
+```json
+{
+  "succeeded": ["msg001", "msg002"],
+  "failed": []
+}
+```
+
+---
+
+### 13. fastmail_bulk_delete_emails
+
+**Description:** Delete multiple emails at once (move to trash)
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `email_ids` | string[] | Yes | Array of email IDs to delete |
+
+**Example Usage:**
+```bash
+bunx fastmail bulk_delete_emails '{"email_ids": ["msg001", "msg002", "msg003"]}'
+```
+
+**Example Response:**
+```json
+{
+  "succeeded": ["msg001", "msg002", "msg003"],
+  "failed": []
+}
+```
+
+---
+
+## Calendar Tools (10)
+
+### 14. fastmail_list_calendars
 
 **Description:** Display list of all available calendars
 
@@ -407,15 +524,15 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_calendars
 
 ---
 
-### 11. fastmail_list_events
+### 15. fastmail_list_events
 
-**Description:** Display events in a date range (times shown in UTC+7)
+**Description:** Display events in a date range (times shown in configured timezone)
 
 | Parameter | Type | Required | Format | Description |
 |-----------|------|----------|--------|-------------|
 | `calendar_id` | string | No | - | ID of specific calendar (lists all if omitted) |
-| `start_date` | string | Yes | YYYY-MM-DD or ISO 8601 | Start date for range (UTC+7) |
-| `end_date` | string | Yes | YYYY-MM-DD or ISO 8601 | End date for range (UTC+7) |
+| `start_date` | string | Yes | YYYY-MM-DD or ISO 8601 | Start date for range |
+| `end_date` | string | Yes | YYYY-MM-DD or ISO 8601 | End date for range |
 
 **Returns:**
 - Array of event objects with `id`, `title`, `start`, `end`, `description`, `location`, `isAllDay`
@@ -471,9 +588,9 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_events '{
 
 ---
 
-### 12. fastmail_get_event
+### 16. fastmail_get_event
 
-**Description:** Get detailed information about a specific event (time shown in UTC+7)
+**Description:** Get detailed information about a specific event (time shown in configured timezone)
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -510,16 +627,16 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_get_event '{"event_id"
 
 ---
 
-### 13. fastmail_create_event
+### 17. fastmail_create_event
 
-**Description:** Create a new calendar event (input time in UTC+7)
+**Description:** Create a new calendar event (input time in configured timezone)
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `calendar_id` | string | No | Personal | ID of calendar to create in |
 | `title` | string | Yes | - | Event title |
-| `start` | string | Yes | - | Start time (ISO 8601, UTC+7) |
-| `end` | string | Yes | - | End time (ISO 8601, UTC+7) |
+| `start` | string | Yes | - | Start time (ISO 8601) |
+| `end` | string | Yes | - | End time (ISO 8601) |
 | `description` | string | No | "" | Event description |
 | `location` | string | No | "" | Event location |
 | `all_day` | boolean | No | false | If true, event is all-day event |
@@ -566,7 +683,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event '{
 
 ---
 
-### 14. fastmail_update_event
+### 18. fastmail_update_event
 
 **Description:** Update an existing calendar event
 
@@ -574,8 +691,8 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event '{
 |-----------|------|----------|-------------|
 | `event_id` | string | Yes | ID of the event to update |
 | `title` | string | No | New event title |
-| `start` | string | No | New start time (ISO 8601, UTC+7) |
-| `end` | string | No | New end time (ISO 8601, UTC+7) |
+| `start` | string | No | New start time (ISO 8601) |
+| `end` | string | No | New end time (ISO 8601) |
 | `description` | string | No | New description |
 | `location` | string | No | New location |
 
@@ -610,7 +727,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_update_event '{
 
 ---
 
-### 15. fastmail_delete_event
+### 19. fastmail_delete_event
 
 **Description:** Delete a calendar event
 
@@ -636,7 +753,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_delete_event '{"event_
 
 ---
 
-### 16. fastmail_search_events
+### 20. fastmail_search_events
 
 **Description:** Search for events by title or description
 
@@ -682,7 +799,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_events '{
 
 ---
 
-### 17. fastmail_create_recurring_event
+### 21. fastmail_create_recurring_event
 
 **Description:** Create a calendar event with recurrence (daily/weekly/monthly/yearly)
 
@@ -690,8 +807,8 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_events '{
 |-----------|------|----------|---------|-------------|
 | `calendar_id` | string | No | Personal | ID of calendar to create in |
 | `title` | string | Yes | - | Event title |
-| `start` | string | Yes | - | Start time (ISO 8601, UTC+7) |
-| `end` | string | Yes | - | End time (ISO 8601, UTC+7) |
+| `start` | string | Yes | - | Start time (ISO 8601) |
+| `end` | string | Yes | - | End time (ISO 8601) |
 | `description` | string | No | "" | Event description |
 | `location` | string | No | "" | Event location |
 | `recurrence` | string | Yes | - | Frequency: `daily`, `weekly`, `monthly`, or `yearly` |
@@ -744,9 +861,71 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_recurring_event
 
 ---
 
+### 22. fastmail_list_invitations
+
+**Description:** List all calendar invitations (events where you're an attendee)
+
+**Parameters:** None
+
+**Returns:**
+- Array of invitation objects with `eventId`, `calendarId`, `title`, `organizer`, `start`, `end`, `myStatus`
+
+**Example Usage:**
+```bash
+bunx fastmail list_invitations
+```
+
+**Example Response:**
+```json
+{
+  "invitations": [
+    {
+      "eventId": "evt001",
+      "calendarId": "cal001",
+      "title": "Team Meeting",
+      "organizer": {"name": "John", "email": "john@example.com"},
+      "start": "2024-01-20T10:00:00+07:00",
+      "end": "2024-01-20T11:00:00+07:00",
+      "myStatus": "needs-action"
+    }
+  ]
+}
+```
+
+---
+
+### 23. fastmail_respond_to_invitation
+
+**Description:** Accept, decline, or tentatively accept a calendar invitation
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `event_id` | string | Yes | ID of the invitation event |
+| `response` | string | Yes | One of: `accept`, `decline`, `tentative` |
+
+**Example Usage:**
+```bash
+bunx fastmail respond_to_invitation '{
+  "event_id": "evt001",
+  "response": "accept"
+}'
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "result": {
+    "message": "Invitation accepted"
+  }
+}
+```
+
+---
+
 ## Reminder Tools (4)
 
-### 18. fastmail_add_event_reminder
+### 24. fastmail_add_event_reminder
 
 **Description:** Add a reminder/alarm to an existing event
 
@@ -799,7 +978,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_add_event_reminder '{
 
 ---
 
-### 19. fastmail_remove_event_reminder
+### 25. fastmail_remove_event_reminder
 
 **Description:** Remove reminder(s) from an event
 
@@ -835,7 +1014,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_remove_event_reminder 
 
 ---
 
-### 20. fastmail_list_event_reminders
+### 26. fastmail_list_event_reminders
 
 **Description:** Display all reminders for an event
 
@@ -872,7 +1051,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_event_reminders '
 
 ---
 
-### 21. fastmail_create_event_with_reminder
+### 27. fastmail_create_event_with_reminder
 
 **Description:** Create a new event with reminder(s) in one operation
 
@@ -880,8 +1059,8 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_event_reminders '
 |-----------|------|----------|---------|-------------|
 | `calendar_id` | string | No | Personal | ID of calendar to create in |
 | `title` | string | Yes | - | Event title |
-| `start` | string | Yes | - | Start time (ISO 8601, UTC+7) |
-| `end` | string | Yes | - | End time (ISO 8601, UTC+7) |
+| `start` | string | Yes | - | Start time (ISO 8601) |
+| `end` | string | Yes | - | End time (ISO 8601) |
 | `description` | string | No | "" | Event description |
 | `location` | string | No | "" | Event location |
 | `reminder_minutes` | array | No | `[15]` | Array of minute values before event (e.g., `[15, 60, 1440]`) |
@@ -951,21 +1130,28 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event_with_remi
 
 | Category | Count | Tools |
 |----------|-------|-------|
-| Email | 9 | list_mailboxes, list_emails, get_email, search_emails, send_email, reply_email, move_email, set_labels, delete_email |
-| Calendar | 8 | list_calendars, list_events, get_event, create_event, update_event, delete_event, search_events, create_recurring_event |
+| Email | 10 | list_mailboxes, list_emails, get_email, get_thread, search_emails, send_email, reply_email, move_email, set_labels, delete_email |
+| Bulk Email | 3 | bulk_move_emails, bulk_set_labels, bulk_delete_emails |
+| Calendar | 10 | list_calendars, list_events, get_event, create_event, update_event, delete_event, search_events, create_recurring_event, list_invitations, respond_to_invitation |
 | Reminders | 4 | add_event_reminder, remove_event_reminder, list_event_reminders, create_event_with_reminder |
-| **Total** | **21** | **All tools documented** |
+| **Total** | **27** | **All tools documented** |
 
 ---
 
 ## Common Patterns
 
-### Time Format (UTC+7)
-All calendar times use ISO 8601 format with UTC+7 timezone:
+### Time Format (Configurable Timezone)
+All calendar times use ISO 8601 format with your configured timezone:
 ```
-2024-01-15T14:30:00+07:00  (with time)
+2024-01-15T14:30:00+07:00  (with time - timezone offset shown)
 2024-01-15                 (date only, treated as start of day)
 ```
+
+**Timezone Configuration:**
+- **Default:** Auto-detects your system's local timezone
+- **Override:** Set `FASTMAIL_TIMEZONE` environment variable (IANA format)
+- **Examples:** `America/New_York`, `Asia/Bangkok`, `Europe/London`, `UTC`
+- **DST:** Automatically handles Daylight Saving Time
 
 ### Recipient Format (Email)
 Recipients can be specified as arrays:

@@ -10,7 +10,7 @@
       "variant": "high"
     },
     "atlas": {
-      "model": "opencode/kimi-k2.5-free",
+      "model": "github-copilot/claude-opus-4.5",
       "variant": "max"
     }
   },

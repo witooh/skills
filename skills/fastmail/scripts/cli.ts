@@ -4,6 +4,7 @@ import { JMAPClient } from './jmap-client.js';
 import { EmailTools } from './tools/email.js';
 import { CalDAVClient } from './caldav-client.js';
 import { CalendarTools } from './tools/calendar.js';
+import { formatError, ValidationError, BulkOperationError } from './errors.js';
 
 // Types
 interface ToolResult {
@@ -425,15 +426,87 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
           reminders,
         });
 
+         return { success: true, result };
+       }
+
+      case 'fastmail_get_thread': {
+        const email = getEmailTools();
+        const emailId = args.email_id as string;
+        if (!emailId) throw new Error('email_id is required');
+        const result = await email.getThread(emailId);
         return { success: true, result };
       }
 
-       default:
+      case 'fastmail_bulk_move_emails': {
+        const email = getEmailTools();
+        const emailIds = args.email_ids as string[];
+        const targetMailboxId = args.target_mailbox_id as string;
+        const sourceMailboxId = args.source_mailbox_id as string | undefined;
+        
+        if (!emailIds || !Array.isArray(emailIds) || emailIds.length === 0) {
+          throw new Error('email_ids must be a non-empty array of email IDs');
+        }
+        if (!targetMailboxId) {
+          throw new Error('target_mailbox_id is required');
+        }
+        
+        const result = await email.bulkMoveToFolder(emailIds, targetMailboxId, sourceMailboxId);
+        return { success: true, result };
+      }
+
+      case 'fastmail_bulk_set_labels': {
+        const email = getEmailTools();
+        const emailIds = args.email_ids as string[];
+        const keywords = args.keywords as Record<string, boolean>;
+        
+        if (!emailIds || !Array.isArray(emailIds) || emailIds.length === 0) {
+          throw new Error('email_ids must be a non-empty array of email IDs');
+        }
+        if (!keywords || typeof keywords !== 'object') {
+          throw new Error('keywords must be an object with label:boolean pairs');
+        }
+        
+        const result = await email.bulkSetKeywords(emailIds, keywords);
+        return { success: true, result };
+      }
+
+      case 'fastmail_bulk_delete_emails': {
+        const email = getEmailTools();
+        const emailIds = args.email_ids as string[];
+        
+        if (!emailIds || !Array.isArray(emailIds) || emailIds.length === 0) {
+          throw new Error('email_ids must be a non-empty array of email IDs');
+        }
+        
+        const result = await email.bulkDeleteEmails(emailIds);
+        return { success: true, result };
+      }
+
+      case 'fastmail_list_invitations': {
+        const calendar = getCalendarTools();
+        const result = await calendar.listInvitations();
+        return { success: true, result };
+      }
+
+      case 'fastmail_respond_to_invitation': {
+        const calendar = getCalendarTools();
+        const eventId = args.event_id as string;
+        const response = args.response as 'accept' | 'decline' | 'tentative';
+        
+        if (!eventId) throw new Error('event_id is required');
+        if (!response || !['accept', 'decline', 'tentative'].includes(response)) {
+          throw new Error('response must be one of: accept, decline, tentative');
+        }
+        
+        await calendar.respondToInvitation(eventId, response);
+        return { success: true, result: { message: `Invitation ${response}ed` } };
+      }
+
+        default:
          return { success: false, error: `Unknown tool: ${normalizedToolName}` };
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return { success: false, error: message };
+    return formatError(error);
   }
 }
 
@@ -486,17 +559,22 @@ OUTPUT:
 // List available tools
 function showList(): void {
   const tools = [
-    // Email tools (9)
+    // Email tools (10)
     'list_mailboxes',
     'list_emails',
     'get_email',
+    'get_thread',
     'search_emails',
     'send_email',
     'move_email',
     'set_labels',
     'delete_email',
     'reply_email',
-    // Calendar tools (8)
+    // Bulk email tools (3)
+    'bulk_move_emails',
+    'bulk_set_labels',
+    'bulk_delete_emails',
+    // Calendar tools (10)
     'list_calendars',
     'list_events',
     'get_event',
@@ -505,6 +583,8 @@ function showList(): void {
     'delete_event',
     'search_events',
     'create_recurring_event',
+    'list_invitations',
+    'respond_to_invitation',
     // Reminder tools (4)
     'add_event_reminder',
     'remove_event_reminder',
@@ -512,15 +592,18 @@ function showList(): void {
     'create_event_with_reminder',
   ];
 
-  console.log('Available Tools (21 total):');
-  console.log('\nEmail Tools (9):');
-  tools.slice(0, 9).forEach((tool, i) => console.log(`  ${i + 1}. ${tool}`));
+  console.log('Available Tools (27 total):');
+  console.log('\nEmail Tools (10):');
+  tools.slice(0, 10).forEach((tool, i) => console.log(`  ${i + 1}. ${tool}`));
+  
+  console.log('\nBulk Email Tools (3):');
+  tools.slice(10, 13).forEach((tool, i) => console.log(`  ${i + 11}. ${tool}`));
 
-  console.log('\nCalendar Tools (8):');
-  tools.slice(9, 17).forEach((tool, i) => console.log(`  ${i + 10}. ${tool}`));
+  console.log('\nCalendar Tools (10):');
+  tools.slice(13, 23).forEach((tool, i) => console.log(`  ${i + 14}. ${tool}`));
 
   console.log('\nReminder Tools (4):');
-  tools.slice(17).forEach((tool, i) => console.log(`  ${i + 18}. ${tool}`));
+  tools.slice(23).forEach((tool, i) => console.log(`  ${i + 24}. ${tool}`));
 }
 
 // Parse command line arguments
