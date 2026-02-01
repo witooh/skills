@@ -21,7 +21,7 @@ bunx fastmail list_mailboxes
 
 # Email: Send
 bunx fastmail send_email \
-  '{"to": [{"email": "user@example.com"}], "subject": "Hi", "body": "Message"}'
+  '{"to": [{"email": "user@example.com"}], "subject": "Hi", "text_body": "Message"}'
 
 # Calendar: List events
 bunx fastmail list_events \
