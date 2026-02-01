@@ -1,0 +1,17 @@
+{
+  "name": "stock-market",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "stock-market": "./scripts/cli.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "bun run scripts/cli.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  }
+}
