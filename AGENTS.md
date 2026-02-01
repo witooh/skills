@@ -7,15 +7,18 @@ Repository for creating and managing agent skills following the [Agent Skills Sp
 ## Guardrails
 
 ### MUST DO
+
 - [ ] **Always run `/skill-creator` before creating or modifying any skill**
 - [ ] Follow the [Agent Skills Specification](https://agentskills.io/specification) strictly
-- [ ] Place all skills in `skills/` directory
+- [ ] **Place skill in `./skills/<skill-name>/` directory**
+- [ ] **Place test plan in `./tests/<skill-name>/` directory**
 - [ ] Include valid YAML frontmatter with `name` and `description` in SKILL.md
 - [ ] Test all scripts before packaging
 - [ ] Use environment variables for secrets (never hardcode)
 - [ ] Validate skill with `skills-ref validate` before release
 
 ### MUST NOT
+
 - [ ] Create README.md, CHANGELOG.md, or other auxiliary docs (SKILL.md is the single source)
 - [ ] Hardcode API keys, tokens, or passwords in code
 - [ ] Use uppercase or underscores in skill names (use lowercase-hyphens only)
@@ -24,6 +27,7 @@ Repository for creating and managing agent skills following the [Agent Skills Sp
 - [ ] Commit node_modules or .sisyphus directories
 
 ### PREFER
+
 - [ ] Bun over Node.js for runtime
 - [ ] TypeScript with strict mode
 - [ ] ES Modules (`"type": "module"`)
@@ -68,12 +72,13 @@ Every skill MUST follow the [Agent Skills Specification](https://agentskills.io/
 **SKILL.md** - The only required file containing:
 
 1. **YAML Frontmatter** (required):
+
    ```yaml
    ---
-   name: skill-name           # Lowercase, hyphens only, 1-64 chars
-   description: ...           # What it does + when to use, 1-1024 chars
-   compatibility: opencode    # Optional: environment requirements
-   metadata:                  # Optional: arbitrary key-value pairs
+   name: skill-name # Lowercase, hyphens only, 1-64 chars
+   description: ... # What it does + when to use, 1-1024 chars
+   compatibility: opencode # Optional: environment requirements
+   metadata: # Optional: arbitrary key-value pairs
      author: your-name
      version: "1.0"
    ---
@@ -83,18 +88,20 @@ Every skill MUST follow the [Agent Skills Specification](https://agentskills.io/
 
 ### Optional Directories
 
-| Directory | Purpose | When to Include |
-|-----------|---------|-----------------|
-| `scripts/` | Executable code (TS, Python, Bash) | Deterministic, reusable operations |
-| `references/` | Documentation loaded on-demand | Detailed specs, schemas, examples |
-| `assets/` | Static resources (templates, images) | Files used in output |
+| Directory     | Purpose                              | When to Include                    |
+| ------------- | ------------------------------------ | ---------------------------------- |
+| `scripts/`    | Executable code (TS, Python, Bash)   | Deterministic, reusable operations |
+| `references/` | Documentation loaded on-demand       | Detailed specs, schemas, examples  |
+| `assets/`     | Static resources (templates, images) | Files used in output               |
 
 ## Creating a New Skill
 
 > **IMPORTANT:** Always load the `skill-creator` skill first when creating or updating skills:
+>
 > ```
 > /skill-creator
 > ```
+>
 > This skill provides comprehensive guidance on skill design patterns, progressive disclosure, and best practices.
 
 ### Step 1: Load skill-creator Skill
@@ -106,6 +113,7 @@ Before creating any skill, invoke the `skill-creator` skill for detailed guidanc
 ```
 
 The skill-creator provides:
+
 - Core principles (concise context, degrees of freedom)
 - Anatomy of a skill (SKILL.md structure, bundled resources)
 - Progressive disclosure patterns
@@ -141,8 +149,8 @@ metadata:
 
 ## Tools
 
-| Tool | Purpose |
-|------|---------|
+| Tool        | Purpose      |
+| ----------- | ------------ |
 | `tool_name` | What it does |
 
 ## Examples
@@ -196,11 +204,12 @@ After testing, refine the skill based on real usage patterns. The `skill-creator
 
 ### fastmail
 
-**Location:** `skills/fastmail/`  
-**Version:** 2.0.0  
+**Location:** `skills/fastmail/`
+**Version:** 2.0.0
 **APIs:** JMAP (email), CalDAV (calendar)
 
 Email and calendar management for Fastmail with 21 MCP tools:
+
 - **Email (9 tools):** list_mailboxes, list_emails, get_email, search_emails, send_email, reply_email, move_email, set_labels, delete_email
 - **Calendar (8 tools):** list_calendars, list_events, get_event, create_event, update_event, delete_event, search_events, create_recurring_event
 - **Reminders (4 tools):** add_event_reminder, remove_event_reminder, list_event_reminders, create_event_with_reminder
@@ -241,7 +250,9 @@ All tool responses should return consistent JSON:
 ```json
 {
   "success": true,
-  "data": { /* tool-specific response */ },
+  "data": {
+    /* tool-specific response */
+  },
   "timestamp": "ISO-8601 timestamp"
 }
 ```
@@ -283,12 +294,12 @@ skills-ref validate ./skills/{skill-name}
 
 ## Project Conventions
 
-| Aspect | Convention |
-|--------|------------|
-| Runtime | Bun (TypeScript) |
-| Module | ES Modules |
-| Timezone | UTC+7 (Asia/Bangkok) default |
-| Languages | English + Thai support |
-| Config | Environment variables for secrets |
-| Testing | Manual validation before packaging |
+| Aspect             | Convention                                  |
+| ------------------ | ------------------------------------------- |
+| Runtime            | Bun (TypeScript)                            |
+| Module             | ES Modules                                  |
+| Timezone           | UTC+7 (Asia/Bangkok) default                |
+| Languages          | English + Thai support                      |
+| Config             | Environment variables for secrets           |
+| Testing            | Manual validation before packaging          |
 | **Skill Creation** | **Always use `/skill-creator` skill first** |
