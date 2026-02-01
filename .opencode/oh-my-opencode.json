@@ -7,7 +7,7 @@
     },
     "oracle": {
       "model": "github-copilot/gpt-5.2-codex",
-      "variant": "high"
+      "variant": "xhigh"
     },
     "atlas": {
       "model": "github-copilot/claude-opus-4.5",

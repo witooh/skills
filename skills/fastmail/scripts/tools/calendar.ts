@@ -649,7 +649,12 @@ END:VCALENDAR`;
       if (!cal) throw new Error(`Calendar not found: ${calendarId}`);
       calendar = cal;
     } else {
-      calendar = calendars[0];
+      // Find a proper calendar (not a task calendar)
+      calendar = calendars.find(c =>
+        c.displayName &&
+        !(c.displayName as string).toLowerCase().includes('task') &&
+        !(c.displayName as string).toLowerCase().includes('default')
+      ) || calendars[0];
       if (!calendar) throw new Error('No calendars found');
     }
 
