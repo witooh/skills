@@ -200,26 +200,6 @@ For complex skills, create `references/TOOLS.md` with detailed tool specificatio
 
 After testing, refine the skill based on real usage patterns. The `skill-creator` skill provides guidance on iteration workflows.
 
-## Existing Skills
-
-### fastmail
-
-**Location:** `skills/fastmail/`
-**Version:** 2.0.0
-**APIs:** JMAP (email), CalDAV (calendar)
-
-Email and calendar management for Fastmail with 21 MCP tools:
-
-- **Email (9 tools):** list_mailboxes, list_emails, get_email, search_emails, send_email, reply_email, move_email, set_labels, delete_email
-- **Calendar (8 tools):** list_calendars, list_events, get_event, create_event, update_event, delete_event, search_events, create_recurring_event
-- **Reminders (4 tools):** add_event_reminder, remove_event_reminder, list_event_reminders, create_event_with_reminder
-
-```bash
-# Install and run
-cd skills/fastmail && bun install
-bunx fastmail --list
-```
-
 ## Development Guidelines
 
 ### Naming Conventions
@@ -299,7 +279,16 @@ skills-ref validate ./skills/{skill-name}
 | Runtime            | Bun (TypeScript)                            |
 | Module             | ES Modules                                  |
 | Timezone           | UTC+7 (Asia/Bangkok) default                |
-| Languages          | English + Thai support                      |
+| Languages          | English (Thai for specific skills)          |
 | Config             | Environment variables for secrets           |
 | Testing            | Manual validation before packaging          |
 | **Skill Creation** | **Always use `/skill-creator` skill first** |
+
+---
+
+## Language Guidelines
+
+**All documentation must be in English.** Thai is acceptable for:
+
+- LLM/chat communication
+- Specific skills targeting Thai-speaking users

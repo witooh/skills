@@ -2,6 +2,12 @@
 
 A collection of AI agent skills extending capabilities through specialized tools.
 
+## Installation
+
+```bash
+npx skills https://github.com/witooh/skills
+```
+
 ## Communication & Productivity
 
 | Skill | Tools | Description |
@@ -13,6 +19,9 @@ A collection of AI agent skills extending capabilities through specialized tools
 | Skill | Tools | Description |
 |-------|-------|-------------|
 | [stock-market](./skills/stock-market/) | 5 | Real-time stock & ETF prices (US, Thai SET, Crypto) |
+| [sentiment-voter](./skills/sentiment-voter/) | 2 | Multi-LLM sentiment analysis for stocks/ETF/crypto with voting & caching |
+| [coindesk-news](./skills/coindesk-news/) | 3 | Cryptocurrency news from CoinDesk with sentiment filtering |
+| [massive-news](./skills/massive-news/) | 1 | Stock & ETF news from Massive API with sentiment analysis |
 
 ---
 
