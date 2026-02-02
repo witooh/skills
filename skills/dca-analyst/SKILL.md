@@ -1,6 +1,8 @@
 ---
 name: dca-analyst
 description: Analyze DCA and Enhanced DCA (eDCA) portfolios using agent-first data collection (Playwright browsing + news skills) to gather technical analysis (daily/weekly), news context, and market data. Supports standard DCA, Value Averaging, RSI-adjusted DCA, and volatility-based strategies. Use when users ask to analyze DCA, evaluate an eDCA plan, review portfolio performance, or compare DCA strategies. Trigger phrases include "DCA", "eDCA", "ถัวเฉลี่ย", "ถัวเฉลี่ยต้นทุน", "value averaging", "DCA ขั้นเทพ", "วิเคราะห์พอร์ต", "DCA analysis", "enhanced DCA", "adaptive DCA".
+metadata:
+  version: 1.0
 ---
 
 # DCA Analyst (Pro Edition)
@@ -12,6 +14,7 @@ Analyze standard and Enhanced DCA (eDCA) portfolios using agent-driven data coll
 Provide as much of the following as possible; if data is missing, proceed with explicit assumptions.
 
 ### Basic Portfolio Data
+
 - Portfolio holdings: symbol, asset type (stock/ETF/crypto), current units, avg cost, currency
 - DCA plan: base amount per interval, frequency (weekly/monthly), start date, target horizon
 - Allocation targets (optional): percentage per asset
@@ -19,23 +22,26 @@ Provide as much of the following as possible; if data is missing, proceed with e
 - Preferred sources (optional): specific sites, regions, or news sources
 
 ### eDCA Strategy Selection (optional)
+
 - **Strategy type**: `standard`, `value_averaging`, `rsi_adjusted`, `volatility_based`, `momentum_based`
 - **Adjustment parameters**: multiplier range (e.g., 0.5x to 2.0x), thresholds
 - **Risk settings**: max position size, stop conditions
 
 **Example (Standard DCA):**
+
 ```json
 {
   "base_currency": "USD",
-  "dca_plan": {"amount": 500, "frequency": "monthly", "start": "2023-01-01"},
+  "dca_plan": { "amount": 500, "frequency": "monthly", "start": "2023-01-01" },
   "holdings": [
-    {"symbol": "AAPL", "type": "stock", "units": 10, "avg_cost": 175.2},
-    {"symbol": "QQQ", "type": "etf", "units": 4, "avg_cost": 380.0}
+    { "symbol": "AAPL", "type": "stock", "units": 10, "avg_cost": 175.2 },
+    { "symbol": "QQQ", "type": "etf", "units": 4, "avg_cost": 380.0 }
   ]
 }
 ```
 
 **Example (Enhanced DCA - RSI Strategy):**
+
 ```json
 {
   "base_currency": "USD",
@@ -50,9 +56,7 @@ Provide as much of the following as possible; if data is missing, proceed with e
       "rsi_overbought": 70
     }
   },
-  "holdings": [
-    {"symbol": "QQQ", "type": "etf", "units": 5, "avg_cost": 375.0}
-  ]
+  "holdings": [{ "symbol": "QQQ", "type": "etf", "units": 5, "avg_cost": 375.0 }]
 }
 ```
 
@@ -61,25 +65,31 @@ Provide as much of the following as possible; if data is missing, proceed with e
 Choose a strategy based on user's sophistication and data availability. All strategies are informational models only.
 
 ### 1. Standard DCA
+
 **Description**: Fixed amount invested at regular intervals regardless of price.
 **Use when**: User wants simplicity, beginner-friendly approach.
 **Formula**: `investment = base_amount` (constant)
 
 ### 2. Value Averaging (VA)
+
 **Description**: Adjust investment to maintain a target portfolio value trajectory.
 **Use when**: User wants to "buy low, sell high" automatically within accumulation phase.
-**Formula**: 
+**Formula**:
+
 ```
 target_value = base_amount × period_number
 gap = target_value - current_value
 investment = base_amount + gap
 ```
+
 **Constraints**: Set min/max investment limits to avoid extreme contributions.
 
 ### 3. RSI-Adjusted DCA
+
 **Description**: Increase investment when RSI indicates oversold conditions, decrease when overbought.
 **Use when**: Technical indicators available, user wants mean-reversion approach.
 **Formula**:
+
 ```
 if RSI < 30: multiplier = max_multiplier (e.g., 2.0x)
 if RSI > 70: multiplier = min_multiplier (e.g., 0.5x)
@@ -88,9 +98,11 @@ investment = base_amount × multiplier
 ```
 
 ### 4. Volatility-Based DCA
+
 **Description**: Increase investment during high volatility (potential opportunities), decrease during low volatility.
 **Use when**: Market volatility data available, user wants risk-adjusted approach.
 **Formula**:
+
 ```
 volatility_z = (current_volatility - avg_volatility) / std_volatility
 multiplier = base_multiplier + (volatility_z × sensitivity)
@@ -98,9 +110,11 @@ investment = base_amount × clamp(multiplier, min, max)
 ```
 
 ### 5. Momentum-Based DCA (Trend Following)
+
 **Description**: Increase investment during uptrends, decrease during downtrends (contrarian to mean reversion).
 **Use when**: User believes in trend continuation, has moving average data.
 **Formula**:
+
 ```
 if price > MA(50): multiplier increases (up to max)
 if price < MA(50): multiplier decreases (down to min)
@@ -110,6 +124,7 @@ investment = base_amount × multiplier
 ## Core Workflow (Agent-First)
 
 ### Phase 1: Strategy Setup
+
 1. **Identify strategy type**
    - Parse user input for strategy selection.
    - Default to `standard` if not specified.
@@ -121,6 +136,7 @@ investment = base_amount × multiplier
    - Load `references/dca-metrics.md` and `references/edca-strategies.md`.
 
 ### Phase 2: Data Collection
+
 3. **Market data (prices + history)**
    - Use `stock-market` skill to fetch current prices and historical data.
    - Capture timestamps and quote currency.
@@ -159,6 +175,7 @@ investment = base_amount × multiplier
    - Run `sentiment-voter` for consensus sentiment on key articles.
 
 ### Phase 3: Analysis & Modeling
+
 6. **Calculate eDCA multipliers**
    - For RSI strategy: compute current RSI, determine multiplier.
    - For volatility strategy: calculate rolling volatility, determine multiplier.
@@ -176,6 +193,7 @@ investment = base_amount × multiplier
    - Use formulas in `references/dca-metrics.md`.
 
 ### Phase 4: Synthesis
+
 9. **Generate report**
    - **Read previous reports** from `./report/` (1-3 most recent) for learning context
    - Compare current recommendations with past ones
@@ -191,6 +209,7 @@ investment = base_amount × multiplier
 ### Language
 
 **Primary Language**: Thai (ภาษาไทย)
+
 - All reports should be generated in Thai for user comprehension
 - Technical terms may remain in English with Thai explanations
 - Numerical data: Use comma (,) for thousands, period (.) for decimals (Thai format)
@@ -243,6 +262,7 @@ All reports MUST start with **Executive Summary (สรุปผลการว�
 ```
 
 ### Standard DCA Report
+
 ```
 ## ภาพรวมพอร์ต (Portfolio Summary)
 - สกุลเงิน: ...
@@ -271,6 +291,7 @@ All reports MUST start with **Executive Summary (สรุปผลการว�
 ```
 
 ### Enhanced DCA (eDCA) Report
+
 ```
 ## ภาพรวมพอร์ต (Portfolio Summary)
 - สกุลเงิน: ...
@@ -325,34 +346,41 @@ All reports MUST start with **Executive Summary (สรุปผลการว�
 All DCA analysis reports must be saved to disk for future reference.
 
 ### Directory Structure
+
 - **Location**: `./report/`
 - **Create if missing**: Automatically create the directory if it doesn't exist
 
 ### Filename Format
+
 Use local time format: `YYYY-MM-DD-HH:MM:SS.md`
 
 **Examples**:
+
 - `./report/2026-01-25-18:00:00.md`
 - `./report/2026-02-02-14:30:00.md`
 
 **Time Format Rules**:
+
 - Use **local time** (not UTC)
 - 24-hour format
 - Zero-padded: `18:00:00` (not `6:0:0`)
 - Include seconds for uniqueness
 
 ### How to Determine Local Time
+
 1. Check user's timezone from context or system settings
 2. Default to Asia/Bangkok (UTC+7) if not specified
 3. Use current timestamp when report is generated
 
 ### File Format
+
 - **Format**: Markdown (`.md`)
 - **Encoding**: UTF-8
 - **Language**: Thai (ภาษาไทย)
 - **Content**: Full report with Executive Summary at top, followed by detailed analysis
 
 ### Workflow
+
 1. Gather data (prices, technical indicators, exchange rate)
 2. Calculate eDCA multipliers based on technical signals
 3. **Generate report in Thai** with Executive Summary first
@@ -362,7 +390,9 @@ Use local time format: `YYYY-MM-DD-HH:MM:SS.md`
 7. Include saved path in final response to user
 
 ### Required Data Collection Checklist
+
 Before generating report, ensure you have:
+
 - [ ] Current prices for all holdings
 - [ ] THB/USD exchange rate from Kasikornbank
 - [ ] Technical indicators (RSI, MACD, ATR) from investing.com
@@ -387,6 +417,7 @@ Before generating report, ensure you have:
 For ETFs, use these URL patterns to access technical analysis data:
 
 **Main ETF Page** (includes Technical Analysis tab):
+
 - Pattern: `https://www.investing.com/etfs/{etf-identifier}`
 - Examples:
   - QQQM: `https://www.investing.com/etfs/qqqm`
@@ -394,11 +425,13 @@ For ETFs, use these URL patterns to access technical analysis data:
   - SPY: `https://www.investing.com/etfs/spdr-s-p-500`
 
 **Note**: Some ETFs use legacy ticker identifiers. If the direct ticker URL fails, try:
+
 1. Search on investing.com for the ETF name
 2. Use the legacy identifier from search results
 3. For SMH specifically, use `holdrs-merrill-lynch-semiconductor` instead of `smh`
 
 **Technical Data Available**:
+
 - Timeframes: 1 Min, 5 Min, 15 Min, 30 Min, Hourly, Daily, Weekly, Monthly
 - **Technical Summary**: Strong Sell / Sell / Neutral / Buy / Strong Buy
 - **Technical Indicators** (capture ALL these values):
@@ -419,6 +452,7 @@ For ETFs, use these URL patterns to access technical analysis data:
 - **Pivot Points**: Classic, Fibonacci, Camarilla, Woodie's, DeMark's (S1, S2, S3, P, R1, R2, R3)
 
 **How to Extract Data**:
+
 1. Navigate to the ETF main page using `/playwright`
 2. Scroll to "Technical Analysis" section or click Technical tab
 3. **Expand/capture the Technical Indicators table** - this contains individual indicator values
@@ -430,6 +464,7 @@ For ETFs, use these URL patterns to access technical analysis data:
    - Daily and Weekly summary signals
 
 **How to Use Technical Data for eDCA**:
+
 - **RSI-Adjusted Strategy**: Use RSI(14) value directly
   - RSI < 30: multiplier = 2.0x (oversold, buy aggressively)
   - RSI 30-50: multiplier = 1.5x (tending toward oversold)
@@ -448,6 +483,7 @@ For ETFs, use these URL patterns to access technical analysis data:
 For Thai investors, use Kasikornbank (KBank) for accurate exchange rates:
 
 **Kasikornbank Foreign Exchange Rates**:
+
 - URL: `https://www.kasikornbank.com/en/rate/pages/foreign-exchange.aspx`
 - Use `/playwright` to navigate and capture:
   - USD/THB buying rate (TT)
@@ -457,6 +493,7 @@ For Thai investors, use Kasikornbank (KBank) for accurate exchange rates:
 - Update rate for each report generation (rates change daily)
 
 **Alternative Banks**:
+
 - Bangkok Bank: `https://www.bangkokbank.com/en/personal/other-services/foreign-exchange-rates`
 - SCB: `https://www.scb.co.th/en/personal-banking/foreign-exchange-rates.html`
 
@@ -473,6 +510,7 @@ The agent can learn from historical reports stored in `./report/` to improve fut
 ### How to Use Past Reports for Learning
 
 When generating a new report, agent SHOULD:
+
 1. Check `./report/` directory for previous reports
 2. Read 1-3 most recent reports to understand:
    - Previous recommendations and multipliers used
@@ -488,21 +526,25 @@ Each report should include a **Learning Metadata** section at the end:
 ## Learning Metadata (สำหรับ Agent เรียนรู้)
 
 ### การตัดสินใจครั้งนี้ (This Report Decisions)
-| สินทรัพย์ | RSI | MACD | Multiplier | จำนวนเงิน | เหตุผลหลัก |
-|----------|-----|------|-----------|----------|-----------|
-| SMH | 58.25 | +12.45 | 1.2x | $340 | ใกล้จุดสูงสุด, ระวัง |
-| QQQM | 42.21 | -0.37 | 1.4x | $614 | RSI ใกล้ oversold |
+
+| สินทรัพย์ | RSI   | MACD   | Multiplier | จำนวนเงิน | เหตุผลหลัก           |
+| --------- | ----- | ------ | ---------- | --------- | -------------------- |
+| SMH       | 58.25 | +12.45 | 1.2x       | $340      | ใกล้จุดสูงสุด, ระวัง |
+| QQQM      | 42.21 | -0.37  | 1.4x       | $614      | RSI ใกล้ oversold    |
 
 ### สภาวะตลาด (Market Conditions)
+
 - VIX: 18.81 (สูงกว่าปกติ)
 - แนวโน้ม sector: Tech แข็งแกร่ง
 - ข่าวสำคัญ: NVDA Groq deal, AI demand growth
 
 ### ความมั่นใจ (Confidence Level)
+
 - SMH: 75% (ติดตามระดับราคาใกล้สูงสุด)
 - QQQM: 85% (RSI ต่ำ แนวโน้มชัดเจน)
 
 ### บทเรียนจากรายงานก่อน (Lessons from Previous Reports)
+
 - [รายงานครั้งก่อน] แนะนำ: ...
 - ผลที่เกิดขึ้น: ...
 - ปรับปรุงครั้งนี้: ...
@@ -511,12 +553,14 @@ Each report should include a **Learning Metadata** section at the end:
 ### Learning Triggers (เมื่อไหร่ควรเรียนรู้)
 
 **Review Previous Reports When:**
+
 1. **New analysis requested** - Always check past 1-3 reports
 2. **Same asset showing similar RSI levels** - Compare with previous recommendations
 3. **Market conditions changed significantly** - Learn what worked in similar conditions
 4. **User asks for strategy review** - Analyze accuracy of past predictions
 
 **Specific Learning Opportunities:**
+
 - RSI < 30 (oversold) → Check if previous oversold signals were profitable
 - RSI > 70 (overbought) → Check if reducing investment at highs was correct
 - High volatility periods → Learn which multipliers work best
@@ -536,11 +580,13 @@ Each report should include a **Learning Metadata** section at the end:
 ### Feedback Loop Questions (Ask When Analyzing)
 
 **Before Making Recommendation:**
+
 - "What did I recommend last time RSI was around [current value]?"
 - "How did that recommendation perform?"
 - "Should I adjust the multiplier based on past results?"
 
 **After Market Movement (Next Report):**
+
 - "Did the previous multiplier recommendation work well?"
 - "Should I increase/decrease confidence in RSI signals?"
 - "What market factor did I miss last time?"
@@ -551,12 +597,14 @@ Each report should include a **Learning Metadata** section at the end:
 **Alternative with context**: `YYYY-MM-DD-{strategy}-{market-condition}.md`
 
 Example:
+
 - `2026-02-02-rsi-adjusted-bull.md`
 - `2026-02-02-volatility-based-correction.md`
 
 ### Meta-Learning (Learning About Learning)
 
 Track these metrics over time:
+
 - **Recommendation accuracy rate**: % of profitable recommendations
 - **Multiplier effectiveness**: Which multiplier ranges work best per asset
 - **Indicator reliability**: Which technical indicators predict best for each asset
@@ -567,6 +615,7 @@ Track these metrics over time:
 **Scenario**: User asks for QQQM analysis, current RSI = 42
 
 **Agent Learning Process**:
+
 1. Check `./report/` for past QQQM recommendations
 2. Find report from 2026-01-15: QQQM RSI = 40, recommended 1.5x
 3. Find report from 2026-01-25: QQQM RSI = 45, recommended 1.3x
@@ -578,18 +627,19 @@ Track these metrics over time:
 
 ### ความถี่ที่แนะนำ (Recommended Frequency)
 
-| ระดับ | ความถี่ | เหมาะกับ | ใช้เมื่อ |
-|-------|---------|----------|----------|
-| **🔴 สูงสุด** | รายวัน | Day traders, ระยะสั้นมาก | ตลาดผันผวนรุนแรง |
-| **🟠 สูง** | รายสัปดาห์ | Active investors | DCA รายสัปดาห์, ตลาดผันผวน |
-| **🟡 ปานกลาง** | ราย 2 สัปดาห์ | Most investors | ค่าเริ่มต้นที่ดี |
-| **🟢 มาตรฐาน** | รายเดือน | Long-term investors | DCA รายเดือน (แนะนำ) |
-| **🔵 ต่ำ** | ราย 2-3 เดือน | Passive investors | ตลาดทรงตัว |
-| **⚪ ตามเหตุการณ์** | Ad-hoc | ทุกคน | เหตุการณ์สำคัญ |
+| ระดับ               | ความถี่       | เหมาะกับ                 | ใช้เมื่อ                   |
+| ------------------- | ------------- | ------------------------ | -------------------------- |
+| **🔴 สูงสุด**       | รายวัน        | Day traders, ระยะสั้นมาก | ตลาดผันผวนรุนแรง           |
+| **🟠 สูง**          | รายสัปดาห์    | Active investors         | DCA รายสัปดาห์, ตลาดผันผวน |
+| **🟡 ปานกลาง**      | ราย 2 สัปดาห์ | Most investors           | ค่าเริ่มต้นที่ดี           |
+| **🟢 มาตรฐาน**      | รายเดือน      | Long-term investors      | DCA รายเดือน (แนะนำ)       |
+| **🔵 ต่ำ**          | ราย 2-3 เดือน | Passive investors        | ตลาดทรงตัว                 |
+| **⚪ ตามเหตุการณ์** | Ad-hoc        | ทุกคน                    | เหตุการณ์สำคัญ             |
 
 ### แนะนำสำหรับผู้ใช้ทั่วไป: **รายเดือน (Monthly)** 🟢
 
 **เหตุผล**:
+
 - DCA ส่วนใหญ่เป็นรายเดือน (สอดคล้องกับเงินเดือน)
 - Technical indicators รายวันมี noise มาก (สัญญาณ false สูง)
 - รายสัปดาห์อาจบ่อยเกินไป - เปลืองเวลาและค่าธรรมเนียม
@@ -602,6 +652,7 @@ Track these metrics over time:
 วิเคราะห์เพิ่มเติมเมื่อเกิดเหตุการณ์เหล่านี้:
 
 #### 🚨 **เหตุการณ์สำคัญ (Analyze Immediately)**
+
 - VIX พุ่งสูงกว่า 30 (ความผันผวนสูง)
 - ข่าวใหญ่ sector (เช่น NVDA earnings, Fed meeting)
 - ตลาดลงมากกว่า 5% ในวันเดียว
@@ -609,12 +660,14 @@ Track these metrics over time:
 - Portfolio ลงมากกว่า 10% จากจุดสูงสุด
 
 #### ⚠️ **เหตุการณ์ปานกลาง (Analyze within 1-3 days)**
+
 - Earnings season สำคัญ
 - Economic data releases (CPI, GDP, unemployment)
 - Sector rotation ชัดเจน
 - Breakout/breakdown ทางเทคนิค
 
 #### ℹ️ **เหตุการณ์ทั่วไป (Include in next scheduled analysis)**
+
 - ข่าวทั่วไป
 - การปรับลด/ขึ้นอัตราดอกเบี้ยที่คาดการณ์แล้ว
 - รายงานทั่วไป
@@ -622,21 +675,25 @@ Track these metrics over time:
 ### บัญชีผู้ใช้ตามสไตล์ (User Profiles)
 
 **1. 👨‍💼 นักลงทุนผู้รอบรอบ (Conservative)**
+
 - ความถี่: ราย 2 เดือน
 - Focus: Long-term trend (Weekly/Monthly)
 - ซื้อเมื่อ: RSI < 40, แนวโน้มแข็งแกร่ง
 
 **2. 🎯 นักลงทุนสมดุล (Balanced) - Recommended**
+
 - ความถี่: รายเดือน
 - Focus: Daily + Weekly สมดุล
 - ซื้อเมื่อ: RSI 35-45 (near oversold)
 
 **3. ⚡ นักลงทุนกระตือรือร้น (Aggressive)**
+
 - ความถี่: ราย 2 สัปดาห์
 - Focus: Daily signals + short-term opportunities
 - ซื้อเมื่อ: ใช้ทุกโอกาสที่ RSI < 50
 
 **4. 🎮 Active Trader**
+
 - ความถี่: รายสัปดาห์
 - Focus: All timeframes + volatility
 - ซื้อเมื่อ: ใช้ทุก technical signal
@@ -657,6 +714,7 @@ Stable Portfolio   รายเดือน            ค่าเริ่ม�
 ### ตัวอย่างกำหนดการ (Sample Schedule)
 
 **สำหรับ DCA รายเดือน 30,000 บาท**:
+
 ```
 วันที่ 1-5 ของเดือน: วิเคราะห์และสร้างรายงาน
 วันที่ 5-10: ดำเนินการซื้อตามแผน
@@ -667,6 +725,7 @@ Stable Portfolio   รายเดือน            ค่าเริ่ม�
 ### คำถามช่วยตัดสินใจ (Decision Framework)
 
 **ถามตัวเองก่อนวิเคราะห์**:
+
 1. มีเงินสำหรับ DCA ในงวดนี้หรือยัง?
 2. มีเหตุการณ์สำคัญที่เปลี่ยนแปลงตลาดหรือไม่?
 3. ครั้งก่อนวิเคราะห์เมื่อไหร่? (น้อยกว่า 2 สัปดาห์ อาจไม่จำเป็น)
@@ -678,11 +737,13 @@ Stable Portfolio   รายเดือน            ค่าเริ่ม�
 ### หยุดวิเคราะห์บ่อยเกินไป (Over-analysis Warning)
 
 ⚠️ **Warning Signs**:
+
 - วิเคราะห์บ่อยกว่าซื้อ (วิเคราะห์รายสัปดาห์ แต่ซื้อรายเดือน)
 - เปลี่ยนแผนบ่อยจากการวิเคราะห์ใหม่
 - Analysis paralysis (ไม่ตัดสินใจเพราะวิเคราะห์มากเกิน)
 
 ✅ **แก้ไข**:
+
 - กำหนดวันวิเคราะห์ล่วงหน้า
 - ใช้ DCA mechanical มากกว่า timing
 - วิเคราะห์เพื่อยืนยัน ไม่ใช่หาจุดที่ดีที่สุด (perfect entry)
