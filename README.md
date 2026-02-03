@@ -14,6 +14,12 @@ npx skills add https://github.com/witooh/skills
 | ------------------------------ | ----- | ----------------------------------------- |
 | [fastmail](./skills/fastmail/) | 27    | Fastmail email & calendar (JMAP + CalDAV) |
 
+## Development & Automation
+
+| Skill                              | Tools | Description                                          |
+| ---------------------------------- | ----- | ---------------------------------------------------- |
+| [agent-browser](./skills/agent-browser/) | 20+   | Browser automation for testing, screenshots, forms   |
+
 ## Finance & Markets
 
 | Skill                                        | Tools | Description                                                              |
