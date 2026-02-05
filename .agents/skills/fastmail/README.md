@@ -6,39 +6,39 @@ OpenCode skill for managing Fastmail email and calendar via JMAP and CalDAV APIs
 
 🔹 **9 Email Management Tools:**
 
-| Tool | Description |
-|------|-------------|
-| `list_mailboxes` | List all folders/mailboxes |
-| `list_emails` | List emails in inbox or specific folder |
-| `get_email` | Get full email content |
-| `search_emails` | Search emails by text query |
-| `send_email` | Send new email |
-| `reply_email` | Reply to email (with reply-all option) |
-| `move_email` | Move email to different folder |
-| `set_labels` | Set labels/keywords ($seen, $flagged, etc.) |
-| `delete_email` | Delete email (move to trash) |
+| Tool             | Description                                 |
+| ---------------- | ------------------------------------------- |
+| `list_mailboxes` | List all folders/mailboxes                  |
+| `list_emails`    | List emails in inbox or specific folder     |
+| `get_email`      | Get full email content                      |
+| `search_emails`  | Search emails by text query                 |
+| `send_email`     | Send new email                              |
+| `reply_email`    | Reply to email (with reply-all option)      |
+| `move_email`     | Move email to different folder              |
+| `set_labels`     | Set labels/keywords ($seen, $flagged, etc.) |
+| `delete_email`   | Delete email (move to trash)                |
 
 🔹 **8 Calendar Management Tools:**
 
-| Tool | Description |
-|------|-------------|
-| `list_calendars` | List all calendars |
-| `list_events` | List events in date range |
-| `get_event` | Get event details |
-| `create_event` | Create new event |
-| `update_event` | Update existing event |
-| `delete_event` | Delete event |
-| `search_events` | Search events by title/description |
-| `create_recurring_event` | Create recurring event |
+| Tool                     | Description                        |
+| ------------------------ | ---------------------------------- |
+| `list_calendars`         | List all calendars                 |
+| `list_events`            | List events in date range          |
+| `get_event`              | Get event details                  |
+| `create_event`           | Create new event                   |
+| `update_event`           | Update existing event              |
+| `delete_event`           | Delete event                       |
+| `search_events`          | Search events by title/description |
+| `create_recurring_event` | Create recurring event             |
 
 🔹 **4 Reminder/Alarm Tools:**
 
-| Tool | Description |
-|------|-------------|
-| `add_event_reminder` | Add reminder to existing event |
-| `remove_event_reminder` | Remove reminder(s) from event |
-| `list_event_reminders` | List reminders for event |
-| `create_event_with_reminder` | Create event with reminder(s) |
+| Tool                         | Description                    |
+| ---------------------------- | ------------------------------ |
+| `add_event_reminder`         | Add reminder to existing event |
+| `remove_event_reminder`      | Remove reminder(s) from event  |
+| `list_event_reminders`       | List reminders for event       |
+| `create_event_with_reminder` | Create event with reminder(s)  |
 
 **Total: 21 MCP Tools**
 
@@ -82,6 +82,7 @@ echo "FASTMAIL_PASSWORD=your-app-password-here" >> .env
 ```
 
 Then reload:
+
 ```bash
 source ~/.zshrc  # or source ~/.bashrc
 ```
@@ -91,7 +92,7 @@ source ~/.zshrc  # or source ~/.bashrc
 ```bash
 cd .opencode/skills/fastmail
 bun install
-bunx fastmail --help
+bun scripts/cli.ts --help
 ```
 
 ## Usage Examples
@@ -99,23 +100,27 @@ bunx fastmail --help
 ### Email Commands
 
 **Check your inbox:**
+
 ```
 User: "Show me my latest emails"
 User: "What's in my inbox?"
 ```
 
 **Search emails:**
+
 ```
 User: "Search for emails from john@example.com"
 User: "Find emails about 'project alpha'"
 ```
 
 **Send email:**
+
 ```
 User: "Send email to sarah@example.com with subject 'Meeting Tomorrow' and body 'Let's meet at 2pm'"
 ```
 
 **Reply to email:**
+
 ```
 User: "Reply to the email from John saying 'Thanks, sounds good!'"
 ```
@@ -123,12 +128,14 @@ User: "Reply to the email from John saying 'Thanks, sounds good!'"
 ### Calendar Commands (Thai)
 
 **ดูปฏิทิน:**
+
 ```
 User: "แสดงปฏิทินทั้งหมด"
 User: "มีกี่ปฏิทิน"
 ```
 
 **ดูกิจกรรม:**
+
 ```
 User: "ดูกิจกรรมวันนี้"
 User: "มีนัดอะไรสัปดาห์นี้"
@@ -136,18 +143,21 @@ User: "แสดงกิจกรรมเดือนนี้"
 ```
 
 **สร้างกิจกรรม:**
+
 ```
 User: "สร้างนัดหมายชื่อ 'ประชุมทีม' วันพรุ่งนี้ 10:00-11:00"
 User: "เพิ่มกิจกรรม 'พบลูกค้า' วันที่ 15 กุมภาพันธ์ 14:00-15:30"
 ```
 
 **ค้นหากิจกรรม:**
+
 ```
 User: "ค้นหากิจกรรมที่มีคำว่า 'ประชุม'"
 User: "หานัดที่เกี่ยวกับโครงการ A"
 ```
 
 **ลบกิจกรรม:**
+
 ```
 User: "ลบกิจกรรม [event-id]"
 ```
@@ -155,22 +165,26 @@ User: "ลบกิจกรรม [event-id]"
 ### Reminder Commands (Thai)
 
 **เพิ่ม reminder:**
+
 ```
 User: "เพิ่ม reminder ก่อน event [id] 15 นาที"
 User: "ตั้ง reminder ก่อน 1 ชั่วโมง"
 ```
 
 **ดู reminders:**
+
 ```
 User: "แสดง reminders ของ event [id]"
 ```
 
 **ลบ reminder:**
+
 ```
 User: "ลบ reminder ออกจาก event [id]"
 ```
 
 **สร้าง event พร้อม reminder:**
+
 ```
 User: "สร้างนัด 'ประชุมทีม' พรุ่งนี้ 10:00-11:00 เตือนก่อน 15 นาทีและ 1 ชั่วโมง"
 ```
@@ -194,6 +208,7 @@ export FASTMAIL_TIMEZONE="America/New_York"  # or "Asia/Bangkok", "Europe/London
 - **DST:** Handles Daylight Saving Time automatically
 
 Example (with Asia/Bangkok timezone):
+
 - You say: "สร้างนัด 10:00" (assumed local timezone)
 - Stored as: 03:00 UTC
 - Displayed as: 10:00+07:00
@@ -222,11 +237,13 @@ Example (with Asia/Bangkok timezone):
 ### APIs Used
 
 **Email - JMAP:**
+
 - Modern JSON-based protocol
 - Fast batch operations
 - Efficient syncing
 
 **Calendar - CalDAV:**
+
 - Industry standard protocol
 - iCalendar (ICS) format
 - Full recurring event support
@@ -236,8 +253,8 @@ Example (with Asia/Bangkok timezone):
 ```json
 {
   "@modelcontextprotocol/sdk": "^1.0.0",
-  "tsdav": "^2.1.2",      // CalDAV client
-  "uuid": "^9.0.0"         // Event ID generation
+  "tsdav": "^2.1.2", // CalDAV client
+  "uuid": "^9.0.0" // Event ID generation
 }
 ```
 
@@ -254,6 +271,7 @@ Example (with Asia/Bangkok timezone):
 **Solution:** Set the environment variable (see Setup above)
 
 Verify it's set:
+
 ```bash
 echo $FASTMAIL_API_TOKEN
 ```
@@ -276,7 +294,8 @@ echo $FASTMAIL_API_TOKEN
 
 **Cause:** Invalid app password
 
-**Solution:** 
+**Solution:**
+
 1. Check you're using app password (not main password)
 2. Generate new app password from Fastmail Settings
 3. Verify FASTMAIL_USERNAME includes full email
@@ -288,6 +307,7 @@ echo $FASTMAIL_API_TOKEN
 ### TypeScript Build Errors
 
 **Solution:** Rebuild the project:
+
 ```bash
 cd .opencode/skills/fastmail
 bun run build
@@ -299,7 +319,7 @@ bun run build
 
 ```bash
 cd .opencode/skills/fastmail
-bunx fastmail --help
+bun scripts/cli.ts --help
 ```
 
 ### Build
@@ -332,6 +352,7 @@ bun run build
 - ⚠️ Tokens have full account access - keep them secret!
 
 **Best practices:**
+
 - Use `.env` file (add to `.gitignore`)
 - Rotate tokens if compromised
 - Use unique token per application
@@ -347,6 +368,7 @@ bun run build
 ## Support
 
 For issues or questions:
+
 1. Check `.sisyphus/notepads/fastmail-agent-skill/` for detailed docs
 2. Review `issues.md` for common problems
 3. Check Fastmail API status: https://fastmailstatus.com/

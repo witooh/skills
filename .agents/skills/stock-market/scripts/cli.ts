@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /**
  * Stock Market CLI - Fetch real-time stock and ETF prices
- * 
+ *
  * Tools:
  * - get_price: Get current price for a symbol
  * - get_multiple_prices: Get prices for multiple symbols
@@ -10,7 +10,7 @@
  * - get_historical: Get historical price data
  */
 
-import { getPrice, getMultiplePrices, searchSymbol, getMarketSummary, getHistorical } from './tools/stock.js';
+import { getPrice, getMultiplePrices, searchSymbol, getMarketSummary, getHistorical } from "./tools/stock.js";
 
 const TOOLS: Record<string, Function> = {
   get_price: getPrice,
@@ -24,7 +24,7 @@ function showHelp() {
   console.log(`
 Stock Market CLI - Real-time stock and ETF prices
 
-Usage: bunx stock-market <tool> '<json-params>'
+Usage: bun scripts/cli.ts <tool> '<json-params>'
 
 Tools:
   get_price              Get current price for a symbol
@@ -34,12 +34,12 @@ Tools:
   get_historical         Get historical price data
 
 Examples:
-  bunx stock-market get_price '{"symbol": "AAPL"}'
-  bunx stock-market get_price '{"symbol": "PTT.BK"}'
-  bunx stock-market get_multiple_prices '{"symbols": ["AAPL", "MSFT", "GOOGL"]}'
-  bunx stock-market search_symbol '{"query": "Apple"}'
-  bunx stock-market get_market_summary
-  bunx stock-market get_historical '{"symbol": "AAPL", "period": "1mo"}'
+  bun scripts/cli.ts get_price '{"symbol": "AAPL"}'
+  bun scripts/cli.ts get_price '{"symbol": "PTT.BK"}'
+  bun scripts/cli.ts get_multiple_prices '{"symbols": ["AAPL", "MSFT", "GOOGL"]}'
+  bun scripts/cli.ts search_symbol '{"query": "Apple"}'
+  bun scripts/cli.ts get_market_summary
+  bun scripts/cli.ts get_historical '{"symbol": "AAPL", "period": "1mo"}'
 `);
 }
 
@@ -49,46 +49,52 @@ function showTools() {
 
 async function main() {
   const args = process.argv.slice(2);
-  
-  if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
+
+  if (args.length === 0 || args[0] === "--help" || args[0] === "-h") {
     showHelp();
     process.exit(0);
   }
-  
-  if (args[0] === '--list') {
+
+  if (args[0] === "--list") {
     showTools();
     process.exit(0);
   }
-  
+
   const toolName = args[0];
   const tool = TOOLS[toolName];
-  
+
   if (!tool) {
     console.error(`Error: Unknown tool "${toolName}"`);
-    console.error(`Available tools: ${Object.keys(TOOLS).join(', ')}`);
+    console.error(`Available tools: ${Object.keys(TOOLS).join(", ")}`);
     process.exit(1);
   }
-  
+
   let params = {};
   if (args[1]) {
     try {
       params = JSON.parse(args[1]);
     } catch (e) {
-      console.error('Error: Invalid JSON parameters');
+      console.error("Error: Invalid JSON parameters");
       console.error(e);
       process.exit(1);
     }
   }
-  
+
   try {
     const result = await tool(params);
     console.log(JSON.stringify(result, null, 2));
   } catch (error) {
-    console.error(JSON.stringify({
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-      timestamp: new Date().toISOString()
-    }, null, 2));
+    console.error(
+      JSON.stringify(
+        {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+          timestamp: new Date().toISOString(),
+        },
+        null,
+        2,
+      ),
+    );
     process.exit(1);
   }
 }

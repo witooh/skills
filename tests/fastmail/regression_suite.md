@@ -2,9 +2,9 @@
 
 ## Overview
 
-**Purpose:** Critical path tests for Fastmail skill releases  
-**Duration:** 15-30 minutes  
-**Frequency:** Before each release, after major changes  
+**Purpose:** Critical path tests for Fastmail skill releases
+**Duration:** 15-30 minutes
+**Frequency:** Before each release, after major changes
 **Total Tests:** 15
 
 ---
@@ -12,20 +12,22 @@
 ## Smoke Tests (Must Pass)
 
 ### Smoke-01: Environment Validation
+
 **Purpose:** Verify all credentials are valid before testing
 
 ```bash
 # Test Email API
 export FASTMAIL_API_TOKEN="your-token"
-bunx fastmail list_mailboxes
+bun scripts/cli.ts list_mailboxes
 
 # Test Calendar API
 export FASTMAIL_USERNAME="your-email@fastmail.com"
 export FASTMAIL_PASSWORD="your-app-password"
-bunx fastmail list_calendars
+bun scripts/cli.ts list_calendars
 ```
 
 **Pass Criteria:**
+
 - Both commands return `success: true`
 - No authentication errors
 - Response contains expected data structure
@@ -35,14 +37,16 @@ bunx fastmail list_calendars
 ---
 
 ### Smoke-02: CLI Basic Operations
+
 **Purpose:** Verify CLI interface works
 
 ```bash
-bunx fastmail --help
-bunx fastmail --list
+bun scripts/cli.ts --help
+bun scripts/cli.ts --list
 ```
 
 **Pass Criteria:**
+
 - Help displays usage information
 - Tool list shows all 27 tools
 - No errors or crashes
@@ -52,16 +56,19 @@ bunx fastmail --list
 ## Critical Path Tests
 
 ### CP-01: Email Read Workflow
-**Priority:** P0  
+
+**Priority:** P0
 **Estimated Time:** 3 minutes
 
 **Steps:**
+
 1. List mailboxes → Get Inbox ID
 2. List emails from Inbox (limit: 10)
 3. Get full content of first email
 4. Search emails with query from subject
 
 **Verification:**
+
 - All 4 operations succeed
 - Data flows correctly between steps
 - Email IDs are valid
@@ -69,10 +76,12 @@ bunx fastmail --list
 ---
 
 ### CP-02: Email Write Workflow
-**Priority:** P0  
+
+**Priority:** P0
 **Estimated Time:** 5 minutes
 
 **Steps:**
+
 1. Send test email to self
 2. List emails to find the sent email
 3. Reply to the email
@@ -80,6 +89,7 @@ bunx fastmail --list
 5. Move email to Archive
 
 **Verification:**
+
 - Email sends successfully with ID returned
 - Reply sends with correct subject prefix
 - Read status changes
@@ -88,10 +98,12 @@ bunx fastmail --list
 ---
 
 ### CP-03: Bulk Email Operations
-**Priority:** P0  
+
+**Priority:** P0
 **Estimated Time:** 3 minutes
 
 **Steps:**
+
 1. Send 3 test emails to self
 2. Get IDs from list_emails
 3. Bulk move all 3 to Archive
@@ -99,6 +111,7 @@ bunx fastmail --list
 5. Bulk delete all 3
 
 **Verification:**
+
 - All bulk operations succeed
 - `succeeded` array contains all 3 IDs
 - `failed` array is empty
@@ -107,16 +120,19 @@ bunx fastmail --list
 ---
 
 ### CP-04: Calendar Read Workflow
-**Priority:** P0  
+
+**Priority:** P0
 **Estimated Time:** 2 minutes
 
 **Steps:**
+
 1. List calendars → Get calendar IDs
 2. List events for next 7 days
 3. Get details of first event (if any)
 4. Search events with keyword
 
 **Verification:**
+
 - Calendar list returns valid data
 - Events list returns array
 - Event details has all required fields
@@ -125,10 +141,12 @@ bunx fastmail --list
 ---
 
 ### CP-05: Calendar Write Workflow
-**Priority:** P0  
+
+**Priority:** P0
 **Estimated Time:** 5 minutes
 
 **Steps:**
+
 1. Create test event (today + 1 day, 1 hour duration)
 2. Add 15-minute reminder
 3. Update event title
@@ -136,6 +154,7 @@ bunx fastmail --list
 5. Delete the event
 
 **Verification:**
+
 - Event created with ID
 - Reminder added successfully
 - Update persists
@@ -145,15 +164,18 @@ bunx fastmail --list
 ---
 
 ### CP-06: Recurring Event Creation
-**Priority:** P1  
+
+**Priority:** P1
 **Estimated Time:** 2 minutes
 
 **Steps:**
+
 1. Create daily recurring event for 3 days
 2. List events to verify 3 instances
 3. Delete the recurring series
 
 **Verification:**
+
 - Recurring event created
 - All 3 instances appear
 - Deletion removes entire series
@@ -161,10 +183,12 @@ bunx fastmail --list
 ---
 
 ### CP-07: Reminder Management
-**Priority:** P1  
+
+**Priority:** P1
 **Estimated Time:** 3 minutes
 
 **Steps:**
+
 1. Create event with 2 reminders (15 min, 1 hour)
 2. List reminders
 3. Add third reminder (1 day before, email action)
@@ -173,6 +197,7 @@ bunx fastmail --list
 6. Delete event
 
 **Verification:**
+
 - Event created with reminders
 - List shows correct count
 - Add succeeds
@@ -183,15 +208,18 @@ bunx fastmail --list
 ## Error Handling Tests
 
 ### EH-01: Missing Authentication
-**Priority:** P0  
+
+**Priority:** P0
 **Estimated Time:** 1 minute
 
 **Steps:**
+
 1. Unset all environment variables
 2. Try list_mailboxes → Should fail gracefully
 3. Try list_calendars → Should fail gracefully
 
 **Verification:**
+
 - `success: false` for both
 - Clear error messages about missing env vars
 - No crashes or stack traces
@@ -199,16 +227,19 @@ bunx fastmail --list
 ---
 
 ### EH-02: Invalid Authentication
-**Priority:** P0  
+
+**Priority:** P0
 **Estimated Time:** 1 minute
 
 **Steps:**
+
 1. Set invalid API token
 2. Try list_mailboxes
 3. Set valid token but invalid password
 4. Try list_calendars
 
 **Verification:**
+
 - Both return 401 Unauthorized
 - Error messages are helpful
 - Suggests token/password verification
@@ -216,15 +247,18 @@ bunx fastmail --list
 ---
 
 ### EH-03: Invalid Parameters
-**Priority:** P1  
+
+**Priority:** P1
 **Estimated Time:** 2 minutes
 
 **Steps:**
+
 1. Try get_email without email_id
 2. Try send_email without required fields
 3. Try create_event with invalid date format
 
 **Verification:**
+
 - All return `success: false`
 - Validation errors are specific
 - Required fields are identified
@@ -234,18 +268,21 @@ bunx fastmail --list
 ## Integration Tests
 
 ### INT-01: Email-to-Calendar Integration
-**Priority:** P1  
+
+**Priority:** P1
 **Estimated Time:** 3 minutes
 
 **Scenario:** Create calendar event from email
 
 **Steps:**
+
 1. Get email about meeting
 2. Extract meeting details (time, location)
 3. Create calendar event with those details
 4. Add reminder
 
 **Verification:**
+
 - Both email and calendar operations succeed
 - Data extracted correctly
 - Event created with proper details
@@ -253,16 +290,19 @@ bunx fastmail --list
 ---
 
 ### INT-02: Thread Management
-**Priority:** P2  
+
+**Priority:** P2
 **Estimated Time:** 2 minutes
 
 **Steps:**
+
 1. Get thread ID from an email
 2. Get full thread
 3. Reply to thread
 4. Verify reply in thread
 
 **Verification:**
+
 - Thread contains all messages
 - Reply appears in thread
 - Participants list accurate
@@ -272,6 +312,7 @@ bunx fastmail --list
 ## Pass/Fail Criteria
 
 ### PASS (Release Ready):
+
 - All Smoke tests pass
 - 100% of CP (Critical Path) tests pass
 - 80%+ of EH (Error Handling) tests pass
@@ -280,6 +321,7 @@ bunx fastmail --list
 - No security vulnerabilities
 
 ### FAIL (Block Release):
+
 - Any Smoke test fails
 - Any CP test fails
 - Authentication bypass or security issue
@@ -287,6 +329,7 @@ bunx fastmail --list
 - Crash or unhandled exception
 
 ### CONDITIONAL (Known Issues):
+
 - P2 test failures with documented workarounds
 - UI/UX issues (not functional)
 - Minor error message improvements needed
@@ -323,9 +366,9 @@ Before each release, verify:
 - [ ] INT-01: Email-to-calendar flow
 - [ ] INT-02: Thread management
 
-**Regression Lead:** _________________  
-**Date:** _________________  
-**Result:** ☐ PASS  ☐ FAIL  ☐ CONDITIONAL
+**Regression Lead:** ********\_********
+**Date:** ********\_********
+**Result:** ☐ PASS ☐ FAIL ☐ CONDITIONAL
 
 ---
 
@@ -342,9 +385,9 @@ After regression testing:
 
 ## Version History
 
-| Version | Date | Changes | Tester |
-|---------|------|---------|--------|
-| 1.0 | 2026-02-01 | Initial regression suite | QA Test Planner |
+| Version | Date       | Changes                  | Tester          |
+| ------- | ---------- | ------------------------ | --------------- |
+| 1.0     | 2026-02-01 | Initial regression suite | QA Test Planner |
 
 ---
 

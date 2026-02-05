@@ -15,19 +15,19 @@ metadata:
 cd skills/stock-market && bun install
 
 # Get current price
-bunx stock-market get_price '{"symbol": "AAPL"}'
+bun scripts/cli.ts get_price '{"symbol": "AAPL"}'
 
 # Search for symbols
-bunx stock-market search_symbol '{"query": "Apple"}'
+bun scripts/cli.ts search_symbol '{"query": "Apple"}'
 
 # Get Thai SET stock (add .BK suffix)
-bunx stock-market get_price '{"symbol": "PTT.BK"}'
+bun scripts/cli.ts get_price '{"symbol": "PTT.BK"}'
 
 # Get ETF price
-bunx stock-market get_price '{"symbol": "QQQ"}'
+bun scripts/cli.ts get_price '{"symbol": "QQQ"}'
 
 # List all tools
-bunx stock-market --list
+bun scripts/cli.ts --list
 ```
 
 ## When to Use This Skill
@@ -40,82 +40,91 @@ bunx stock-market --list
 
 ## Tools (5 total)
 
-| Tool | Purpose |
-|------|---------|
-| `get_price` | Get current price and key metrics for a symbol |
-| `get_multiple_prices` | Get prices for multiple symbols at once |
-| `search_symbol` | Search for stock/ETF symbols by company name |
-| `get_market_summary` | Get major indices summary (S&P 500, NASDAQ, SET, etc.) |
-| `get_historical` | Get historical price data for charting |
+| Tool                  | Purpose                                                |
+| --------------------- | ------------------------------------------------------ |
+| `get_price`           | Get current price and key metrics for a symbol         |
+| `get_multiple_prices` | Get prices for multiple symbols at once                |
+| `search_symbol`       | Search for stock/ETF symbols by company name           |
+| `get_market_summary`  | Get major indices summary (S&P 500, NASDAQ, SET, etc.) |
+| `get_historical`      | Get historical price data for charting                 |
 
 ## Supported Markets
 
 **US Markets:**
+
 - NYSE: `IBM`, `JPM`, `DIS`
 - NASDAQ: `AAPL`, `MSFT`, `GOOGL`, `TSLA`, `NVDA`
 - ETFs: `SPY`, `QQQ`, `VTI`, `VOO`
 
 **Thai SET:**
+
 - Add `.BK` suffix: `PTT.BK`, `AOT.BK`, `SCB.BK`, `KBANK.BK`
 - Without suffix auto-resolves if unique
 
 **Other Markets:**
+
 - Crypto: `BTC-USD`, `ETH-USD`
 - International: `SHEL.L` (London), `7203.T` (Tokyo)
 
 ## Common Examples
 
 **Thai Language:**
+
 ```
 User: "ราคาหุ้น PTT"
-→ bunx stock-market get_price '{"symbol": "PTT.BK"}'
+→ bun scripts/cli.ts get_price '{"symbol": "PTT.BK"}'
 
 User: "ดูราคา AOT"
-→ bunx stock-market get_price '{"symbol": "AOT.BK"}'
+→ bun scripts/cli.ts get_price '{"symbol": "AOT.BK"}'
 
 User: "หุ้น Apple ราคาเท่าไร"
-→ bunx stock-market get_price '{"symbol": "AAPL"}'
+→ bun scripts/cli.ts get_price '{"symbol": "AAPL"}'
 
 User: "เปรียบเทียบ TSLA NVDA"
-→ bunx stock-market get_multiple_prices '{"symbols": ["TSLA", "NVDA"]}'
+→ bun scripts/cli.ts get_multiple_prices '{"symbols": ["TSLA", "NVDA"]}'
 
 User: "ค้นหาหุ้น Amazon"
-→ bunx stock-market search_symbol '{"query": "Amazon"}'
+→ bun scripts/cli.ts search_symbol '{"query": "Amazon"}'
 
 User: "สรุปตลาดวันนี้"
-→ bunx stock-market get_market_summary
+→ bun scripts/cli.ts get_market_summary
 ```
 
 **English:**
+
 ```
 User: "What's the price of SPY?"
-→ bunx stock-market get_price '{"symbol": "SPY"}'
+→ bun scripts/cli.ts get_price '{"symbol": "SPY"}'
 
 User: "Compare AAPL and MSFT"
-→ bunx stock-market get_multiple_prices '{"symbols": ["AAPL", "MSFT"]}'
+→ bun scripts/cli.ts get_multiple_prices '{"symbols": ["AAPL", "MSFT"]}'
 
 User: "Search for Tesla stock"
-→ bunx stock-market search_symbol '{"query": "Tesla"}'
+→ bun scripts/cli.ts search_symbol '{"query": "Tesla"}'
 ```
 
 ## Symbol Format Guide
 
 **US Stocks:** Symbol only
+
 - `AAPL` → Apple Inc.
 - `MSFT` → Microsoft
 - `TSLA` → Tesla
 
 **Thai SET Stocks:** Add `.BK`
+
 - `PTT.BK` → ปตท.
 - `AOT.BK` → ท่าอากาศยานไทย
 - `SCB.BK` → ธนาคารไทยพาณิชย์
 
 **ETFs:** Standard symbols
+
 - `SPY` → S&P 500 ETF
 - `QQQ` → NASDAQ-100 ETF
 - `VTI` → Total Stock Market ETF
 
 **Crypto:** Add `-USD`
+
 - `BTC-USD` → Bitcoin
 - `ETH-USD` → Ethereum
 
@@ -144,6 +153,7 @@ All tools return JSON:
 ## Rate Limits
 
 Yahoo Finance API (unofficial):
+
 - ~2,000 requests/hour per IP
 - No API key required
 - Free for personal use
@@ -151,6 +161,7 @@ Yahoo Finance API (unofficial):
 ## Error Handling
 
 Common errors:
+
 - `"Symbol not found"` → Check spelling or use `search_symbol`
 - `"Invalid symbol format"` → Thai stocks need `.BK` suffix
 - `"Market closed"` → Returns last closing price

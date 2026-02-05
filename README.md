@@ -16,9 +16,9 @@ npx skills add https://github.com/witooh/skills
 
 ## Development & Automation
 
-| Skill                              | Tools | Description                                          |
-| ---------------------------------- | ----- | ---------------------------------------------------- |
-| [agent-browser](./skills/agent-browser/) | 20+   | Browser automation for testing, screenshots, forms   |
+| Skill                                    | Tools | Description                                        |
+| ---------------------------------------- | ----- | -------------------------------------------------- |
+| [agent-browser](./skills/agent-browser/) | 20+   | Browser automation for testing, screenshots, forms |
 
 ## Finance & Markets
 
@@ -32,6 +32,6 @@ npx skills add https://github.com/witooh/skills
 
 ---
 
-**Usage:** `bunx {skill-name} {tool} '{"param": "value"}'`
+**Usage:** `cd .agents/skills/{skill-name} && bun scripts/cli.ts {tool} '{"param": "value"}'`
 **Create:** Run `/skill-creator` first, see [AGENTS.md](./AGENTS.md)
 **Spec:** https://agentskills.io/specification

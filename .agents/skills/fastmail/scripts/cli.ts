@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 
-import { JMAPClient } from './jmap-client.js';
-import { EmailTools } from './tools/email.js';
-import { CalDAVClient } from './caldav-client.js';
-import { CalendarTools } from './tools/calendar.js';
-import { formatError, ValidationError, BulkOperationError } from './errors.js';
+import { JMAPClient } from "./jmap-client.js";
+import { EmailTools } from "./tools/email.js";
+import { CalDAVClient } from "./caldav-client.js";
+import { CalendarTools } from "./tools/calendar.js";
+import { formatError, ValidationError, BulkOperationError } from "./errors.js";
 
 // Types
 interface ToolResult {
@@ -24,7 +24,7 @@ function getEmailTools(): EmailTools {
   if (!emailTools) {
     const token = process.env.FASTMAIL_API_TOKEN;
     if (!token) {
-      throw new Error('FASTMAIL_API_TOKEN environment variable is required');
+      throw new Error("FASTMAIL_API_TOKEN environment variable is required");
     }
     jmapClient = new JMAPClient(token);
     emailTools = new EmailTools(jmapClient);
@@ -38,7 +38,7 @@ function getCalendarTools(): CalendarTools {
     const username = process.env.FASTMAIL_USERNAME;
     const password = process.env.FASTMAIL_PASSWORD;
     if (!username || !password) {
-      throw new Error('FASTMAIL_USERNAME and FASTMAIL_PASSWORD environment variables are required');
+      throw new Error("FASTMAIL_USERNAME and FASTMAIL_PASSWORD environment variables are required");
     }
     caldavClient = new CalDAVClient(username, password);
     calendarTools = new CalendarTools(caldavClient);
@@ -51,19 +51,19 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
   try {
     // Normalize command: support both 'list_emails' and 'fastmail_list_emails' formats
     let normalizedToolName = toolName;
-    if (!toolName.startsWith('fastmail_')) {
+    if (!toolName.startsWith("fastmail_")) {
       normalizedToolName = `fastmail_${toolName}`;
     }
 
     switch (normalizedToolName) {
       // EMAIL TOOLS (9)
-      case 'fastmail_list_mailboxes': {
+      case "fastmail_list_mailboxes": {
         const email = getEmailTools();
         const result = await email.getMailboxes();
         return { success: true, result };
       }
 
-      case 'fastmail_list_emails': {
+      case "fastmail_list_emails": {
         const email = getEmailTools();
         const mailboxId = args.mailbox_id as string | undefined;
         const limit = (args.limit as number) || 20;
@@ -71,24 +71,24 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         return { success: true, result };
       }
 
-      case 'fastmail_get_email': {
+      case "fastmail_get_email": {
         const email = getEmailTools();
         const emailId = args.email_id as string;
-        if (!emailId) throw new Error('email_id is required');
+        if (!emailId) throw new Error("email_id is required");
         const result = await email.getEmail(emailId);
         return { success: true, result };
       }
 
-      case 'fastmail_search_emails': {
+      case "fastmail_search_emails": {
         const email = getEmailTools();
         const query = args.query as string;
-        if (!query) throw new Error('query is required');
+        if (!query) throw new Error("query is required");
         const limit = (args.limit as number) || 20;
         const result = await email.searchEmails(query, limit);
         return { success: true, result };
       }
 
-      case 'fastmail_send_email': {
+      case "fastmail_send_email": {
         const email = getEmailTools();
         const to = args.to as { name?: string; email: string }[];
         const subject = args.subject as string;
@@ -100,7 +100,7 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         const references = args.references as string[] | undefined;
 
         if (!to || !subject || !textBody) {
-          throw new Error('to, subject, and text_body are required');
+          throw new Error("to, subject, and text_body are required");
         }
 
         const result = await email.sendEmail({
@@ -116,44 +116,44 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         return { success: true, result };
       }
 
-      case 'fastmail_move_email': {
+      case "fastmail_move_email": {
         const email = getEmailTools();
         const emailId = args.email_id as string;
         const targetMailboxId = args.target_mailbox_id as string;
         const sourceMailboxId = args.source_mailbox_id as string | undefined;
 
         if (!emailId || !targetMailboxId) {
-          throw new Error('email_id and target_mailbox_id are required');
+          throw new Error("email_id and target_mailbox_id are required");
         }
 
         await email.moveToFolder(emailId, targetMailboxId, sourceMailboxId);
-        return { success: true, result: { message: 'Email moved' } };
+        return { success: true, result: { message: "Email moved" } };
       }
 
-      case 'fastmail_set_labels': {
+      case "fastmail_set_labels": {
         const email = getEmailTools();
         const emailId = args.email_id as string;
         const keywords = args.keywords as Record<string, boolean>;
 
         if (!emailId || !keywords) {
-          throw new Error('email_id and keywords are required');
+          throw new Error("email_id and keywords are required");
         }
 
         await email.setKeywords(emailId, keywords);
-        return { success: true, result: { message: 'Labels set' } };
+        return { success: true, result: { message: "Labels set" } };
       }
 
-      case 'fastmail_delete_email': {
+      case "fastmail_delete_email": {
         const email = getEmailTools();
         const emailId = args.email_id as string;
 
-        if (!emailId) throw new Error('email_id is required');
+        if (!emailId) throw new Error("email_id is required");
 
         await email.deleteEmail(emailId);
-        return { success: true, result: { message: 'Email deleted' } };
+        return { success: true, result: { message: "Email deleted" } };
       }
 
-      case 'fastmail_reply_email': {
+      case "fastmail_reply_email": {
         const email = getEmailTools();
         const emailId = args.email_id as string;
         const textBody = args.text_body as string;
@@ -164,7 +164,7 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         const replyAll = args.reply_all as boolean | undefined;
 
         if (!emailId || !textBody) {
-          throw new Error('email_id and text_body are required');
+          throw new Error("email_id and text_body are required");
         }
 
         // Get original email to extract sender info
@@ -172,7 +172,7 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         const from = originalEmail.from?.[0];
 
         if (!from) {
-          throw new Error('Could not find sender information in original email');
+          throw new Error("Could not find sender information in original email");
         }
 
         const to = [from];
@@ -199,13 +199,13 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
       }
 
       // CALENDAR TOOLS (8)
-      case 'fastmail_list_calendars': {
+      case "fastmail_list_calendars": {
         const calendar = getCalendarTools();
         const result = await calendar.listCalendars();
         return { success: true, result };
       }
 
-      case 'fastmail_list_events': {
+      case "fastmail_list_events": {
         const calendar = getCalendarTools();
         const calendarId = args.calendar_id as string | undefined;
         const startDate = args.start_date as string | undefined;
@@ -214,15 +214,15 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         return { success: true, result };
       }
 
-      case 'fastmail_get_event': {
+      case "fastmail_get_event": {
         const calendar = getCalendarTools();
         const eventId = args.event_id as string;
-        if (!eventId) throw new Error('event_id is required');
+        if (!eventId) throw new Error("event_id is required");
         const result = await calendar.getEvent(eventId);
         return { success: true, result };
       }
 
-      case 'fastmail_create_event': {
+      case "fastmail_create_event": {
         const calendar = getCalendarTools();
         const calendarId = args.calendar_id as string | undefined;
         const title = args.title as string;
@@ -232,16 +232,18 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         const location = args.location as string | undefined;
         const allDay = args.all_day as boolean | undefined;
         const attendees = args.attendees as { name?: string; email: string }[] | undefined;
-        const reminders = args.reminders as Array<{
-          minutesBefore?: number;
-          hoursBefore?: number;
-          daysBefore?: number;
-          action?: 'display' | 'audio' | 'email';
-          description?: string;
-        }> | undefined;
+        const reminders = args.reminders as
+          | Array<{
+              minutesBefore?: number;
+              hoursBefore?: number;
+              daysBefore?: number;
+              action?: "display" | "audio" | "email";
+              description?: string;
+            }>
+          | undefined;
 
         if (!title || !start || !end) {
-          throw new Error('title, start, and end are required');
+          throw new Error("title, start, and end are required");
         }
 
         const result = await calendar.createEvent(calendarId, {
@@ -257,7 +259,7 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         return { success: true, result };
       }
 
-      case 'fastmail_update_event': {
+      case "fastmail_update_event": {
         const calendar = getCalendarTools();
         const eventId = args.event_id as string;
         const title = args.title as string | undefined;
@@ -268,7 +270,7 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         const allDay = args.all_day as boolean | undefined;
         const attendees = args.attendees as { name?: string; email: string }[] | undefined;
 
-        if (!eventId) throw new Error('event_id is required');
+        if (!eventId) throw new Error("event_id is required");
 
         const updates: Record<string, unknown> = {};
         if (title !== undefined) updates.title = title;
@@ -280,55 +282,57 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         if (attendees !== undefined) updates.attendees = attendees;
 
         await calendar.updateEvent(eventId, updates);
-        return { success: true, result: { message: 'Event updated' } };
+        return { success: true, result: { message: "Event updated" } };
       }
 
-      case 'fastmail_delete_event': {
+      case "fastmail_delete_event": {
         const calendar = getCalendarTools();
         const eventId = args.event_id as string;
 
-        if (!eventId) throw new Error('event_id is required');
+        if (!eventId) throw new Error("event_id is required");
 
         await calendar.deleteEvent(eventId);
-        return { success: true, result: { message: 'Event deleted' } };
+        return { success: true, result: { message: "Event deleted" } };
       }
 
-      case 'fastmail_search_events': {
+      case "fastmail_search_events": {
         const calendar = getCalendarTools();
         const query = args.query as string;
         const startDate = args.start_date as string | undefined;
         const endDate = args.end_date as string | undefined;
 
-        if (!query) throw new Error('query is required');
+        if (!query) throw new Error("query is required");
 
         const result = await calendar.searchEvents(query, startDate, endDate);
         return { success: true, result };
       }
 
       // REMINDER TOOLS (4)
-      case 'fastmail_create_recurring_event': {
+      case "fastmail_create_recurring_event": {
         const calendar = getCalendarTools();
         const calendarId = args.calendar_id as string | undefined;
         const title = args.title as string;
         const start = args.start as string;
         const end = args.end as string;
-        const recurrence = args.recurrence as 'daily' | 'weekly' | 'monthly' | 'yearly';
+        const recurrence = args.recurrence as "daily" | "weekly" | "monthly" | "yearly";
         const description = args.description as string | undefined;
         const location = args.location as string | undefined;
         const allDay = args.all_day as boolean | undefined;
         const attendees = args.attendees as { name?: string; email: string }[] | undefined;
         const recurrenceCount = args.recurrence_count as number | undefined;
         const recurrenceUntil = args.recurrence_until as string | undefined;
-        const reminders = args.reminders as Array<{
-          minutesBefore?: number;
-          hoursBefore?: number;
-          daysBefore?: number;
-          action?: 'display' | 'audio' | 'email';
-          description?: string;
-        }> | undefined;
+        const reminders = args.reminders as
+          | Array<{
+              minutesBefore?: number;
+              hoursBefore?: number;
+              daysBefore?: number;
+              action?: "display" | "audio" | "email";
+              description?: string;
+            }>
+          | undefined;
 
         if (!title || !start || !end || !recurrence) {
-          throw new Error('title, start, end, and recurrence are required');
+          throw new Error("title, start, end, and recurrence are required");
         }
 
         const result = await calendar.createRecurringEvent(calendarId, {
@@ -347,16 +351,16 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         return { success: true, result };
       }
 
-      case 'fastmail_add_event_reminder': {
+      case "fastmail_add_event_reminder": {
         const calendar = getCalendarTools();
         const eventId = args.event_id as string;
         const minutesBefore = args.minutes_before as number | undefined;
         const hoursBefore = args.hours_before as number | undefined;
         const daysBefore = args.days_before as number | undefined;
-        const action = args.action as 'display' | 'audio' | 'email' | undefined;
+        const action = args.action as "display" | "audio" | "email" | undefined;
         const description = args.description as string | undefined;
 
-        if (!eventId) throw new Error('event_id is required');
+        if (!eventId) throw new Error("event_id is required");
 
         const result = await calendar.addReminder(eventId, {
           minutesBefore,
@@ -368,28 +372,28 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         return { success: true, result };
       }
 
-      case 'fastmail_remove_event_reminder': {
+      case "fastmail_remove_event_reminder": {
         const calendar = getCalendarTools();
         const eventId = args.event_id as string;
         const reminderId = args.reminder_id as string | undefined;
 
-        if (!eventId) throw new Error('event_id is required');
+        if (!eventId) throw new Error("event_id is required");
 
         await calendar.removeReminder(eventId, reminderId);
-        return { success: true, result: { message: 'Reminder removed' } };
+        return { success: true, result: { message: "Reminder removed" } };
       }
 
-      case 'fastmail_list_event_reminders': {
+      case "fastmail_list_event_reminders": {
         const calendar = getCalendarTools();
         const eventId = args.event_id as string;
 
-        if (!eventId) throw new Error('event_id is required');
+        if (!eventId) throw new Error("event_id is required");
 
         const result = await calendar.listReminders(eventId);
         return { success: true, result };
       }
 
-      case 'fastmail_create_event_with_reminder': {
+      case "fastmail_create_event_with_reminder": {
         const calendar = getCalendarTools();
         const calendarId = args.calendar_id as string | undefined;
         const title = args.title as string;
@@ -399,20 +403,22 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
         const location = args.location as string | undefined;
         const allDay = args.all_day as boolean | undefined;
         const attendees = args.attendees as { name?: string; email: string }[] | undefined;
-        const reminders = args.reminders as Array<{
-          minutesBefore?: number;
-          hoursBefore?: number;
-          daysBefore?: number;
-          action?: 'display' | 'audio' | 'email';
-          description?: string;
-        }> | undefined;
+        const reminders = args.reminders as
+          | Array<{
+              minutesBefore?: number;
+              hoursBefore?: number;
+              daysBefore?: number;
+              action?: "display" | "audio" | "email";
+              description?: string;
+            }>
+          | undefined;
 
         if (!title || !start || !end) {
-          throw new Error('title, start, and end are required');
+          throw new Error("title, start, and end are required");
         }
 
         if (!reminders || reminders.length === 0) {
-          throw new Error('At least one reminder is required');
+          throw new Error("At least one reminder is required");
         }
 
         const result = await calendar.createEvent(calendarId, {
@@ -426,84 +432,84 @@ async function handleTool(toolName: string, args: Record<string, unknown>): Prom
           reminders,
         });
 
-         return { success: true, result };
-       }
+        return { success: true, result };
+      }
 
-      case 'fastmail_get_thread': {
+      case "fastmail_get_thread": {
         const email = getEmailTools();
         const emailId = args.email_id as string;
-        if (!emailId) throw new Error('email_id is required');
+        if (!emailId) throw new Error("email_id is required");
         const result = await email.getThread(emailId);
         return { success: true, result };
       }
 
-      case 'fastmail_bulk_move_emails': {
+      case "fastmail_bulk_move_emails": {
         const email = getEmailTools();
         const emailIds = args.email_ids as string[];
         const targetMailboxId = args.target_mailbox_id as string;
         const sourceMailboxId = args.source_mailbox_id as string | undefined;
-        
+
         if (!emailIds || !Array.isArray(emailIds) || emailIds.length === 0) {
-          throw new Error('email_ids must be a non-empty array of email IDs');
+          throw new Error("email_ids must be a non-empty array of email IDs");
         }
         if (!targetMailboxId) {
-          throw new Error('target_mailbox_id is required');
+          throw new Error("target_mailbox_id is required");
         }
-        
+
         const result = await email.bulkMoveToFolder(emailIds, targetMailboxId, sourceMailboxId);
         return { success: true, result };
       }
 
-      case 'fastmail_bulk_set_labels': {
+      case "fastmail_bulk_set_labels": {
         const email = getEmailTools();
         const emailIds = args.email_ids as string[];
         const keywords = args.keywords as Record<string, boolean>;
-        
+
         if (!emailIds || !Array.isArray(emailIds) || emailIds.length === 0) {
-          throw new Error('email_ids must be a non-empty array of email IDs');
+          throw new Error("email_ids must be a non-empty array of email IDs");
         }
-        if (!keywords || typeof keywords !== 'object') {
-          throw new Error('keywords must be an object with label:boolean pairs');
+        if (!keywords || typeof keywords !== "object") {
+          throw new Error("keywords must be an object with label:boolean pairs");
         }
-        
+
         const result = await email.bulkSetKeywords(emailIds, keywords);
         return { success: true, result };
       }
 
-      case 'fastmail_bulk_delete_emails': {
+      case "fastmail_bulk_delete_emails": {
         const email = getEmailTools();
         const emailIds = args.email_ids as string[];
-        
+
         if (!emailIds || !Array.isArray(emailIds) || emailIds.length === 0) {
-          throw new Error('email_ids must be a non-empty array of email IDs');
+          throw new Error("email_ids must be a non-empty array of email IDs");
         }
-        
+
         const result = await email.bulkDeleteEmails(emailIds);
         return { success: true, result };
       }
 
-      case 'fastmail_list_invitations': {
+      case "fastmail_list_invitations": {
         const calendar = getCalendarTools();
         const result = await calendar.listInvitations();
         return { success: true, result };
       }
 
-      case 'fastmail_respond_to_invitation': {
+      case "fastmail_respond_to_invitation": {
         const calendar = getCalendarTools();
         const eventId = args.event_id as string;
-        const response = args.response as 'accept' | 'decline' | 'tentative';
-        
-        if (!eventId) throw new Error('event_id is required');
-        if (!response || !['accept', 'decline', 'tentative'].includes(response)) {
-          throw new Error('response must be one of: accept, decline, tentative');
+        const response = args.response as "accept" | "decline" | "tentative";
+
+        if (!eventId) throw new Error("event_id is required");
+        if (!response || !["accept", "decline", "tentative"].includes(response)) {
+          throw new Error("response must be one of: accept, decline, tentative");
         }
-        
+
         await calendar.respondToInvitation(eventId, response);
         return { success: true, result: { message: `Invitation ${response}ed` } };
       }
 
-        default:
-         return { success: false, error: `Unknown tool: ${normalizedToolName}` };
+      default:
+        return { success: false, error: `Unknown tool: ${normalizedToolName}` };
     }
   } catch (error) {
     return formatError(error);
@@ -516,12 +522,12 @@ function showHelp(): void {
 Fastmail CLI - Email & Calendar Management
 
 USAGE:
-  bunx fastmail <command> [options]
+  bun scripts/cli.ts fastmail <command> [options]
 
 COMMANDS:
   --help                     Show this help message
   --list                     List all available tools
-  
+
   list_mailboxes
   list_emails [--mailbox-id ID] [--limit N]
   get_email --email-id ID
@@ -531,7 +537,7 @@ COMMANDS:
   set_labels --email-id ID --keywords JSON
   delete_email --email-id ID
   reply_email --email-id ID --text-body BODY [--subject SUBJECT] [--reply-all]
-  
+
   list_calendars
   list_events [--calendar-id ID] [--start-date DATE] [--end-date DATE]
   get_event --event-id ID
@@ -539,7 +545,7 @@ COMMANDS:
   update_event --event-id ID [--title TITLE] [--start DATE] [--end DATE]
   delete_event --event-id ID
   search_events --query TEXT [--start-date DATE] [--end-date DATE]
-  
+
   create_recurring_event --title TITLE --start DATE --end DATE --recurrence FREQ [--reminders JSON]
   add_event_reminder --event-id ID [--minutes-before N] [--hours-before N] [--days-before N]
   remove_event_reminder --event-id ID [--reminder-id ID]
@@ -560,49 +566,49 @@ OUTPUT:
 function showList(): void {
   const tools = [
     // Email tools (10)
-    'list_mailboxes',
-    'list_emails',
-    'get_email',
-    'get_thread',
-    'search_emails',
-    'send_email',
-    'move_email',
-    'set_labels',
-    'delete_email',
-    'reply_email',
+    "list_mailboxes",
+    "list_emails",
+    "get_email",
+    "get_thread",
+    "search_emails",
+    "send_email",
+    "move_email",
+    "set_labels",
+    "delete_email",
+    "reply_email",
     // Bulk email tools (3)
-    'bulk_move_emails',
-    'bulk_set_labels',
-    'bulk_delete_emails',
+    "bulk_move_emails",
+    "bulk_set_labels",
+    "bulk_delete_emails",
     // Calendar tools (10)
-    'list_calendars',
-    'list_events',
-    'get_event',
-    'create_event',
-    'update_event',
-    'delete_event',
-    'search_events',
-    'create_recurring_event',
-    'list_invitations',
-    'respond_to_invitation',
+    "list_calendars",
+    "list_events",
+    "get_event",
+    "create_event",
+    "update_event",
+    "delete_event",
+    "search_events",
+    "create_recurring_event",
+    "list_invitations",
+    "respond_to_invitation",
     // Reminder tools (4)
-    'add_event_reminder',
-    'remove_event_reminder',
-    'list_event_reminders',
-    'create_event_with_reminder',
+    "add_event_reminder",
+    "remove_event_reminder",
+    "list_event_reminders",
+    "create_event_with_reminder",
   ];
 
-  console.log('Available Tools (27 total):');
-  console.log('\nEmail Tools (10):');
+  console.log("Available Tools (27 total):");
+  console.log("\nEmail Tools (10):");
   tools.slice(0, 10).forEach((tool, i) => console.log(`  ${i + 1}. ${tool}`));
-  
-  console.log('\nBulk Email Tools (3):');
+
+  console.log("\nBulk Email Tools (3):");
   tools.slice(10, 13).forEach((tool, i) => console.log(`  ${i + 11}. ${tool}`));
 
-  console.log('\nCalendar Tools (10):');
+  console.log("\nCalendar Tools (10):");
   tools.slice(13, 23).forEach((tool, i) => console.log(`  ${i + 14}. ${tool}`));
 
-  console.log('\nReminder Tools (4):');
+  console.log("\nReminder Tools (4):");
   tools.slice(23).forEach((tool, i) => console.log(`  ${i + 24}. ${tool}`));
 }
 
@@ -614,14 +620,14 @@ function parseArgs(args: string[]): { command: string; params: Record<string, un
   for (let i = 1; i < args.length; i++) {
     const arg = args[i];
 
-    if (arg.startsWith('--')) {
+    if (arg.startsWith("--")) {
       const key = arg.slice(2);
       let value: unknown = true;
 
       // Handle key=value format
-      if (key.includes('=')) {
-        const [k, v] = key.split('=', 2);
-        const param = k.replace(/-/g, '_');
+      if (key.includes("=")) {
+        const [k, v] = key.split("=", 2);
+        const param = k.replace(/-/g, "_");
         try {
           params[param] = JSON.parse(v);
         } catch {
@@ -629,7 +635,7 @@ function parseArgs(args: string[]): { command: string; params: Record<string, un
         }
       } else {
         // Handle next arg as value
-        if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
+        if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
           const nextArg = args[i + 1];
           try {
             value = JSON.parse(nextArg);
@@ -638,7 +644,7 @@ function parseArgs(args: string[]): { command: string; params: Record<string, un
           }
           i++;
         }
-        const param = key.replace(/-/g, '_');
+        const param = key.replace(/-/g, "_");
         params[param] = value;
       }
     }
@@ -652,10 +658,10 @@ function parseJsonArg(args: string[]): { command: string; params: Record<string,
   if (args.length >= 2) {
     // Check if second argument looks like JSON (starts with { or [)
     const possibleJson = args[1];
-    if (possibleJson && (possibleJson.startsWith('{') || possibleJson.startsWith('['))) {
+    if (possibleJson && (possibleJson.startsWith("{") || possibleJson.startsWith("["))) {
       try {
         const params = JSON.parse(possibleJson);
-        if (typeof params === 'object' && params !== null && !Array.isArray(params)) {
+        if (typeof params === "object" && params !== null && !Array.isArray(params)) {
           return { command: args[0], params };
         }
       } catch {
@@ -670,12 +676,12 @@ function parseJsonArg(args: string[]): { command: string; params: Record<string,
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
-  if (args.length === 0 || args[0] === '--help') {
+  if (args.length === 0 || args[0] === "--help") {
     showHelp();
     process.exit(0);
   }
 
-  if (args[0] === '--list') {
+  if (args[0] === "--list") {
     showList();
     process.exit(0);
   }
@@ -685,7 +691,7 @@ async function main(): Promise<void> {
   const { command, params } = jsonParsed || parseArgs(args);
 
   if (!command) {
-    console.error('Error: No command specified');
+    console.error("Error: No command specified");
     showHelp();
     process.exit(1);
   }
@@ -697,6 +703,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-  console.error('Fatal error:', error);
+  console.error("Fatal error:", error);
   process.exit(1);
 });

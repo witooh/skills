@@ -22,14 +22,17 @@ Complete documentation for all 27 Fastmail tools organized by category. Each too
 **Parameters:** None (no parameters required)
 
 **Returns:**
+
 - Array of mailbox objects with `id`, `name`, `role`, `totalEmails`, `unreadEmails`
 
 **Example Usage:**
+
 ```bash
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_mailboxes
 ```
 
 **Example Response:**
+
 ```json
 {
   "mailboxes": [
@@ -57,15 +60,17 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_mailboxes
 
 **Description:** Display list of emails in a mailbox (default: Inbox)
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `mailbox_id` | string | No | Inbox ID | ID of the mailbox to list |
-| `limit` | number | No | 20 | Number of emails to display |
+| Parameter    | Type   | Required | Default  | Description                 |
+| ------------ | ------ | -------- | -------- | --------------------------- |
+| `mailbox_id` | string | No       | Inbox ID | ID of the mailbox to list   |
+| `limit`      | number | No       | 20       | Number of emails to display |
 
 **Returns:**
+
 - Array of email objects with `id`, `from`, `subject`, `date`, `preview`, `isRead`
 
 **Example Usage:**
+
 ```bash
 # List 10 emails from Inbox
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_emails '{"limit": 10}'
@@ -75,12 +80,13 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_emails '{"mailbox
 ```
 
 **Example Response:**
+
 ```json
 {
   "emails": [
     {
       "id": "msg001",
-      "from": {"name": "John Doe", "email": "john@example.com"},
+      "from": { "name": "John Doe", "email": "john@example.com" },
       "subject": "Project Update",
       "date": "2024-01-15T14:30:00+07:00",
       "preview": "Here's the latest update on the project...",
@@ -97,24 +103,27 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_emails '{"mailbox
 
 **Description:** Read full content of a specific email
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `email_id` | string | Yes | ID of the email to retrieve |
+| Parameter  | Type   | Required | Description                 |
+| ---------- | ------ | -------- | --------------------------- |
+| `email_id` | string | Yes      | ID of the email to retrieve |
 
 **Returns:**
+
 - Email object with full content: `id`, `from`, `to`, `cc`, `subject`, `body`, `html`, `attachments`, `date`, `isRead`
 
 **Example Usage:**
+
 ```bash
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_get_email '{"email_id": "msg001"}'
 ```
 
 **Example Response:**
+
 ```json
 {
   "id": "msg001",
-  "from": {"name": "John Doe", "email": "john@example.com"},
-  "to": [{"name": "You", "email": "your@fastmail.com"}],
+  "from": { "name": "John Doe", "email": "john@example.com" },
+  "to": [{ "name": "You", "email": "your@fastmail.com" }],
   "cc": [],
   "subject": "Project Update",
   "body": "Full email text content here...",
@@ -138,15 +147,17 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_get_email '{"email_id"
 
 **Description:** Search for emails by text query
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | string | Yes | - | Search terms (searches in subject, body, and sender) |
-| `limit` | number | No | 20 | Number of results to return |
+| Parameter | Type   | Required | Default | Description                                          |
+| --------- | ------ | -------- | ------- | ---------------------------------------------------- |
+| `query`   | string | Yes      | -       | Search terms (searches in subject, body, and sender) |
+| `limit`   | number | No       | 20      | Number of results to return                          |
 
 **Returns:**
+
 - Array of email objects matching the query
 
 **Example Usage:**
+
 ```bash
 # Search for "invoice"
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_emails '{"query": "invoice"}'
@@ -156,12 +167,13 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_emails '{"query
 ```
 
 **Example Response:**
+
 ```json
 {
   "emails": [
     {
       "id": "msg002",
-      "from": {"name": "Finance", "email": "finance@example.com"},
+      "from": { "name": "Finance", "email": "finance@example.com" },
       "subject": "Invoice #12345",
       "date": "2024-01-10T10:00:00+07:00",
       "preview": "Your invoice is ready...",
@@ -178,19 +190,21 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_emails '{"query
 
 **Description:** Send a new email
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `to` | array | Yes | Array of recipient objects: `[{name?: string, email: string}]` |
-| `cc` | array | No | Array of CC recipient objects: `[{name?: string, email: string}]` |
-| `bcc` | array | No | Array of BCC recipient objects: `[{name?: string, email: string}]` |
-| `subject` | string | Yes | Email subject line |
-| `body` | string | Yes | Email body text content |
-| `html` | string | No | Email body as HTML (optional, for rich formatting) |
+| Parameter | Type   | Required | Description                                                        |
+| --------- | ------ | -------- | ------------------------------------------------------------------ |
+| `to`      | array  | Yes      | Array of recipient objects: `[{name?: string, email: string}]`     |
+| `cc`      | array  | No       | Array of CC recipient objects: `[{name?: string, email: string}]`  |
+| `bcc`     | array  | No       | Array of BCC recipient objects: `[{name?: string, email: string}]` |
+| `subject` | string | Yes      | Email subject line                                                 |
+| `body`    | string | Yes      | Email body text content                                            |
+| `html`    | string | No       | Email body as HTML (optional, for rich formatting)                 |
 
 **Returns:**
+
 - Success object with `success: true`, `emailId`, `timestamp`
 
 **Example Usage:**
+
 ```bash
 # Send simple email
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_send_email '{
@@ -212,6 +226,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_send_email '{
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -226,16 +241,18 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_send_email '{
 
 **Description:** Reply to an existing email (supports Reply or Reply All)
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `email_id` | string | Yes | - | ID of the email to reply to |
-| `body` | string | Yes | - | Reply message content |
-| `reply_all` | boolean | No | false | If true, reply to all recipients; if false, reply only to sender |
+| Parameter   | Type    | Required | Default | Description                                                      |
+| ----------- | ------- | -------- | ------- | ---------------------------------------------------------------- |
+| `email_id`  | string  | Yes      | -       | ID of the email to reply to                                      |
+| `body`      | string  | Yes      | -       | Reply message content                                            |
+| `reply_all` | boolean | No       | false   | If true, reply to all recipients; if false, reply only to sender |
 
 **Returns:**
+
 - Success object with `success: true`, `emailId`, `timestamp`
 
 **Example Usage:**
+
 ```bash
 # Reply to sender only
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_reply_email '{
@@ -252,6 +269,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_reply_email '{
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -266,15 +284,17 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_reply_email '{
 
 **Description:** Move email to a different mailbox/folder
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `email_id` | string | Yes | ID of the email to move |
-| `target_mailbox_id` | string | Yes | ID of the destination mailbox (get from `fastmail_list_mailboxes`) |
+| Parameter           | Type   | Required | Description                                                        |
+| ------------------- | ------ | -------- | ------------------------------------------------------------------ |
+| `email_id`          | string | Yes      | ID of the email to move                                            |
+| `target_mailbox_id` | string | Yes      | ID of the destination mailbox (get from `fastmail_list_mailboxes`) |
 
 **Returns:**
+
 - Success object with `success: true`, `movedCount: 1`
 
 **Example Usage:**
+
 ```bash
 # Move email to Archive (mailbox_id: u789)
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_move_email '{
@@ -284,6 +304,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_move_email '{
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -297,20 +318,23 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_move_email '{
 
 **Description:** Set labels/keywords on an email (e.g., mark as read, flag, custom labels)
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `email_id` | string | Yes | ID of the email |
-| `labels` | object | Yes | Label object: `{label_name: true/false}` - set to `true` to add, `false` to remove |
+| Parameter  | Type   | Required | Description                                                                        |
+| ---------- | ------ | -------- | ---------------------------------------------------------------------------------- |
+| `email_id` | string | Yes      | ID of the email                                                                    |
+| `labels`   | object | Yes      | Label object: `{label_name: true/false}` - set to `true` to add, `false` to remove |
 
 **Common Labels:**
+
 - `$seen` - Mark as read (true) or unread (false)
 - `$flagged` - Mark as important/starred
 - Custom labels can be added as strings
 
 **Returns:**
+
 - Success object with `success: true`, `labelsSet: {...}`
 
 **Example Usage:**
+
 ```bash
 # Mark email as read
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_set_labels '{
@@ -332,6 +356,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_set_labels '{
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -348,19 +373,22 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_set_labels '{
 
 **Description:** Delete email (moves to Trash/Deleted Items)
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `email_id` | string | Yes | ID of the email to delete |
+| Parameter  | Type   | Required | Description               |
+| ---------- | ------ | -------- | ------------------------- |
+| `email_id` | string | Yes      | ID of the email to delete |
 
 **Returns:**
+
 - Success object with `success: true`, `deletedCount: 1`
 
 **Example Usage:**
+
 ```bash
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_delete_email '{"email_id": "msg001"}'
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -374,19 +402,22 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_delete_email '{"email_
 
 **Description:** Get all emails in a conversation thread
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `email_id` | string | Yes | ID of any email in the thread |
+| Parameter  | Type   | Required | Description                   |
+| ---------- | ------ | -------- | ----------------------------- |
+| `email_id` | string | Yes      | ID of any email in the thread |
 
 **Returns:**
+
 - Thread object with `id`, `emails[]`, `subject`, `participants[]`, `latestDate`, `emailCount`
 
 **Example Usage:**
+
 ```bash
-bunx fastmail get_thread '{"email_id": "msg001"}'
+bun scripts/cli.ts get_thread '{"email_id": "msg001"}'
 ```
 
 **Example Response:**
+
 ```json
 {
   "id": "thread001",
@@ -409,24 +440,27 @@ bunx fastmail get_thread '{"email_id": "msg001"}'
 
 **Description:** Move multiple emails to a folder at once
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `email_ids` | string[] | Yes | Array of email IDs to move |
-| `target_mailbox_id` | string | Yes | Destination folder ID |
-| `source_mailbox_id` | string | No | Source folder ID (optional) |
+| Parameter           | Type     | Required | Description                 |
+| ------------------- | -------- | -------- | --------------------------- |
+| `email_ids`         | string[] | Yes      | Array of email IDs to move  |
+| `target_mailbox_id` | string   | Yes      | Destination folder ID       |
+| `source_mailbox_id` | string   | No       | Source folder ID (optional) |
 
 **Returns:**
+
 - Object with `succeeded[]` and `failed[]` arrays
 
 **Example Usage:**
+
 ```bash
-bunx fastmail bulk_move_emails '{
+bun scripts/cli.ts bulk_move_emails '{
   "email_ids": ["msg001", "msg002", "msg003"],
   "target_mailbox_id": "archive-folder-id"
 }'
 ```
 
 **Example Response:**
+
 ```json
 {
   "succeeded": ["msg001", "msg002", "msg003"],
@@ -440,20 +474,22 @@ bunx fastmail bulk_move_emails '{
 
 **Description:** Apply labels to multiple emails at once
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `email_ids` | string[] | Yes | Array of email IDs |
-| `keywords` | object | Yes | Labels to apply: `{label: true/false}` |
+| Parameter   | Type     | Required | Description                            |
+| ----------- | -------- | -------- | -------------------------------------- |
+| `email_ids` | string[] | Yes      | Array of email IDs                     |
+| `keywords`  | object   | Yes      | Labels to apply: `{label: true/false}` |
 
 **Example Usage:**
+
 ```bash
-bunx fastmail bulk_set_labels '{
+bun scripts/cli.ts bulk_set_labels '{
   "email_ids": ["msg001", "msg002"],
   "keywords": {"$seen": true, "$flagged": true}
 }'
 ```
 
 **Example Response:**
+
 ```json
 {
   "succeeded": ["msg001", "msg002"],
@@ -467,16 +503,18 @@ bunx fastmail bulk_set_labels '{
 
 **Description:** Delete multiple emails at once (move to trash)
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `email_ids` | string[] | Yes | Array of email IDs to delete |
+| Parameter   | Type     | Required | Description                  |
+| ----------- | -------- | -------- | ---------------------------- |
+| `email_ids` | string[] | Yes      | Array of email IDs to delete |
 
 **Example Usage:**
+
 ```bash
-bunx fastmail bulk_delete_emails '{"email_ids": ["msg001", "msg002", "msg003"]}'
+bun scripts/cli.ts bulk_delete_emails '{"email_ids": ["msg001", "msg002", "msg003"]}'
 ```
 
 **Example Response:**
+
 ```json
 {
   "succeeded": ["msg001", "msg002", "msg003"],
@@ -495,14 +533,17 @@ bunx fastmail bulk_delete_emails '{"email_ids": ["msg001", "msg002", "msg003"]}'
 **Parameters:** None (no parameters required)
 
 **Returns:**
+
 - Array of calendar objects with `id`, `name`, `color`, `isReadOnly`
 
 **Example Usage:**
+
 ```bash
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_calendars
 ```
 
 **Example Response:**
+
 ```json
 {
   "calendars": [
@@ -528,16 +569,18 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_calendars
 
 **Description:** Display events in a date range (times shown in configured timezone)
 
-| Parameter | Type | Required | Format | Description |
-|-----------|------|----------|--------|-------------|
-| `calendar_id` | string | No | - | ID of specific calendar (lists all if omitted) |
-| `start_date` | string | Yes | YYYY-MM-DD or ISO 8601 | Start date for range |
-| `end_date` | string | Yes | YYYY-MM-DD or ISO 8601 | End date for range |
+| Parameter     | Type   | Required | Format                 | Description                                    |
+| ------------- | ------ | -------- | ---------------------- | ---------------------------------------------- |
+| `calendar_id` | string | No       | -                      | ID of specific calendar (lists all if omitted) |
+| `start_date`  | string | Yes      | YYYY-MM-DD or ISO 8601 | Start date for range                           |
+| `end_date`    | string | Yes      | YYYY-MM-DD or ISO 8601 | End date for range                             |
 
 **Returns:**
+
 - Array of event objects with `id`, `title`, `start`, `end`, `description`, `location`, `isAllDay`
 
 **Example Usage:**
+
 ```bash
 # List events for January 2024
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_events '{
@@ -560,6 +603,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_events '{
 ```
 
 **Example Response:**
+
 ```json
 {
   "events": [
@@ -592,19 +636,22 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_events '{
 
 **Description:** Get detailed information about a specific event (time shown in configured timezone)
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `event_id` | string | Yes | ID of the event to retrieve |
+| Parameter  | Type   | Required | Description                 |
+| ---------- | ------ | -------- | --------------------------- |
+| `event_id` | string | Yes      | ID of the event to retrieve |
 
 **Returns:**
+
 - Event object with full details: `id`, `title`, `start`, `end`, `description`, `location`, `isAllDay`, `calendar_id`, `reminders`
 
 **Example Usage:**
+
 ```bash
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_get_event '{"event_id": "evt001"}'
 ```
 
 **Example Response:**
+
 ```json
 {
   "id": "evt001",
@@ -631,20 +678,22 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_get_event '{"event_id"
 
 **Description:** Create a new calendar event (input time in configured timezone)
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `calendar_id` | string | No | Personal | ID of calendar to create in |
-| `title` | string | Yes | - | Event title |
-| `start` | string | Yes | - | Start time (ISO 8601) |
-| `end` | string | Yes | - | End time (ISO 8601) |
-| `description` | string | No | "" | Event description |
-| `location` | string | No | "" | Event location |
-| `all_day` | boolean | No | false | If true, event is all-day event |
+| Parameter     | Type    | Required | Default  | Description                     |
+| ------------- | ------- | -------- | -------- | ------------------------------- |
+| `calendar_id` | string  | No       | Personal | ID of calendar to create in     |
+| `title`       | string  | Yes      | -        | Event title                     |
+| `start`       | string  | Yes      | -        | Start time (ISO 8601)           |
+| `end`         | string  | Yes      | -        | End time (ISO 8601)             |
+| `description` | string  | No       | ""       | Event description               |
+| `location`    | string  | No       | ""       | Event location                  |
+| `all_day`     | boolean | No       | false    | If true, event is all-day event |
 
 **Returns:**
+
 - Success object with `success: true`, `eventId`, `timestamp`
 
 **Example Usage:**
+
 ```bash
 # Create simple event
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event '{
@@ -673,6 +722,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event '{
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -687,19 +737,21 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event '{
 
 **Description:** Update an existing calendar event
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `event_id` | string | Yes | ID of the event to update |
-| `title` | string | No | New event title |
-| `start` | string | No | New start time (ISO 8601) |
-| `end` | string | No | New end time (ISO 8601) |
-| `description` | string | No | New description |
-| `location` | string | No | New location |
+| Parameter     | Type   | Required | Description               |
+| ------------- | ------ | -------- | ------------------------- |
+| `event_id`    | string | Yes      | ID of the event to update |
+| `title`       | string | No       | New event title           |
+| `start`       | string | No       | New start time (ISO 8601) |
+| `end`         | string | No       | New end time (ISO 8601)   |
+| `description` | string | No       | New description           |
+| `location`    | string | No       | New location              |
 
 **Returns:**
+
 - Success object with `success: true`, `eventId`, `timestamp`
 
 **Example Usage:**
+
 ```bash
 # Update event time
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_update_event '{
@@ -717,6 +769,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_update_event '{
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -731,19 +784,22 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_update_event '{
 
 **Description:** Delete a calendar event
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `event_id` | string | Yes | ID of the event to delete |
+| Parameter  | Type   | Required | Description               |
+| ---------- | ------ | -------- | ------------------------- |
+| `event_id` | string | Yes      | ID of the event to delete |
 
 **Returns:**
+
 - Success object with `success: true`, `deletedCount: 1`
 
 **Example Usage:**
+
 ```bash
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_delete_event '{"event_id": "evt001"}'
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -757,16 +813,18 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_delete_event '{"event_
 
 **Description:** Search for events by title or description
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | string | Yes | - | Search terms |
-| `start_date` | string | No | - | Start date for search range (YYYY-MM-DD or ISO 8601) |
-| `end_date` | string | No | - | End date for search range (YYYY-MM-DD or ISO 8601) |
+| Parameter    | Type   | Required | Default | Description                                          |
+| ------------ | ------ | -------- | ------- | ---------------------------------------------------- |
+| `query`      | string | Yes      | -       | Search terms                                         |
+| `start_date` | string | No       | -       | Start date for search range (YYYY-MM-DD or ISO 8601) |
+| `end_date`   | string | No       | -       | End date for search range (YYYY-MM-DD or ISO 8601)   |
 
 **Returns:**
+
 - Array of matching event objects
 
 **Example Usage:**
+
 ```bash
 # Search all events
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_events '{"query": "meeting"}'
@@ -780,6 +838,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_events '{
 ```
 
 **Example Response:**
+
 ```json
 {
   "events": [
@@ -803,22 +862,24 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_events '{
 
 **Description:** Create a calendar event with recurrence (daily/weekly/monthly/yearly)
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `calendar_id` | string | No | Personal | ID of calendar to create in |
-| `title` | string | Yes | - | Event title |
-| `start` | string | Yes | - | Start time (ISO 8601) |
-| `end` | string | Yes | - | End time (ISO 8601) |
-| `description` | string | No | "" | Event description |
-| `location` | string | No | "" | Event location |
-| `recurrence` | string | Yes | - | Frequency: `daily`, `weekly`, `monthly`, or `yearly` |
-| `recurrence_count` | number | No | - | Number of times to repeat (if not using `recurrence_until`) |
-| `recurrence_until` | string | No | - | End date for recurrence (YYYY-MM-DD) |
+| Parameter          | Type   | Required | Default  | Description                                                 |
+| ------------------ | ------ | -------- | -------- | ----------------------------------------------------------- |
+| `calendar_id`      | string | No       | Personal | ID of calendar to create in                                 |
+| `title`            | string | Yes      | -        | Event title                                                 |
+| `start`            | string | Yes      | -        | Start time (ISO 8601)                                       |
+| `end`              | string | Yes      | -        | End time (ISO 8601)                                         |
+| `description`      | string | No       | ""       | Event description                                           |
+| `location`         | string | No       | ""       | Event location                                              |
+| `recurrence`       | string | Yes      | -        | Frequency: `daily`, `weekly`, `monthly`, or `yearly`        |
+| `recurrence_count` | number | No       | -        | Number of times to repeat (if not using `recurrence_until`) |
+| `recurrence_until` | string | No       | -        | End date for recurrence (YYYY-MM-DD)                        |
 
 **Returns:**
+
 - Success object with `success: true`, `eventId`, `timestamp`
 
 **Example Usage:**
+
 ```bash
 # Create daily recurring event (5 times)
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_recurring_event '{
@@ -851,6 +912,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_recurring_event
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -868,14 +930,17 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_recurring_event
 **Parameters:** None
 
 **Returns:**
+
 - Array of invitation objects with `eventId`, `calendarId`, `title`, `organizer`, `start`, `end`, `myStatus`
 
 **Example Usage:**
+
 ```bash
-bunx fastmail list_invitations
+bun scripts/cli.ts list_invitations
 ```
 
 **Example Response:**
+
 ```json
 {
   "invitations": [
@@ -883,7 +948,7 @@ bunx fastmail list_invitations
       "eventId": "evt001",
       "calendarId": "cal001",
       "title": "Team Meeting",
-      "organizer": {"name": "John", "email": "john@example.com"},
+      "organizer": { "name": "John", "email": "john@example.com" },
       "start": "2024-01-20T10:00:00+07:00",
       "end": "2024-01-20T11:00:00+07:00",
       "myStatus": "needs-action"
@@ -898,20 +963,22 @@ bunx fastmail list_invitations
 
 **Description:** Accept, decline, or tentatively accept a calendar invitation
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `event_id` | string | Yes | ID of the invitation event |
-| `response` | string | Yes | One of: `accept`, `decline`, `tentative` |
+| Parameter  | Type   | Required | Description                              |
+| ---------- | ------ | -------- | ---------------------------------------- |
+| `event_id` | string | Yes      | ID of the invitation event               |
+| `response` | string | Yes      | One of: `accept`, `decline`, `tentative` |
 
 **Example Usage:**
+
 ```bash
-bunx fastmail respond_to_invitation '{
+bun scripts/cli.ts respond_to_invitation '{
   "event_id": "evt001",
   "response": "accept"
 }'
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -929,21 +996,23 @@ bunx fastmail respond_to_invitation '{
 
 **Description:** Add a reminder/alarm to an existing event
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `event_id` | string | Yes | - | ID of the event |
-| `minutes_before` | number | No | - | Remind X minutes before event |
-| `hours_before` | number | No | - | Remind X hours before event |
-| `days_before` | number | No | - | Remind X days before event |
-| `action` | string | No | `display` | Type of reminder: `display`, `audio`, or `email` |
-| `description` | string | No | - | Custom reminder message/description |
+| Parameter        | Type   | Required | Default   | Description                                      |
+| ---------------- | ------ | -------- | --------- | ------------------------------------------------ |
+| `event_id`       | string | Yes      | -         | ID of the event                                  |
+| `minutes_before` | number | No       | -         | Remind X minutes before event                    |
+| `hours_before`   | number | No       | -         | Remind X hours before event                      |
+| `days_before`    | number | No       | -         | Remind X days before event                       |
+| `action`         | string | No       | `display` | Type of reminder: `display`, `audio`, or `email` |
+| `description`    | string | No       | -         | Custom reminder message/description              |
 
 **Note:** Use one of `minutes_before`, `hours_before`, or `days_before` (not multiple)
 
 **Returns:**
+
 - Success object with `success: true`, `reminderId`, `timestamp`
 
 **Example Usage:**
+
 ```bash
 # Add 15-minute reminder
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_add_event_reminder '{
@@ -968,6 +1037,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_add_event_reminder '{
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -982,15 +1052,17 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_add_event_reminder '{
 
 **Description:** Remove reminder(s) from an event
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `event_id` | string | Yes | ID of the event |
-| `reminder_id` | string | No | ID of specific reminder to remove (removes all if omitted) |
+| Parameter     | Type   | Required | Description                                                |
+| ------------- | ------ | -------- | ---------------------------------------------------------- |
+| `event_id`    | string | Yes      | ID of the event                                            |
+| `reminder_id` | string | No       | ID of specific reminder to remove (removes all if omitted) |
 
 **Returns:**
+
 - Success object with `success: true`, `removedCount`
 
 **Example Usage:**
+
 ```bash
 # Remove specific reminder
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_remove_event_reminder '{
@@ -1005,6 +1077,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_remove_event_reminder 
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -1018,19 +1091,22 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_remove_event_reminder 
 
 **Description:** Display all reminders for an event
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `event_id` | string | Yes | ID of the event |
+| Parameter  | Type   | Required | Description     |
+| ---------- | ------ | -------- | --------------- |
+| `event_id` | string | Yes      | ID of the event |
 
 **Returns:**
+
 - Array of reminder objects with `id`, `minutesBefore`, `hoursBefore`, `daysBefore`, `action`, `description`
 
 **Example Usage:**
+
 ```bash
 npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_event_reminders '{"event_id": "evt001"}'
 ```
 
 **Example Response:**
+
 ```json
 {
   "reminders": [
@@ -1055,50 +1131,74 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_event_reminders '
 
 **Description:** Create a new event with reminder(s) in one operation
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `calendar_id` | string | No | Personal | ID of calendar to create in |
-| `title` | string | Yes | - | Event title |
-| `start` | string | Yes | - | Start time (ISO 8601) |
-| `end` | string | Yes | - | End time (ISO 8601) |
-| `description` | string | No | "" | Event description |
-| `location` | string | No | "" | Event location |
-| `reminder_minutes` | array | No | `[15]` | Array of minute values before event (e.g., `[15, 60, 1440]`) |
+| Parameter     | Type            | Required | Description                                     |
+| ------------- | --------------- | -------- | ----------------------------------------------- |
+| `calendar_id` | string          | No       | ID of calendar to create in (defaults to first) |
+| `title`       | string          | Yes      | Event title                                     |
+| `start`       | string          | Yes      | Start time (ISO 8601 with timezone)             |
+| `end`         | string          | Yes      | End time (ISO 8601 with timezone)               |
+| `description` | string          | No       | Event description                               |
+| `location`    | string          | No       | Event location                                  |
+| `reminders`   | array of object | Yes      | Array of reminder objects (see structure below) |
+
+**Reminder Object Structure:**
+
+Each reminder object supports the following fields:
+
+| Field           | Type   | Required | Description                                      |
+| --------------- | ------ | -------- | ------------------------------------------------ |
+| `minutesBefore` | number | No       | Minutes before event (e.g., 15, 30, 60)          |
+| `hoursBefore`   | number | No       | Hours before event (e.g., 1, 2, 24)              |
+| `daysBefore`    | number | No       | Days before event (e.g., 1, 7)                   |
+| `action`        | string | No       | Type of reminder: "display", "audio", or "email" |
+| `description`   | string | No       | Custom reminder description                      |
+
+**Note:** At least one of `minutesBefore`, `hoursBefore`, or `daysBefore` must be specified for each reminder.
 
 **Returns:**
+
 - Success object with `success: true`, `eventId`, `reminders`, `timestamp`
 
 **Example Usage:**
+
 ```bash
-# Create event with single reminder
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event_with_reminder '{
+# Create event with single 15-minute reminder
+bun scripts/cli.ts create_event_with_reminder '{
   "title": "Doctor Appointment",
-  "start": "2024-02-10T14:00:00+07:00",
-  "end": "2024-02-10T15:00:00+07:00",
+  "start": "2026-02-10T14:00:00+07:00",
+  "end": "2026-02-10T15:00:00+07:00",
   "location": "City Hospital",
-  "reminder_minutes": [15, 1440]
+  "reminders": [{"minutesBefore": 15}]
 }'
 
-# Create event with multiple reminders
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event_with_reminder '{
+# Create event with multiple reminders (15 min, 1 hour, 1 day)
+bun scripts/cli.ts create_event_with_reminder '{
   "calendar_id": "cal002",
   "title": "Important Meeting",
-  "start": "2024-02-15T10:00:00+07:00",
-  "end": "2024-02-15T11:30:00+07:00",
+  "start": "2026-02-15T10:00:00+07:00",
+  "end": "2026-02-15T11:30:00+07:00",
   "description": "Quarterly planning session",
   "location": "Conference Room B",
-  "reminder_minutes": [15, 60, 1440]
+  "reminders": [
+    {"minutesBefore": 15},
+    {"hoursBefore": 1},
+    {"daysBefore": 1}
+  ]
 }'
 
-# Create with default reminder (15 minutes)
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event_with_reminder '{
+# Create with custom reminder actions
+bun scripts/cli.ts create_event_with_reminder '{
   "title": "Team Sync",
-  "start": "2024-02-20T09:00:00+07:00",
-  "end": "2024-02-20T09:30:00+07:00"
+  "start": "2026-02-20T09:00:00+07:00",
+  "end": "2026-02-20T09:30:00+07:00",
+  "reminders": [
+    {"minutesBefore": 15, "action": "display", "description": "Meeting starts soon"}
+  ]
 }'
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -1128,42 +1228,46 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event_with_remi
 
 ## Summary
 
-| Category | Count | Tools |
-|----------|-------|-------|
-| Email | 10 | list_mailboxes, list_emails, get_email, get_thread, search_emails, send_email, reply_email, move_email, set_labels, delete_email |
-| Bulk Email | 3 | bulk_move_emails, bulk_set_labels, bulk_delete_emails |
-| Calendar | 10 | list_calendars, list_events, get_event, create_event, update_event, delete_event, search_events, create_recurring_event, list_invitations, respond_to_invitation |
-| Reminders | 4 | add_event_reminder, remove_event_reminder, list_event_reminders, create_event_with_reminder |
-| **Total** | **27** | **All tools documented** |
+| Category   | Count  | Tools                                                                                                                                                            |
+| ---------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Email      | 10     | list_mailboxes, list_emails, get_email, get_thread, search_emails, send_email, reply_email, move_email, set_labels, delete_email                                 |
+| Bulk Email | 3      | bulk_move_emails, bulk_set_labels, bulk_delete_emails                                                                                                            |
+| Calendar   | 10     | list_calendars, list_events, get_event, create_event, update_event, delete_event, search_events, create_recurring_event, list_invitations, respond_to_invitation |
+| Reminders  | 4      | add_event_reminder, remove_event_reminder, list_event_reminders, create_event_with_reminder                                                                      |
+| **Total**  | **27** | **All tools documented**                                                                                                                                         |
 
 ---
 
 ## Common Patterns
 
 ### Time Format (Configurable Timezone)
+
 All calendar times use ISO 8601 format with your configured timezone:
+
 ```
 2024-01-15T14:30:00+07:00  (with time - timezone offset shown)
 2024-01-15                 (date only, treated as start of day)
 ```
 
 **Timezone Configuration:**
+
 - **Default:** Auto-detects your system's local timezone
 - **Override:** Set `FASTMAIL_TIMEZONE` environment variable (IANA format)
 - **Examples:** `America/New_York`, `Asia/Bangkok`, `Europe/London`, `UTC`
 - **DST:** Automatically handles Daylight Saving Time
 
 ### Recipient Format (Email)
+
 Recipients can be specified as arrays:
+
 ```json
-[
-  {"email": "user@example.com"},
-  {"name": "John Doe", "email": "john@example.com"}
-]
+[{ "email": "user@example.com" }, { "name": "John Doe", "email": "john@example.com" }]
 ```
 
 ### Label Format (Email)
+
 Labels are objects with boolean values:
+
 ```json
 {
   "$seen": true,
@@ -1173,7 +1277,9 @@ Labels are objects with boolean values:
 ```
 
 ### Error Handling
+
 All tools return success/error responses:
+
 ```json
 {
   "success": true,
