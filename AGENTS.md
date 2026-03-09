@@ -10,7 +10,7 @@ Repository for creating and managing agent skills following the [Agent Skills Sp
 
 - [ ] **Always run `/skill-creator` before creating or modifying any skill**
 - [ ] Follow the [Agent Skills Specification](https://agentskills.io/specification) strictly
-- [ ] **Place skill in `./skills/<skill-name>/` directory**
+- [ ] **Place skill in `./.agents/skills/<skill-name>/` directory**
 - [ ] **Place test plan in `./tests/<skill-name>/` directory**
 - [ ] Include valid YAML frontmatter with `name` and `description` in SKILL.md
 - [ ] Test all scripts before packaging
@@ -44,23 +44,39 @@ This repository contains reusable skills that extend AI agent capabilities. Skil
 ## Directory Structure
 
 ```
-skills/
-├── AGENTS.md                    # This file - project guidance
-├── .gitignore                   # Git ignore rules
-├── .opencode/                   # OpenCode framework configuration
-│   ├── opencode.json           # OpenCode settings
-│   └── package.json            # OpenCode plugin dependencies
+skills/                              # Repository root
+├── AGENTS.md                        # This file - project guidance
+├── README.md                        # Project overview & skill catalog
+├── portfolio.md                     # Personal portfolio tracker
+├── .gitignore                       # Git ignore rules
 │
-└── skills/                      # All skills live here
-    └── {skill-name}/           # Individual skill folder
-        ├── SKILL.md            # Required - skill metadata + instructions
-        ├── package.json        # Dependencies and CLI entry point
-        ├── tsconfig.json       # TypeScript configuration
-        ├── scripts/            # Executable code
-        │   ├── cli.ts         # CLI entry point
-        │   └── tools/         # Tool implementations
-        └── references/         # Reference documentation
-            └── TOOLS.md       # Detailed tool specifications
+├── .agents/                         # Deployed agent skills
+│   └── skills/                      # All active skills (12 skills)
+│       └── {skill-name}/
+│           ├── SKILL.md             # Required - metadata + instructions
+│           ├── package.json         # Dependencies (if applicable)
+│           ├── scripts/             # Executable code
+│           └── references/          # Reference documentation
+│
+├── .opencode/                       # OpenCode framework configuration
+│   ├── opencode.json               # OpenCode settings
+│   ├── package.json                # OpenCode plugin dependencies
+│   └── skills/                     # Internal utility skills
+│       ├── skill-creator/          # Meta-skill for creating skills
+│       ├── qa-test-planner/        # QA test plan generator
+│       └── security-review/        # Security review checklist
+│
+├── skills/                          # Skill source development
+│   └── {skill-name}/              # Skills under development
+│
+├── tests/                           # Test plans & reports per skill
+│   └── {skill-name}/
+│       ├── TEST_PLAN.md            # Test strategy
+│       ├── TEST_CASES_*.md         # Test case definitions
+│       ├── REGRESSION_SUITE.md     # Regression test suite
+│       └── TEST_EXECUTION_REPORT.md
+│
+└── report/                          # Report environment (OpenCode)
 ```
 
 ## Skill Format Specification
@@ -123,7 +139,7 @@ The skill-creator provides:
 ### Step 2: Create Skill Directory
 
 ```bash
-mkdir -p skills/{skill-name}
+mkdir -p .agents/skills/{skill-name}
 ```
 
 ### Step 3: Create SKILL.md
@@ -164,7 +180,7 @@ For TypeScript CLI tools:
 
 ```bash
 # Create structure
-mkdir -p skills/{skill-name}/scripts/tools
+mkdir -p .agents/skills/{skill-name}/scripts/tools
 
 # package.json
 {
@@ -250,7 +266,7 @@ All tool responses should return consistent JSON:
 curl -fsSL https://bun.sh/install | bash
 
 # Install skill dependencies
-cd skills/{skill-name}
+cd .agents/skills/{skill-name}
 bun install
 
 # Run skill CLI
@@ -262,7 +278,7 @@ bunx {skill-name} --help
 Use the [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) library to validate skills:
 
 ```bash
-skills-ref validate ./skills/{skill-name}
+skills-ref validate ./.agents/skills/{skill-name}
 ```
 
 ## Resources
