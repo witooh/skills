@@ -1,20 +1,37 @@
 ---
 name: loop
 description: Iteratively improve any output until measurable criteria are met. Use after brainstorm to take an improved prompt and develop it through scored iterations, or use standalone when the user wants to refine existing work against specific standards. Triggers on phrases like "improve this", "make it better", "iterate", "loop", "refine", "keep improving", "not good enough yet", or when the user provides criteria and wants repeated improvement until they're satisfied.
+metadata:
+  version: "1.1"
 ---
 
 # Loop
 
 Iteratively improve any output until all criteria are met — with scored evaluation at every step so "better" is never subjective.
 
+## Quick Start
+
+1. Receive input (brainstorm output, existing work, or raw request)
+2. Establish 2-3 ranked, measurable criteria
+3. Score baseline (Iteration 0), then iteratively improve — one focused goal per iteration
+4. Each iteration: improve → score → compare → decide (continue/stop)
+5. Deliver final output with full iteration history
+
+## Tools
+
+| Tool | Purpose |
+|------|---------|
+| `ask_user` | Ask the user ONE question at a time when establishing criteria or confirming direction. Prefer providing `choices` for faster UX. |
+
 ## Core Rules
 
 1. **Never improve without criteria.** If none exist, establish them first.
 2. **Always score before AND after.** Every iteration has a scorecard.
-3. **One focused change per iteration.** Multiple changes make attribution impossible.
+3. **One focused goal per iteration.** Closely related changes may go together, but they must serve a single improvement goal. Multiple unrelated changes make attribution impossible.
 4. **Target the largest gap first.** Never polish a met criterion while others are unmet.
 5. **Detect regressions.** If a previously-met criterion drops, revert or fix before continuing.
-6. **Stop when appropriate.** All criteria met, 3 stalled iterations, or user says stop.
+6. **Stop when appropriate.** All criteria met, 3 stalled iterations, 10 total iterations (soft max), or user says stop.
+7. **Always use `ask_user` for questions.** Never embed questions in plain text output. Prefer providing `choices` when the answer space is predictable.
 
 For detailed scoring rubric, evaluation patterns, and anti-patterns: see [references/EVALUATION-GUIDE.md](references/EVALUATION-GUIDE.md)
 
@@ -106,8 +123,11 @@ Score the new output against ALL criteria and compare:
 | All criteria scored 2 | Go to Step 7 — Deliver |
 | Gaps remain | Go to Step 4 — Improve next gap |
 | 3 consecutive iterations with zero delta | Stop. Ask user to adjust criteria or accept |
+| 10 total iterations reached | Stop. Present best result and ask user whether to continue or accept |
 | User says "good enough" or "stop" | Go to Step 7 — Deliver |
 | A criterion is proven impossible | Flag it. Ask user to remove or relax |
+
+**Scorecard display:** For iterations 1-5, show the full scorecard. From iteration 6 onward, show only changed criteria and the total score to reduce noise.
 
 ### Step 7 — Deliver
 

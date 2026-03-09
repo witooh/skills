@@ -2,6 +2,8 @@
 
 Detailed patterns for scoring, baseline capture, and iteration tracking. Read this file when executing the improvement loop to understand how to evaluate each iteration objectively.
 
+**Important:** Always use the `ask_user` tool to ask questions — never embed questions in plain text output. When the answer space is predictable, pass a `choices` array for faster UX.
+
 ---
 
 ## Establishing Criteria
@@ -102,6 +104,7 @@ The loop ends when ANY of these are true:
 |---|---|
 | All criteria scored 2 | Declare success, present final output |
 | 3 consecutive iterations with zero total delta | Stop — diminishing returns. Ask user to adjust criteria or accept current state |
+| 10 total iterations reached | Stop — soft max. Present best result and ask user whether to continue or accept |
 | User says "good enough" or "stop" | Respect it immediately |
 | A criterion is proven impossible given constraints | Flag it, ask user to remove or relax it, then continue |
 
@@ -121,7 +124,7 @@ After each iteration, check that NO previously-met criterion has dropped:
 | Anti-Pattern | Why It's Harmful | What to Do Instead |
 |---|---|---|
 | Improving without scoring first | No way to know if it got better | Always score before AND after |
-| Changing multiple things at once | Cannot attribute improvement to a specific change | One focused change per iteration |
+| Changing multiple things at once | Cannot attribute improvement to a specific change | One focused goal per iteration (related changes OK) |
 | Ignoring user's criterion ranking | Optimizes for wrong thing | Follow the user's priority order |
 | Continuing after 3 stalled iterations | Wastes time, frustrates user | Stop and discuss with user |
 | Polishing a met criterion while others are unmet | Misallocated effort | Target the largest gap first |
