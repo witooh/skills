@@ -1,10 +1,12 @@
 # Questioning Guide
 
-Detailed patterns for each of the 5 discovery phases. Read this file when executing the brainstorm workflow to understand the intent, techniques, and examples for each phase.
+Detailed patterns for each of the 5 discovery phases (Phases 2–6 of the brainstorm workflow). Phase 1 (Receive) and Phase 7 (Synthesize) are bookend phases covered in SKILL.md. Read this file when executing the brainstorm workflow to understand the intent, techniques, and examples for each phase.
+
+**Important:** Always use the `ask_user` tool to ask questions — never embed questions in plain text output. When the answer space is predictable, pass a `choices` array for faster UX.
 
 ---
 
-## Phase 1 — Goal
+## Phase 2 — Goal
 
 **Intent:** Establish a clear, measurable end-state so every subsequent question narrows toward it.
 
@@ -30,7 +32,7 @@ Detailed patterns for each of the 5 discovery phases. Read this file when execut
 
 ---
 
-## Phase 2 — Direction
+## Phase 3 — Direction
 
 **Intent:** Eliminate unsuitable paths WITHOUT requiring domain knowledge from the user. Ask about life, not tech.
 
@@ -60,7 +62,7 @@ Detailed patterns for each of the 5 discovery phases. Read this file when execut
 
 ---
 
-## Phase 3 — Reference
+## Phase 4 — Reference
 
 **Intent:** Ground the work in existing knowledge — either the user's sources or AI-discovered ones.
 
@@ -72,7 +74,7 @@ Detailed patterns for each of the 5 discovery phases. Read this file when execut
 
 **When user has NO references:**
 
-This is the critical case. Use the direction constraints from Phase 2 to search:
+This is the critical case. Use the direction constraints from Phase 3 to search:
 
 1. Summarize what you know so far (goal + constraints)
 2. Use `web_search` to find 2-3 high-quality references that fit the constraints
@@ -88,7 +90,7 @@ This is the critical case. Use the direction constraints from Phase 2 to search:
 
 ---
 
-## Phase 4 — Context
+## Phase 5 — Context
 
 **Intent:** Surface real-world constraints the user often forgets to mention but that change everything.
 
@@ -110,7 +112,7 @@ This is the critical case. Use the direction constraints from Phase 2 to search:
 
 ---
 
-## Phase 5 — Criteria
+## Phase 6 — Criteria
 
 **Intent:** Define what "better" means BEFORE any iteration begins, so improvement is measurable.
 
@@ -138,7 +140,7 @@ This is the critical case. Use the direction constraints from Phase 2 to search:
 | Asking multiple questions at once | Overwhelms user, gets shallow answers | Ask ONE question, wait, then follow up |
 | Using open-ended when choices exist | Higher cognitive load, slower answers | Offer 2-3 concrete choices when possible |
 | Introducing jargon the user didn't use | Makes non-experts feel lost | Mirror the user's vocabulary |
-| Skipping to output after Phase 1 | Produces generic answers | Complete all 5 phases |
+| Skipping to output after Phase 1 | Produces generic answers | Complete all 7 phases |
 | Asking domain-specific questions to non-experts | User can't answer, feels stuck | Ask about life/constraints instead |
 | Treating "I don't know" as a dead end | Misses opportunity for AI to help | Offer options or search for references |
 | Repeating questions already answered | Wastes time, frustrates user | Track what's been established |
