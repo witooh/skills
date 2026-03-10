@@ -2,7 +2,7 @@
 name: neo-team
 description: Orchestrate a specialized software development agent team. Receive user requests, classify task type, select the matching workflow, delegate each step to specialist agents via the Agent tool, and assemble the final output. Use when the user needs multi-step software development involving architecture, implementation, testing, security review, or code review. Trigger this skill whenever a task involves more than one concern (e.g., "add a new endpoint" needs BA + Architect + Developer + QA + Security), when the user mentions team coordination, agent delegation, or when the work clearly benefits from multiple specialist perspectives rather than a single implementation pass.
 metadata:
-  version: "2.0"
+  version: "2.3"
 ---
 
 # Neo Team
@@ -41,14 +41,16 @@ If no convention file exists:
 
 | Specialist | subagent_type | Model | Reference | Role |
 |-----------|---------------|-------|-----------|------|
-| Architect | architect | opus | [references/architect.md](references/architect.md) | System design, API contracts, ADRs |
+| Architect | architect | sonnet (opus for complex tasks†) | [references/architect.md](references/architect.md) | System design, API contracts, ADRs |
 | Business Analyst | business-analyst | haiku | [references/business-analyst.md](references/business-analyst.md) | Requirements, acceptance criteria, edge cases |
-| Code Reviewer | code-reviewer | sonnet | [references/code-reviewer.md](references/code-reviewer.md) | Convention compliance (read-only) |
+| Code Reviewer | code-reviewer | **opus** | [references/code-reviewer.md](references/code-reviewer.md) | Convention compliance (read-only) |
 | Developer | developer | sonnet | [references/developer.md](references/developer.md) | Implement features, fix bugs, unit tests |
 | DevOps | devops | sonnet | [references/devops.md](references/devops.md) | Docker, GitLab CI/CD |
 | QA | qa | sonnet | [references/qa.md](references/qa.md) | Test design, quality review, E2E tests |
 | Security | security | sonnet | [references/security.md](references/security.md) | Security review, secrets detection |
 | System Analyzer | system-analyzer | sonnet | [references/system-analyzer.md](references/system-analyzer.md) | Diagnose issues, trace root causes (read-only) |
+
+†**Architect model selection:** Use opus only for complex tasks — Performance Issue, Refactoring, Database Migration, or when the task involves multi-service design. For everything else (New Feature with clear scope, Bug Fix, Code Review, CI/CD), sonnet is sufficient and faster.
 
 ## Task Classification
 
@@ -71,6 +73,17 @@ Classify the user's request before selecting a workflow. Use these heuristics:
 **Ambiguous tasks:** If the task spans multiple workflows (e.g., "add a feature and fix the pipeline"), pick the primary workflow and incorporate extra steps from other workflows as needed. State which workflow you selected and why.
 
 **Large scope:** If a task would require more than ~8 agent delegations, suggest breaking it into smaller chunks and confirm the plan with the user before proceeding.
+
+### Task Complexity
+
+After selecting a workflow, assess complexity to determine whether BA and Architect should run separately or be merged:
+
+| Complexity | Criteria | BA + Architect |
+|-----------|----------|----------------|
+| **Simple** | Single endpoint/method, clear requirements from user prompt, no ambiguity | **Merged** — Architect handles requirements + design in one step |
+| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts | **Separate** — BA clarifies first, then Architect designs |
+
+When merged, Architect receives the user's request directly and produces both acceptance criteria and technical design in a single output. This saves one sequential step (~1-2 minutes) without losing quality — for simple tasks, BA's output is largely a restatement of what the user already said.
 
 ## Delegation Protocol
 
@@ -139,64 +152,64 @@ Each workflow lists the pipeline steps with explicit context-passing notes. Foll
 
 ### New Feature
 ```
+Simple task (merged BA+Architect):
+1. architect           → clarify requirements AND design contract in one step
+2. developer + qa      → implement code AND write test specs (PARALLEL)
+   To developer: Architect's design + acceptance criteria
+   To qa: Architect's API contracts + acceptance criteria
+3. code-reviewer + security → check conventions AND security (PARALLEL)
+   To both: Developer's changed files list
+4. [REMEDIATION if step 3 has Blocker/Critical findings]
+
+Complex task (separate BA+Architect):
 1. business-analyst    → clarify requirements and acceptance criteria
 2. architect           → design endpoint/module contract and data flow
    Context: BA's user stories + acceptance criteria + business rules
-3. qa                  → generate regression test doc with test case IDs
-   Context: BA's acceptance criteria + Architect's API contracts
-4. developer + qa      → implement code AND write E2E specs (PARALLEL)
+3. developer + qa      → implement code AND write test specs (PARALLEL)
    To developer: Architect's design + BA's acceptance criteria
-   To qa: Architect's API contracts + test case IDs from step 3
-5. /simplify           → review and fix code quality on Developer's changes
-6. code-reviewer + security → check conventions AND security (PARALLEL)
-   To both: Developer's changed files list (post-simplify)
-7. [REMEDIATION if step 6 has Blocker/Critical findings]
+   To qa: Architect's API contracts + BA's acceptance criteria
+4. code-reviewer + security → check conventions AND security (PARALLEL)
+   To both: Developer's changed files list
+5. [REMEDIATION if step 4 has Blocker/Critical findings]
 ```
 
 ### Bug Fix
 ```
 1. system-analyzer     → diagnose root cause
-2. developer           → implement fix
-   Context: System Analyzer's root cause + affected files/lines
-3. /simplify           → review and fix code quality on Developer's changes
-4. qa                  → add regression test case
-   Context: Developer's changed files + original bug description
-5. qa + code-reviewer  → write E2E spec AND check conventions (PARALLEL)
-   To both: Developer's changed files list (post-simplify)
-6. [REMEDIATION if step 5 has Blocker/Critical findings]
+2. developer + qa + code-reviewer → implement fix AND write regression test AND check conventions (3-WAY PARALLEL)
+   To developer: System Analyzer's root cause + affected files/lines
+   To qa: Developer's task description + original bug description + System Analyzer's findings
+   To code-reviewer: affected files from System Analyzer
+3. [REMEDIATION if step 2 has Blocker/Critical findings]
 ```
 
 ### Security Audit
 ```
 1. security + system-analyzer  → review code and behavior (PARALLEL)
-2. developer                   → implement fixes
+2. developer           → implement fixes
    Context: Security findings + System Analyzer's analysis
-3. /simplify                   → review and fix code quality on Developer's changes
-4. qa + security               → verify fixes AND re-check security (PARALLEL)
-   Context: Security's original findings + Developer's changes (post-simplify)
-5. [REMEDIATION if step 4 has Critical/High or QA Blocked]
+3. qa + security        → verify fixes AND re-check security (PARALLEL)
+   Context: Security's original findings + Developer's changes
+4. [REMEDIATION if step 3 has Critical/High or QA Blocked]
 ```
 
 ### Performance Issue
 ```
 1. system-analyzer     → identify bottlenecks
-2. architect           → propose solution design
+2. architect           → propose solution design (use opus for this workflow)
    Context: System Analyzer's bottleneck analysis
-3. developer           → implement optimization
+3. developer + qa      → implement optimization AND write perf tests (PARALLEL)
    Context: Architect's solution design
-4. /simplify           → review and fix code quality on Developer's changes
-5. qa + code-reviewer  → verify no regression AND check conventions (PARALLEL)
-   Context: Developer's changed files (post-simplify)
-6. [REMEDIATION if step 5 has Blocker/Critical or QA Blocked]
+4. code-reviewer       → check conventions
+   Context: Developer's changed files
+5. [REMEDIATION if step 4 has Blocker/Critical or QA Blocked]
 ```
 
 ### Code Review
 ```
-1. code-reviewer       → check convention compliance
-2. /simplify           → fix code quality issues on files under review
-3. developer + security + qa → review correctness, security, coverage (PARALLEL)
-   To all: Code Reviewer's findings + files under review (post-simplify)
-4. [REMEDIATION if step 1 or 3 has Blocker/Critical findings]
+1. code-reviewer + developer + security + qa → review conventions, correctness, security, coverage (ALL PARALLEL)
+   To all: files under review + project conventions
+2. [REMEDIATION if step 1 has Blocker/Critical findings]
 ```
 
 ### CI/CD Change
@@ -208,7 +221,6 @@ Each workflow lists the pipeline steps with explicit context-passing notes. Foll
    Context: DevOps's changed files
 4. [REMEDIATION if step 3 has Critical/High findings — DevOps fixes, not Developer]
 ```
-Note: `/simplify` is skipped for CI/CD changes — Dockerfiles and CI YAML are not Go application code.
 
 ### Requirement Clarification
 ```
@@ -219,18 +231,17 @@ Note: `/simplify` is skipped for CI/CD changes — Dockerfiles and CI YAML are n
 
 ### Refactoring
 ```
-1. architect           → review current design, propose target structure
-2. developer           → implement refactoring
+1. architect           → review current design, propose target structure (use opus for this workflow)
+2. developer + qa      → implement refactoring AND verify no regression (PARALLEL)
    Context: Architect's target structure
-3. /simplify           → review and fix code quality on Developer's changes
-4. qa + code-reviewer  → verify no regression AND check compliance (PARALLEL)
-   Context: Developer's changed files (post-simplify)
-5. [REMEDIATION if step 4 has Blocker/Critical or QA Blocked]
+3. code-reviewer       → check compliance
+   Context: Developer's changed files
+4. [REMEDIATION if step 3 has Blocker/Critical or QA Blocked]
 ```
 
 ### Database Migration
 ```
-1. architect           → design schema changes
+1. architect           → design schema changes (use opus for this workflow)
 2. developer           → create migration files (up + down)
    Context: Architect's schema design
 3. qa                  → verify migration runs correctly
@@ -250,24 +261,23 @@ Note: `/simplify` is skipped for CI/CD changes — Dockerfiles and CI YAML are n
 
 ### Pre-Merge Review
 ```
-1. code-reviewer       → check all convention compliance
-2. /simplify           → fix code quality issues found
-3. security            → final security check
-4. qa                  → final sign-off
-   Context: Code Reviewer + Security findings
-5. [REMEDIATION if any agent has Blocker/Critical/Blocked findings]
+1. code-reviewer + security + qa → check conventions, security, coverage (ALL PARALLEL)
+   To all: files under review + project conventions
+2. [REMEDIATION if any agent has Blocker/Critical/Blocked findings]
 ```
 
 ## /simplify Integration
 
-After Developer (or DevOps) finishes implementing code, run the `/simplify` skill on the changed files before sending to Code Reviewer. The `/simplify` skill reviews code for reuse opportunities, quality issues, and efficiency — then fixes them automatically. This produces cleaner code for Code Reviewer to assess, reducing the number of findings and remediation cycles.
+The `/simplify` skill is part of the Developer's responsibility — not a separate pipeline step. After implementing code, Developer runs `/simplify` on the changed files to clean up before sending to Code Reviewer.
 
-How to use it:
-1. After Developer completes implementation, invoke `/simplify` via the `Skill` tool
-2. `/simplify` will review the changed code and apply fixes
-3. The fixed code is what Code Reviewer and Security review in the next step
+This is baked into the Developer agent's reference file (`references/developer.md`). The Developer will:
+1. Implement the code changes
+2. Run `/simplify` via the `Skill` tool if available
+3. If `/simplify` is not available, perform a self-review checklist (duplicated logic, dead code, inefficiencies, naming consistency)
+4. Run `go build ./...` to verify compilation
+5. Report the final code as output
 
-If `/simplify` is not available as a skill, skip this step — it's an enhancement, not a blocker.
+By making this the Developer's job rather than a separate orchestration step, we eliminate one sequential step from every workflow while maintaining the same code quality — the Developer owns the cleanliness of their output, just like in a real team.
 
 ## Remediation Loop
 
@@ -283,10 +293,10 @@ Verification agent(s) return findings
     └── Has blocking findings → Remediation cycle:
             1. Collect all blocking findings into a single prioritized list
             2. Delegate to Developer (or DevOps for CI/CD) to fix
-            3. Run /simplify on the fixed code
-            4. Re-run ONLY the agents that returned blocking findings
-            5. If still blocked → try one more cycle (max 2 total)
-            6. If blocked after 2 cycles → stop pipeline, escalate to user
+               (Developer runs /simplify or self-review as part of their fix)
+            3. Re-run ONLY the agents that returned blocking findings
+            4. If still blocked → try one more cycle (max 2 total)
+            5. If blocked after 2 cycles → stop pipeline, escalate to user
 ```
 
 ### What counts as "blocking"
@@ -297,11 +307,29 @@ Verification agent(s) return findings
 | Security | Critical or High severity | Medium, Low |
 | QA | Sign-Off = "Blocked" | Sign-Off = "Approved" |
 
+### Handling non-blocking findings (Warning / Info / Medium / Low)
+
+After remediation completes (or if there were no blocking findings), check if there are non-blocking findings. If yes, present them to the user and ask:
+
+```
+## Non-Blocking Findings
+
+The following warnings/suggestions were found. They won't break anything now, 
+but may be worth addressing:
+
+- [Warning] [file:line] description
+- [Info] [file:line] description
+
+Would you like me to fix these too, or skip for now?
+```
+
+Let the user decide — don't fix automatically (wastes time if user doesn't care) and don't silently ignore (user may want to know).
+
 ### Remediation rules
 
 - **Only re-run failing agents** — if Code Reviewer approved but Security blocked, only re-run Security after the fix
 - **Pass specific findings** — give Developer the exact findings list with file:line references, not a vague "fix the issues"
-- **Include /simplify** in each remediation cycle before re-review — it may catch issues Developer missed
+- **Developer owns quality** — Developer applies /simplify or self-review during their fix, same as initial implementation
 - **Max 2 remediation cycles** — if the issue can't be resolved in 2 passes, it likely needs human judgment (architectural disagreement, ambiguous requirements, complex trade-off)
 - **Report all cycles in Summary** — show which findings were found, which were fixed, and which remain unresolved
 

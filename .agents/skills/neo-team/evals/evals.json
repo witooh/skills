@@ -1,0 +1,54 @@
+{
+  "skill_name": "neo-team",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "เพิ่ม endpoint POST /orders/:id/cancel ที่รับ reason ใน body แล้ว cancel order พร้อมเก็บ cancellation reason ไว้ใน entity ด้วย ตอนนี้ project อยู่ที่ /tmp/neo-team-test-project/",
+      "expected_output": "Full implementation with entity changes, usecase, handler, and tests following Clean Architecture",
+      "files": [],
+      "expectations": [
+        "[QUALITY] Order entity has a cancellation reason field with a setter invoked from the Cancel method",
+        "[QUALITY] POST /orders/:id/cancel handler exists AND the route is actively registered in the router (not commented out)",
+        "[QUALITY] Usecase layer has a CancelOrder method that accepts both order ID and reason",
+        "[QUALITY] Clean Architecture: handler maps errors to HTTP codes using typed/sentinel errors or error wrapping — not strings.Contains on error messages",
+        "[QUALITY] Cancel rejects shipped orders (returns error, not 200 OK)",
+        "[QUALITY] go build ./... succeeds on the resulting code",
+        "[PROCESS] Workflow classified as 'New Feature' in orchestration summary",
+        "[PROCESS] At least 3 different specialist agents delegated (e.g., BA, Architect, Developer)",
+        "[PROCESS] Security review was performed and produced findings"
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "CreateOrder handler มีบัก — items ที่ user ส่งเข้ามาไม่ได้ถูก map ค่าจริงเข้า entity.OrderItem ทำให้ totalPrice เป็น 0 เสมอ ช่วย fix ให้หน่อย project อยู่ที่ /tmp/neo-team-test-project/",
+      "expected_output": "Correct diagnosis and fix of the total price calculation bug, using getter methods instead of direct field access",
+      "files": [],
+      "expectations": [
+        "[QUALITY] Root cause identified: handler creates empty/zero-value OrderItem structs instead of mapping request data into items via constructor",
+        "[QUALITY] Fix ensures each item carries the actual productID, quantity, and price from the request — either via NewOrderItem constructor or usecase input struct mapping",
+        "[QUALITY] Handler properly maps request fields (productID, quantity, price) into OrderItem via constructor",
+        "[QUALITY] go build ./... succeeds on the resulting code",
+        "[QUALITY] A regression test exists that verifies non-zero totalPrice for items with known prices",
+        "[PROCESS] Workflow classified as 'Bug Fix' in orchestration summary",
+        "[PROCESS] System Analyzer or diagnostic step used to identify root cause before implementing the fix"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "ช่วย review โค้ดใน order_handler.go ก่อน merge หน่อย ดูเรื่อง error handling กับ convention compliance ด้วย project อยู่ที่ /tmp/neo-team-test-project/",
+      "expected_output": "Structured code review with findings on error handling, convention compliance, and actionable recommendations",
+      "files": [],
+      "expectations": [
+        "[QUALITY] Identified the OrderItem mapping bug: handler creates zero-value OrderItem structs, discarding all request data",
+        "[QUALITY] Flagged error handling: all usecase errors return HTTP 500 — no distinction between 400/404/500",
+        "[QUALITY] Review references specific CLAUDE.md rules by name (e.g., error wrapping with fmt.Errorf, time.Time usage, interface dependency)",
+        "[QUALITY] Findings include severity levels (Blocker/Critical/Warning/Info) with file:line references",
+        "[QUALITY] No code modifications were made (review-only, read-only workflow)",
+        "[QUALITY] Security-relevant issue identified: internal error messages leaked to client via err.Error()",
+        "[PROCESS] Workflow classified as 'Code Review' in orchestration summary",
+        "[PROCESS] Code Reviewer specialist agent was used",
+        "[PROCESS] Security specialist agent was used and produced findings"
+      ]
+    }
+  ]
+}

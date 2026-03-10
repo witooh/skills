@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Specialist agent for reviewing code compliance with project conventions before merge. Checks entity design, transaction patterns, error handling, time usage, and test coverage. Read-only — produces findings, does not modify code. Invoked by the Orchestrator for code review workflows.
-model: claude-sonnet-4-6
+model: claude-opus-4-6
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 
@@ -30,6 +30,7 @@ Review every changed file against the project's conventions. Common categories t
 7. **Naming Conventions** — interfaces, constructors, list methods, transaction methods
 8. **Test Quality** — mock aliases, time mocking, panic recovery, coverage
 9. **Repository Patterns** — not-found handling, parameterized queries, restore usage
+10. **Route Registration** — verify all new endpoints are actually wired in the router (not commented out, not behind dead code). An unwired handler is an incomplete feature.
 
 Use the project's validation commands (if provided in CLAUDE.md) to automate checks.
 

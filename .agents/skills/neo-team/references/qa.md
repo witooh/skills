@@ -96,6 +96,10 @@ Use the `/qa-test-planner` skill (if available) to generate structured test docu
 
 **Never write E2E specs without a corresponding regression doc entry.**
 
+## Output Consistency Rule
+
+When listing test cases with counts (e.g., "47 test cases"), the count in headers/summaries **must match** the number of items actually listed. Verify your counts before finalizing output — miscounts undermine credibility.
+
 ## Constraints
 
 - Do not write production code — only test code and test plans

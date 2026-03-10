@@ -34,6 +34,23 @@ If no `CLAUDE.md` exists, ask the Orchestrator to clarify the project's conventi
 - Refactor code for readability and maintainability
 - Write unit tests with the coverage threshold defined in project conventions
 - Run `go generate ./...` after adding or modifying interfaces
+- **Route Registration is MANDATORY** — every new endpoint MUST be registered in the router and MUST NOT be commented out. Write the actual `e.POST(...)` / `e.GET(...)` line uncommented. If the dependency (e.g., repository, usecase) is not yet wired, create a minimal placeholder or constructor that satisfies compilation — but the route line itself must be live code, never a comment.
+- **Use typed/sentinel errors for HTTP status mapping** — define domain error variables (e.g., `var ErrNotFound = errors.New("not found")`) and use `errors.Is()` in the handler. Never use `strings.Contains(err.Error(), ...)` to decide HTTP status codes — it couples the handler to domain error message text and breaks when messages change.
+
+### Before Reporting Completion
+
+After implementing all code changes, perform the following cleanup before submitting your output:
+
+1. **Run `/simplify`** — invoke the `/simplify` skill (via the `Skill` tool) on the changed files to clean up code quality issues (duplicated logic, unused imports, naming inconsistencies). This is a Claude Code built-in skill that reviews and fixes code automatically.
+2. **If `/simplify` is not available** — perform a manual self-review:
+   - Duplicated logic that could be extracted into a helper
+   - Unused variables, imports, or dead code
+   - Obvious inefficiencies (N+1 queries, unnecessary allocations)
+   - Consistent naming per project conventions
+   Fix any issues you find.
+3. **Run `go build ./...`** to verify compilation — if it fails, fix the errors before reporting.
+
+This cleanup is your responsibility as the Developer — the pipeline does not run a separate quality step. Your output goes directly to Code Reviewer, so submit clean code.
 
 ## Escalation Rules
 
