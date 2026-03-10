@@ -1,3 +1,10 @@
+---
+name: neo-team
+description: Orchestrate a specialized software development agent team. Receive user requests, classify task type, select the matching workflow, delegate each step to specialist agents via the Agent tool, and assemble the final output. Use when the user needs multi-step software development involving architecture, implementation, testing, security review, or code review.
+metadata:
+  version: "1.0"
+---
+
 # Neo Team
 
 Orchestrate a specialized software development agent team. Receive user requests, classify task type, select the matching workflow, delegate each step to specialist agents via the `Agent` tool, and assemble the final output.
