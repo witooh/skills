@@ -1,0 +1,32 @@
+{
+  "eval_id": 2,
+  "eval_name": "code-review-consent",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Selects Code Review workflow",
+      "passed": true,
+      "evidence": "Task Classification table shows 'Workflow Selected: Code Review' with signals 'review code', 'ก่อน merge'"
+    },
+    {
+      "text": "Code Reviewer runs first",
+      "passed": true,
+      "evidence": "Pipeline Step 1: Code Reviewer (Sequential — runs first)"
+    },
+    {
+      "text": "Developer, Security, QA run in parallel",
+      "passed": true,
+      "evidence": "Step 2 explicitly labeled 'Developer + Security + QA (PARALLEL — all run simultaneously)' with all 3 Agent() calls shown together"
+    },
+    {
+      "text": "Code Reviewer findings passed to parallel agents",
+      "passed": true,
+      "evidence": "Each Step 2 agent prompt contains 'Context from Prior Agents - Code Reviewer Findings' with description of what gets passed (findings, severity, files). Pipeline visualization shows output flowing from Step 1 to all 3 parallel agents."
+    },
+    {
+      "text": "Output follows structured Summary format",
+      "passed": true,
+      "evidence": "Has '## Summary' with Task, Workflow, Agents Used table, Pipeline Steps table, Key Review Focus Areas, and Next Steps with conditional merge decisions"
+    }
+  ]
+}

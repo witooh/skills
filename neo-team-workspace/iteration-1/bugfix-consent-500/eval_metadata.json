@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "bugfix-consent-500",
+  "prompt": "consent service return 500 error ตอน get consent by citizen_id ที่มี record เยอะกว่า 100 records — น่าจะเป็น query performance issue",
+  "assertions": [
+    {"text": "Selects Bug Fix workflow", "passed": null, "evidence": ""},
+    {"text": "System Analyzer runs first", "passed": null, "evidence": ""},
+    {"text": "Root cause passed from Analyzer to Developer", "passed": null, "evidence": ""},
+    {"text": "QA adds regression test", "passed": null, "evidence": ""},
+    {"text": "QA and Code Reviewer run in parallel at final step", "passed": null, "evidence": ""}
+  ]
+}

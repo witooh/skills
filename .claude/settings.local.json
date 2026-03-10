@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(ls -d /Users/witoo.h/dev/witooh/skills/.agents/skills/*/)"
+      "Bash(ls -d /Users/witoo.h/dev/witooh/skills/.agents/skills/*/)",
+      "Bash(mkdir -p /Users/witoo.h/dev/witooh/skills/neo-team-workspace/skill-snapshot && cp -r /Users/witoo.h/dev/witooh/skills/.agents/skills/neo-team/* /Users/witoo.h/dev/witooh/skills/neo-team-workspace/skill-snapshot/)",
+      "Read(//Users/witoo.h/.claude/plugins/cache/claude-plugins-official/skill-creator/205b6e0b3036/skills/skill-creator/**)",
+      "Bash(python eval-viewer/generate_review.py /Users/witoo.h/dev/witooh/skills/neo-team-workspace/iteration-1 --skill-name \"neo-team\" --benchmark /Users/witoo.h/dev/witooh/skills/neo-team-workspace/iteration-1/benchmark.json --static /tmp/neo-team-eval-review.html)",
+      "Bash(open /tmp/neo-team-eval-review.html)",
+      "Bash(open /tmp/neo-team-eval-review-iter2.html)"
     ]
   }
 }

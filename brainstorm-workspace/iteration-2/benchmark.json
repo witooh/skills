@@ -1,0 +1,103 @@
+{
+  "skill_name": "brainstorm",
+  "iteration": 2,
+  "timestamp": "2026-03-10T00:00:00Z",
+  "configurations": [
+    {
+      "name": "with_skill (v2.0)",
+      "description": "New brainstorm skill with triage + 3 modes",
+      "results": {
+        "pass_rate": {
+          "mean": 1.0,
+          "stddev": 0.0,
+          "per_eval": {
+            "side-project-idea": 1.0,
+            "aws-cost-reduction": 1.0,
+            "landing-page-prompt": 1.0
+          }
+        },
+        "total_tokens": {
+          "mean": 21144,
+          "stddev": 862,
+          "per_eval": {
+            "side-project-idea": 21960,
+            "aws-cost-reduction": 20249,
+            "landing-page-prompt": 21224
+          }
+        },
+        "duration_seconds": {
+          "mean": 131.6,
+          "stddev": 20.4,
+          "per_eval": {
+            "side-project-idea": 150.1,
+            "aws-cost-reduction": 109.8,
+            "landing-page-prompt": 134.8
+          }
+        },
+        "questions_asked": {
+          "per_eval": {
+            "side-project-idea": 5,
+            "aws-cost-reduction": 2,
+            "landing-page-prompt": 6
+          }
+        }
+      }
+    },
+    {
+      "name": "old_skill (v1.2)",
+      "description": "Original brainstorm skill — fixed 7-phase flow",
+      "results": {
+        "pass_rate": {
+          "mean": 0.5,
+          "stddev": 0.29,
+          "per_eval": {
+            "side-project-idea": 0.25,
+            "aws-cost-reduction": 0.5,
+            "landing-page-prompt": 1.0
+          }
+        },
+        "total_tokens": {
+          "mean": 21963,
+          "stddev": 513,
+          "per_eval": {
+            "side-project-idea": 22453,
+            "aws-cost-reduction": 22002,
+            "landing-page-prompt": 21433
+          }
+        },
+        "duration_seconds": {
+          "mean": 151.7,
+          "stddev": 10.2,
+          "per_eval": {
+            "side-project-idea": 162.8,
+            "aws-cost-reduction": 148.6,
+            "landing-page-prompt": 143.7
+          }
+        },
+        "questions_asked": {
+          "per_eval": {
+            "side-project-idea": 13,
+            "aws-cost-reduction": 12,
+            "landing-page-prompt": 13
+          }
+        }
+      }
+    }
+  ],
+  "delta": {
+    "pass_rate": "100% vs 50% (+50 percentage points)",
+    "tokens": "-3.7% fewer tokens",
+    "time": "-13.3% faster",
+    "questions": "4.3 avg vs 12.7 avg (-66% fewer questions)"
+  },
+  "analyst_observations": [
+    "v2.0 achieves 100% assertion pass rate vs 50% for v1.2 — all three modes work correctly",
+    "Triage correctly classified all 3 test cases: Explore (side project), Focused (AWS cost), Prompt (landing page)",
+    "Question count dropped 66%: avg 4.3 questions (v2.0) vs 12.7 (v1.2) — massive UX improvement",
+    "AWS cost reduction improved most dramatically: 2 questions + direct strategies (v2.0) vs 12 questions + Improved Prompt output (v1.2)",
+    "Side project: v2.0 gave 7 ideas after 3 questions + went deeper on user's pick; v1.2 asked 13 questions and only produced an Improved Prompt",
+    "Landing page (prompt improvement): both versions produce good prompts, but v2.0 does it in 6 questions vs 13",
+    "Token usage is slightly lower (-3.7%) despite v2.0 producing richer outputs (ideas, strategies) — efficiency gains from fewer questions",
+    "Mode transitions work smoothly — side project Explore→Focused transition carried forward all context without re-asking"
+  ]
+}

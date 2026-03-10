@@ -1,0 +1,37 @@
+{
+  "eval_id": 0,
+  "eval_name": "new-feature-consent",
+  "configuration": "old_skill",
+  "expectations": [
+    {
+      "text": "Selects New Feature workflow",
+      "passed": true,
+      "evidence": "Output states 'Classification: New Feature — เป็นการเพิ่ม endpoint ใหม่ในระบบที่มีอยู่'"
+    },
+    {
+      "text": "Business Analyst runs before Architect",
+      "passed": true,
+      "evidence": "Step 1: Business Analyst (haiku), Step 2: Architect (opus) — correct order"
+    },
+    {
+      "text": "Developer and QA run in parallel",
+      "passed": true,
+      "evidence": "Step 4a+4b labeled 'Developer + QA (PARALLEL)' with note 'ขั้นตอนนี้ทำงานแบบ parallel'"
+    },
+    {
+      "text": "BA context (acceptance criteria) passed to Architect",
+      "passed": true,
+      "evidence": "Architect prompt includes 'Prior context from Business Analyst' with user story, acceptance criteria, required fields, and open questions"
+    },
+    {
+      "text": "Security agent is involved",
+      "passed": true,
+      "evidence": "Step 5b: Security agent delegated with model: sonnet"
+    },
+    {
+      "text": "Output follows structured Summary format",
+      "passed": true,
+      "evidence": "Has '## Summary' with Task, Workflow, Agents Used table, and Next Steps"
+    }
+  ]
+}

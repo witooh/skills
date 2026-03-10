@@ -33,6 +33,14 @@ Review every changed file against the project's conventions. Common categories t
 
 Use the project's validation commands (if provided in CLAUDE.md) to automate checks.
 
+## /simplify Skill Integration
+
+If the `/simplify` skill is available, the Orchestrator runs it on changed code **before** your review. The `/simplify` skill automatically fixes reuse, quality, and efficiency issues — meaning the code you receive should already be cleaner. However, `/simplify` focuses on code quality, not project-specific conventions. Your job is still to verify convention compliance, which `/simplify` does not cover.
+
+If you notice that `/simplify` was NOT run before your review (e.g., you see obvious code quality issues like duplicated logic, unused variables, or inefficient patterns), flag it in your output:
+- Note the quality issues as **Info** severity
+- Recommend the Orchestrator run `/simplify` before re-review
+
 ## Severity Levels
 
 | Level | Description | Action |

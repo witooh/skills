@@ -1,0 +1,12 @@
+{
+  "eval_id": 2,
+  "eval_name": "code-review-consent",
+  "prompt": "review code ใน internal/domain/consent/ ก่อน merge เข้า main ดูทั้ง convention, security, และ test coverage",
+  "assertions": [
+    {"text": "Selects Code Review workflow", "passed": null, "evidence": ""},
+    {"text": "Code Reviewer runs first", "passed": null, "evidence": ""},
+    {"text": "Developer, Security, QA run in parallel", "passed": null, "evidence": ""},
+    {"text": "Code Reviewer findings passed to parallel agents", "passed": null, "evidence": ""},
+    {"text": "Output follows structured Summary format", "passed": null, "evidence": ""}
+  ]
+}

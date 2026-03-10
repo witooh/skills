@@ -1,88 +1,91 @@
 ---
 name: brainstorm
-description: Improve any user prompt through structured discovery before answering. Use when the user wants to brainstorm, refine an idea, improve a prompt, explore a new domain, plan a project, or when the request is broad/vague and would benefit from clarification. Triggers on phrases like "brainstorm", "help me think through", "improve this prompt", "I have an idea", "let's explore", "I want to build", "I'm thinking about", or any open-ended request where jumping straight to an answer would produce generic results.
+description: >-
+  ALWAYS use this skill before answering any request that involves brainstorming, ideation, prompt crafting, or open-ended exploration.
+  This skill transforms vague requests into precise, actionable outputs through adaptive guided questioning — it triages into Prompt Mode (craft/improve prompts), Explore Mode (brainstorm ideas), or Focused Mode (specific problem strategies).
+  You MUST trigger this skill when: the user says "brainstorm", "ช่วยคิด", "help me think", "I have an idea", "improve this prompt", "let's explore", "I want to build", "I'm thinking about", "brainstorm วิธี", "ช่วยคิดหน่อย", "อยากทำ", "ยังไม่รู้จะทำอะไร", "not sure about the approach", "help me figure out", "what should I", or any variation of these.
+  Also trigger when: the user asks about side projects, career decisions, project planning, migration strategies, architecture decisions, cost optimization strategies, or any request where the user hasn't decided on a direction yet and would benefit from structured discovery before getting an answer.
+  Even if you think you can answer directly, this skill produces BETTER results because it asks targeted questions first to personalize the output.
+  Do NOT skip this skill just because the request seems simple — the skill adapts its depth automatically (2-7 questions based on complexity).
 metadata:
-  version: "1.2"
+  version: "2.0"
 ---
 
 # Brainstorm
 
-Transform vague ideas into precise, actionable prompts through structured questioning — especially for users who lack domain expertise.
+Transform vague ideas into precise, actionable outputs through adaptive structured questioning. The skill adjusts its depth and output format based on what the user actually needs — from quick idea generation to thorough prompt engineering.
 
 ## Quick Start
 
-1. User provides a vague idea or open-ended request
-2. Agent walks through 7 phases: Receive → Goal → Direction → Reference → Context → Criteria → Synthesize
-3. Each phase uses `ask_user` to ask ONE question at a time (prefer multiple choice)
-4. Output: a self-contained **Improved Prompt** + Discovery Summary
-5. Ask if the user wants to create an implementation plan via Plan subagent
+1. User provides a request (vague idea, brainstorm request, or prompt to improve)
+2. **Triage** — Classify into one of three modes: Prompt, Explore, or Focused
+3. Run the appropriate discovery flow (3–7 questions depending on mode)
+4. Produce the right output type for the mode
+5. Offer next steps
 
 ## Tools
 
 | Tool | Purpose |
 |------|---------|
-| `ask_user` | Ask the user ONE question at a time during discovery phases. Prefer providing `choices` for faster UX. |
-| `web_search` | Find references when the user has none (Phase 4 — Reference). |
-| `Agent` | Delegate to Plan subagent when the user chooses "Create a Plan" (Next Step). Use `subagent_type: "Plan"`. |
+| `AskUserQuestion` | Ask the user ONE question at a time. Use `options` array for multiple choice when possible. |
+| `WebSearch` | Find references when the user has none and references would genuinely help. |
+| `Agent` | Delegate to Plan subagent when the user wants an implementation plan. Use `subagent_type: "Plan"`. |
 
-## Core Rules
+## Core Principles
 
-1. **NEVER answer before questioning is complete.** The urge to help immediately produces generic output.
-2. **Ask ONE question at a time using `ask_user`.** Multiple questions get shallow answers. Always use the `ask_user` tool — never embed questions in plain text output.
-3. **Prefer multiple choice when possible.** Pass a `choices` array to `ask_user`. Choices are easier to answer than open-ended questions, reduce cognitive load, and reveal preferences faster. Only use open-ended when the answer truly cannot be predicted.
-4. **Use the user's language.** Do not introduce jargon they did not use.
-5. **Ask about life, not about the domain.** Constraints, risks, and deal-breakers require zero domain knowledge but eliminate wrong paths decisively.
-6. **Search for references when the user has none.** AI has vast knowledge but needs a direction signal to know which subset to surface.
-7. **Track what's established.** Never re-ask something already answered.
-8. **Respect the user's time.** Budget roughly 2-3 questions per phase. If a phase gets repeated "I don't know" or "doesn't matter" responses, move on after 2 attempts.
+1. **Don't answer before you understand.** The urge to help immediately produces generic output. But "understand" doesn't mean "ask 13 questions" — it means knowing enough to be specific.
+2. **One question at a time via `AskUserQuestion`.** Multiple questions get shallow answers. Never embed questions in plain text — always use the tool.
+3. **Prefer multiple choice.** Provide an `options` array when the answer space is predictable. Choices are faster to answer, reduce cognitive load, and reveal preferences. Use open-ended only when the answer truly can't be predicted.
+4. **Mirror the user's language.** Don't introduce jargon they didn't use.
+5. **Ask about life, not the domain.** Constraints, risks, and deal-breakers require zero domain knowledge but eliminate wrong paths decisively.
+6. **Never re-ask what's already known.** Track information from the initial prompt and all answers.
+7. **Respect the user's time.** Match question depth to request complexity. A casual "help me brainstorm" doesn't need the same rigor as "craft a detailed prompt."
 
-## Workflow
+## Triage — Choosing the Right Mode
 
-Improving a prompt involves these phases, executed in strict order. For detailed questioning patterns, techniques, and exit criteria per phase: see [references/QUESTIONING-GUIDE.md](references/QUESTIONING-GUIDE.md)
+Before asking any questions, read the user's request and classify it into one of three modes. This happens internally — don't ask the user which mode they want.
 
-1. **Receive** — Accept the user's initial prompt without judgment
-2. **Goal** — Establish a clear, measurable end-state
-3. **Direction** — Eliminate unsuitable paths via constraints, risks, deal-breakers
-4. **Reference** — Ground the work in existing knowledge or AI-discovered sources
-5. **Context** — Surface real-world constraints (time, money, skills, environment)
-6. **Criteria** — Define what "better" means before producing output
-7. **Synthesize** — Produce the improved prompt
+### Prompt Mode
+**When:** User explicitly wants to create or improve a prompt, or needs a comprehensive brief for another AI/tool/person.
+**Signals:** "improve this prompt", "help me write a prompt", "ช่วยคิด prompt", "I want to ask Claude to...", mentions using the output with another AI.
+**Flow:** Full discovery (5–7 questions across Goal → Direction → Context → Criteria)
+**Output:** Improved Prompt + Discovery Summary
 
-### Phase 1 — Receive
+### Explore Mode
+**When:** User wants to brainstorm ideas, explore possibilities, or think through something open-ended.
+**Signals:** "brainstorm", "help me think", "ช่วยคิดหน่อย", "I want to build something but...", "what should I...", "any ideas for..."
+**Flow:** Light discovery (3–5 questions) — understand goals + constraints quickly, then generate ideas
+**Output:** Curated ideas/options with trade-offs, then offer to go deeper on the chosen one
 
-Read the user's initial prompt. Acknowledge what they want to achieve. Do NOT start solving.
+### Focused Mode
+**When:** User has a specific problem with existing context and wants strategies or recommendations.
+**Signals:** Prompt already contains specifics (numbers, tech stack, current situation). User says "brainstorm วิธี...", "how to reduce...", "what's the best approach to..."
+**Flow:** Targeted discovery (2–4 questions) — only ask about genuine unknowns, skip what's already stated
+**Output:** Actionable strategies/recommendations with priorities and estimated impact
 
-Say something like: *"I understand you want to [restate]. Before I help, I need to ask a few questions to make sure the result fits your specific situation. Let's start with your goal."*
+## Workflow by Mode
 
-### Phase 2 — Goal
+For detailed questioning patterns, techniques, and examples per phase, see [references/QUESTIONING-GUIDE.md](references/QUESTIONING-GUIDE.md)
 
-Ask questions until the goal can be stated in one sentence with at least one measurable indicator. Summarize and confirm before moving on.
+---
 
-### Phase 3 — Direction
+### Prompt Mode — Full Discovery
 
-Eliminate wrong paths by asking about constraints, NOT about domain specifics. After gathering constraints, **propose 2-3 viable approaches** with trade-offs. Lead with your recommended option. The user's reaction narrows direction further than any question could.
+The most thorough path. Use all phases when the user needs a well-crafted prompt.
 
-### Phase 4 — Reference
+**Phase 1 — Receive:** Acknowledge the request. Say something like: *"I'll help you craft that prompt. Let me ask a few questions to make it specific to your situation."*
 
-Ask if the user has examples, articles, templates, or prior work. If none, use `web_search` to find 2-3 references. If they have some, ask what they like about them.
+**Phase 2 — Goal:** What does the user want the prompt to achieve? Get to a one-sentence goal with at least one measurable indicator. (1–2 questions)
 
-### Phase 5 — Context
+**Phase 3 — Direction:** What must NOT happen? What approaches exist? Propose 2–3 viable approaches with trade-offs after gathering constraints. Lead with your recommendation. (1–2 questions + proposal)
 
-Surface practical constraints that change feasibility: time, budget, skills, people involved. If context contradicts the goal, flag it gently.
+**Phase 4 — Reference (optional):** Only if references would genuinely help (e.g., style/design requests). Ask if they have examples. If none and it would help, use `WebSearch`. Skip entirely for straightforward requests. (0–1 questions)
 
-### Phase 6 — Criteria
+**Phase 5 — Context:** Surface practical constraints: time, budget, skills, team, environment. Flag contradictions with the goal gently. (1–2 questions)
 
-Define evaluation criteria BEFORE producing output. Force-rank if more than 3. Make each criterion specific and measurable.
+**Phase 6 — Criteria:** Define what "good" means. Force-rank if more than 3 criteria. (1 question)
 
-### Phase 7 — Synthesize
-
-After all phases are complete, produce the **Improved Prompt**:
-
-1. **Draft the full prompt** incorporating all discovered information.
-2. **Present it to the user** and ask: *"Does this capture what you need? Anything to adjust?"*
-3. **Iterate if needed.** Fix issues based on feedback until the user confirms.
-
-Use this structure for the final output:
+**Phase 7 — Synthesize:** Draft the improved prompt with this structure:
 
 ```
 ## Improved Prompt
@@ -94,46 +97,70 @@ Use this structure for the final output:
 ### Discovery Summary
 
 **Goal:** [One sentence with measurable indicator]
-**Direction:** [Chosen approach and key constraints that shaped it]
-**Reference:** [Sources that grounded the direction]
+**Direction:** [Chosen approach and key constraints]
 **Context:** [Practical constraints: time, budget, skills, environment]
 **Criteria:** [Ranked evaluation criteria]
 ```
 
-The improved prompt must:
-- Be self-contained (usable without the discovery summary)
-- Include all critical constraints and context inline
-- Be specific enough that any AI would produce a targeted, non-generic answer
-- Reflect the user's vocabulary and intent, not impose new framing
+The improved prompt must be self-contained, include all constraints inline, and be specific enough that any AI produces a targeted answer.
 
-## Next Step — Create a Plan
+Present it and ask: *"Does this capture what you need? Anything to adjust?"* Iterate if needed.
 
-After delivering the improved prompt, ask the user using `ask_user` with choices:
+---
 
-1. **Create a Plan** — Delegate to the Plan subagent
-2. **Done** — No further action needed
+### Explore Mode — Light Discovery
 
-### If "Create a Plan" is chosen:
+For open-ended brainstorming where the user wants ideas, not a prompt.
 
-Use the **Agent tool** with `subagent_type: "Plan"` to delegate. Pass the full **Improved Prompt** and **Discovery Summary** as context to the Plan subagent. The Plan subagent will produce a step-by-step implementation plan considering architecture, trade-offs, and critical files.
+**Phase 1 — Receive + Quick Goal:** Acknowledge, then ask ONE question combining goal + motivation. Example: *"What draws you to this — learning, earning, solving a personal problem, or something else?"* (1 question)
 
-### If "Done" is chosen:
+**Phase 2 — Constraints:** Ask about deal-breakers and practical limits in 1–2 questions. Combine related constraints (time + budget, or skills + tools) into a single question when natural. (1–2 questions)
 
-End the workflow.
+**Phase 3 — Generate:** Based on what you've learned, produce **5–8 concrete ideas** organized by theme. Each idea should include:
+- What it is (one sentence)
+- Why it fits this user's constraints
+- One potential challenge
+
+**Phase 4 — Narrow:** Ask which ideas resonate. Then offer:
+1. **Go deeper** on one idea (pivot to Prompt Mode or create a plan)
+2. **Generate more** ideas in a specific direction
+3. **Done** — take the ideas and go
+
+---
+
+### Focused Mode — Targeted Discovery
+
+For specific problems where the user already provided good context.
+
+**Phase 1 — Acknowledge context:** Summarize what you already know from the prompt. Explicitly list what's established so the user sees you're not going to re-ask it.
+
+**Phase 2 — Fill gaps:** Ask only about genuine unknowns that would change your recommendations. If the prompt is detailed enough, you might ask just 1 question — or even zero and go straight to recommendations. (0–2 questions)
+
+**Phase 3 — Strategize:** Produce actionable recommendations:
+- Prioritized list (quick wins first, then bigger efforts)
+- Each item: what to do, estimated impact, effort level, risks
+- Clear "start here" recommendation
+
+**Phase 4 — Refine:** Ask if anything needs adjustment. Offer to create an implementation plan via Plan subagent.
+
+---
+
+## Next Step
+
+After delivering the output (regardless of mode), offer next steps using `AskUserQuestion`:
+
+- **Create a Plan** — Delegate to Plan subagent with `subagent_type: "Plan"`, passing the full output as context
+- **Go deeper** — Continue exploring a specific aspect
+- **Done** — End the workflow
 
 ## Handling Edge Cases
 
-**User wants to skip phases:** Respect their pace but note what's missing: *"We can move on — just know that without [X], the result might be more generic than it could be."*
+**User wants to skip questions:** Respect it. Produce the best output with what you have. Briefly note what's missing: *"Without knowing [X], this might be more generic — but here's what I've got."*
 
-**User says "I don't know":** Offer 2-3 concrete options and let them react. Reactions reveal preferences without requiring expertise.
+**User says "I don't know":** Offer 2–3 concrete options and let them react. Reactions reveal preferences without requiring expertise.
 
-**User's answers contradict each other:** Flag it neutrally: *"Earlier you mentioned X, but now Y seems different. Which should we prioritize?"*
+**Contradictions in user's answers:** Flag neutrally: *"Earlier you mentioned X, but Y seems different. Which should we prioritize?"*
 
-**The topic is too broad for one prompt:** Suggest splitting into multiple focused prompts. Run the workflow for each.
+**Too broad for one session:** Suggest splitting. Run the workflow for each piece.
 
-## What This Skill Does NOT Do
-
-- Does not execute the improved prompt — it only produces it
-- Does not replace domain expertise — it helps extract direction from the user's life context
-- Does not guarantee the user will know the "right" answer — it helps them navigate toward one
-- Does not ask questions forever — if 2-3 questions in any phase get "doesn't matter" responses, move on
+**Mode feels wrong mid-conversation:** Switch. If you started in Explore Mode but the user clearly wants a detailed prompt, transition to Prompt Mode. No need to restart — carry forward what you've learned.

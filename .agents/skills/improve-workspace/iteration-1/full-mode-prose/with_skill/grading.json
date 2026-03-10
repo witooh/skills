@@ -1,0 +1,32 @@
+{
+  "eval_id": 2,
+  "eval_name": "full-mode-prose",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Chose Full Mode with multiple criteria",
+      "passed": true,
+      "evidence": "Explicitly chose Full Mode with 3 ranked criteria: Clarity, Structure, Conciseness"
+    },
+    {
+      "text": "Established criteria with 0/1/2 scoring rubric",
+      "passed": true,
+      "evidence": "Baseline scorecard with 0/1/2 scores and evidence for each criterion"
+    },
+    {
+      "text": "Multiple iterations with delta tracking",
+      "passed": true,
+      "evidence": "3 iterations: 1/6 → 3/6 → 5/6 → 6/6 with delta shown each time"
+    },
+    {
+      "text": "README is shorter than original",
+      "passed": true,
+      "evidence": "Original 111 lines, improved 96 lines"
+    },
+    {
+      "text": "User checkpoint after each iteration",
+      "passed": true,
+      "evidence": "Each iteration ends with 'Would ask user' checkpoint and assumed response"
+    }
+  ]
+}

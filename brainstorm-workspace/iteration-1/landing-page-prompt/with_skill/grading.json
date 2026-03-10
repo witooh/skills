@@ -1,0 +1,27 @@
+{
+  "eval_id": 3,
+  "eval_name": "landing-page-prompt",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Questions cover key dimensions: target audience, product/service, visual style, tech stack, content needs",
+      "passed": true,
+      "evidence": "Questions covered: CTA goal (sign up), product type (POS SaaS), target audience (small restaurants in Thailand), deal-breakers (no cheap look, not too long), language (Thai), design approach (SaaS style), references (Square, Loyverse), tech stack (Next.js), timeline (3-4 days), team (solo, no designer), quality criteria (professional look, clean code, responsive)."
+    },
+    {
+      "text": "Final improved prompt is self-contained — usable without the discovery summary",
+      "passed": true,
+      "evidence": "The improved prompt includes all necessary information inline: product details, design direction, page structure, technical requirements, and constraints. It can be used standalone with any AI."
+    },
+    {
+      "text": "Output includes a Discovery Summary with Goal, Direction, Reference, Context, and Criteria",
+      "passed": true,
+      "evidence": "Discovery Summary is present with all 5 sections: Goal, Direction, Reference, Context, and Criteria — each accurately reflecting the conversation."
+    },
+    {
+      "text": "Improved prompt includes specific details (audience, style, features) — not generic template",
+      "passed": true,
+      "evidence": "Prompt is highly specific: 'ระบบ POS ร้านอาหาร', 'ร้านอาหารเล็กๆ ในไทย', 'คล้ายแนว Square for Restaurants', 'Next.js App Router + Tailwind CSS', 'dark mode support'. Far more specific than the baseline's bracket-fill template."
+    }
+  ]
+}

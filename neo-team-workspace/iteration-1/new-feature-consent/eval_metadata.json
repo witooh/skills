@@ -1,0 +1,13 @@
+{
+  "eval_id": 0,
+  "eval_name": "new-feature-consent",
+  "prompt": "เพิ่ม endpoint สำหรับ create consent record ใน consent service โดยต้องรับ citizen_id, purpose, channel แล้ว save ลง DB พร้อม audit log",
+  "assertions": [
+    {"text": "Selects New Feature workflow", "passed": null, "evidence": ""},
+    {"text": "Business Analyst runs before Architect", "passed": null, "evidence": ""},
+    {"text": "Developer and QA run in parallel", "passed": null, "evidence": ""},
+    {"text": "BA context (acceptance criteria) passed to Architect", "passed": null, "evidence": ""},
+    {"text": "Security agent is involved", "passed": null, "evidence": ""},
+    {"text": "Output follows structured Summary format", "passed": null, "evidence": ""}
+  ]
+}

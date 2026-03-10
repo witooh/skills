@@ -1,0 +1,205 @@
+{
+  "skill_name": "neo-team",
+  "iteration": 2,
+  "created_at": "2026-03-10T00:00:00Z",
+  "configurations": {
+    "with_skill": {
+      "label": "New Skill v2.1",
+      "description": "Neo Team skill with /simplify integration, structured remediation loop (max 2 cycles), and explicit context passing between agents"
+    },
+    "old_skill": {
+      "label": "Old Skill v1.0",
+      "description": "Original Neo Team skill without /simplify step, no defined remediation loop, and no max cycle limit"
+    }
+  },
+  "evals": [
+    {
+      "eval_id": 0,
+      "eval_name": "new-feature-consent",
+      "description": "Add endpoint for create consent record in consent service with citizen_id, purpose, channel, DB save, and audit log",
+      "results": {
+        "with_skill": {
+          "pass_rate": 1.0,
+          "passed": 6,
+          "failed": 0,
+          "total": 6,
+          "tokens": 34443,
+          "duration_ms": 195823,
+          "expectations": [
+            {"text": "simplify-step-present", "passed": true},
+            {"text": "remediation-loop-shown", "passed": true},
+            {"text": "remediation-max-2-cycles", "passed": true},
+            {"text": "correct-workflow-selected", "passed": true},
+            {"text": "context-passed-between-agents", "passed": true},
+            {"text": "structured-summary", "passed": true}
+          ]
+        },
+        "old_skill": {
+          "pass_rate": 0.667,
+          "passed": 4,
+          "failed": 2,
+          "total": 6,
+          "tokens": 29345,
+          "duration_ms": 186056,
+          "expectations": [
+            {"text": "simplify-step-present", "passed": false},
+            {"text": "remediation-loop-shown", "passed": true},
+            {"text": "remediation-max-2-cycles", "passed": false},
+            {"text": "correct-workflow-selected", "passed": true},
+            {"text": "context-passed-between-agents", "passed": true},
+            {"text": "structured-summary", "passed": true}
+          ]
+        }
+      }
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "bugfix-consent-500",
+      "description": "Consent service returns 500 error on GET consent by citizen_id with more than 100 records due to query performance issue",
+      "results": {
+        "with_skill": {
+          "pass_rate": 1.0,
+          "passed": 6,
+          "failed": 0,
+          "total": 6,
+          "tokens": 31506,
+          "duration_ms": 200409,
+          "expectations": [
+            {"text": "simplify-step-present", "passed": true},
+            {"text": "remediation-loop-shown", "passed": true},
+            {"text": "remediation-max-2-cycles", "passed": true},
+            {"text": "correct-workflow-selected", "passed": true},
+            {"text": "system-analyzer-first", "passed": true},
+            {"text": "root-cause-passed-to-developer", "passed": true}
+          ]
+        },
+        "old_skill": {
+          "pass_rate": 0.667,
+          "passed": 4,
+          "failed": 2,
+          "total": 6,
+          "tokens": 26194,
+          "duration_ms": 147165,
+          "expectations": [
+            {"text": "simplify-step-present", "passed": false},
+            {"text": "remediation-loop-shown", "passed": true},
+            {"text": "remediation-max-2-cycles", "passed": false},
+            {"text": "correct-workflow-selected", "passed": true},
+            {"text": "system-analyzer-first", "passed": true},
+            {"text": "root-cause-passed-to-developer", "passed": true}
+          ]
+        }
+      }
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "code-review-consent",
+      "description": "Review code in internal/domain/consent/ before merge to main covering convention, security, and test coverage",
+      "results": {
+        "with_skill": {
+          "pass_rate": 1.0,
+          "passed": 6,
+          "failed": 0,
+          "total": 6,
+          "tokens": 34785,
+          "duration_ms": 219034,
+          "expectations": [
+            {"text": "simplify-step-present", "passed": true},
+            {"text": "remediation-loop-shown", "passed": true},
+            {"text": "remediation-max-2-cycles", "passed": true},
+            {"text": "correct-workflow-selected", "passed": true},
+            {"text": "parallel-review-step", "passed": true},
+            {"text": "code-reviewer-first", "passed": true}
+          ]
+        },
+        "old_skill": {
+          "pass_rate": 0.5,
+          "passed": 3,
+          "failed": 3,
+          "total": 6,
+          "tokens": 23589,
+          "duration_ms": 138606,
+          "expectations": [
+            {"text": "simplify-step-present", "passed": false},
+            {"text": "remediation-loop-shown", "passed": false},
+            {"text": "remediation-max-2-cycles", "passed": false},
+            {"text": "correct-workflow-selected", "passed": true},
+            {"text": "parallel-review-step", "passed": true},
+            {"text": "code-reviewer-first", "passed": true}
+          ]
+        }
+      }
+    }
+  ],
+  "aggregate": {
+    "with_skill": {
+      "total_evals": 3,
+      "total_assertions": 18,
+      "total_passed": 18,
+      "total_failed": 0,
+      "overall_pass_rate": 1.0,
+      "avg_tokens": 33578,
+      "avg_duration_ms": 205089,
+      "total_tokens": 100734,
+      "total_duration_ms": 615266
+    },
+    "old_skill": {
+      "total_evals": 3,
+      "total_assertions": 18,
+      "total_passed": 11,
+      "total_failed": 7,
+      "overall_pass_rate": 0.611,
+      "avg_tokens": 26376,
+      "avg_duration_ms": 157276,
+      "total_tokens": 79128,
+      "total_duration_ms": 471827
+    }
+  },
+  "delta": {
+    "pass_rate_improvement": "+38.9pp (from 61.1% to 100%)",
+    "token_overhead": "+27.3% (100734 vs 79128 tokens)",
+    "duration_overhead": "+30.4% (615266ms vs 471827ms)",
+    "per_eval_deltas": [
+      {
+        "eval_name": "new-feature-consent",
+        "pass_rate_delta": "+33.3pp (66.7% -> 100%)",
+        "token_delta": "+17.4% (34443 vs 29345)",
+        "duration_delta": "+5.3% (195823ms vs 186056ms)"
+      },
+      {
+        "eval_name": "bugfix-consent-500",
+        "pass_rate_delta": "+33.3pp (66.7% -> 100%)",
+        "token_delta": "+20.3% (31506 vs 26194)",
+        "duration_delta": "+36.2% (200409ms vs 147165ms)"
+      },
+      {
+        "eval_name": "code-review-consent",
+        "pass_rate_delta": "+50.0pp (50.0% -> 100%)",
+        "token_delta": "+47.5% (34785 vs 23589)",
+        "duration_delta": "+58.0% (219034ms vs 138606ms)"
+      }
+    ]
+  },
+  "analyst_observations": [
+    {
+      "category": "/simplify presence",
+      "observation": "The /simplify step is consistently present in all 3 with_skill runs and absent in all 3 old_skill runs. This is the most reliable differentiator between the two configurations. In with_skill, /simplify is invoked both after Developer implementation AND after remediation fixes, providing two quality gates.",
+      "evidence": "with_skill: 3/3 pass simplify-step-present. old_skill: 0/3 pass. In new-feature with_skill, /simplify applied 5 quality fixes. In bugfix with_skill, /simplify extracted reusable parsePagination helper. In code-review with_skill, /simplify removed duplicated validation blocks."
+    },
+    {
+      "category": "remediation loop",
+      "observation": "with_skill implements a structured, bounded remediation loop in all 3 test cases. old_skill shows inconsistent remediation behavior: new-feature and bugfix improvise ad-hoc rework cycles (and explicitly flag missing loop as a skill gap), while code-review completely lacks remediation and just reports findings. The code-review old_skill run is the weakest -- it ends with 'BLOCKED' status and tells the user to fix manually and re-run.",
+      "evidence": "with_skill: 3/3 pass remediation-loop-shown. old_skill: 2/3 pass (new-feature and bugfix improvise, code-review fails). All 3 old_skill runs explicitly identify missing remediation loop as a skill gap in their observations tables."
+    },
+    {
+      "category": "context passing quality",
+      "observation": "Both configurations demonstrate good context passing between agents for workflow-specific assertions (correct-workflow-selected, system-analyzer-first, context-passed-between-agents, parallel-review-step, code-reviewer-first). The core orchestration logic for selecting workflows and chaining agent outputs works well in both versions. The difference is in the quality infrastructure (/simplify) and robustness infrastructure (bounded remediation).",
+      "evidence": "Workflow-specific assertions pass at same rate: with_skill 9/9, old_skill 9/9. All failures in old_skill are concentrated in the three common assertions (simplify-step-present, remediation-loop-shown, remediation-max-2-cycles)."
+    },
+    {
+      "category": "cost-quality tradeoff",
+      "observation": "with_skill uses ~27% more tokens and ~30% more time but achieves 100% pass rate vs 61.1%. The code-review test case shows the highest cost delta (+47.5% tokens, +58% duration) but also the highest quality improvement (+50pp pass rate). This is because with_skill runs a full remediation cycle with /simplify + re-review for 3 blocking agents, while old_skill just reports findings and stops.",
+      "evidence": "Aggregate: with_skill 100734 tokens / 615s, old_skill 79128 tokens / 472s. Per-assertion cost: with_skill = 5596 tokens/pass, old_skill = 7194 tokens/pass (old_skill is actually less efficient per passing assertion)."
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "eval_id": 2,
+  "eval_name": "code-review-consent",
+  "configuration": "old_skill",
+  "expectations": [
+    {
+      "text": "simplify-step-present: Output shows /simplify step in the pipeline",
+      "passed": false,
+      "evidence": "No /simplify step in the pipeline. Workflow definition shows only: '1. code-reviewer -> check convention compliance, 2. developer + security + qa -> review (PARALLEL)'. The /simplify skill is never invoked."
+    },
+    {
+      "text": "remediation-loop-shown: Output shows a remediation loop when blocking findings occur",
+      "passed": false,
+      "evidence": "Pipeline ends at Step 2 without remediation. Security finds 1 High (PII in logs) and QA blocks at ~45% coverage, but no fix cycle is executed. Output explicitly states: 'Skill ไม่มี remediation loop' and recommends user re-run the pipeline manually after fixing."
+    },
+    {
+      "text": "remediation-max-2-cycles: Output mentions max 2 remediation cycles before escalation",
+      "passed": false,
+      "evidence": "No mention of max 2 cycles. The output recommends adding remediation as a skill improvement: 'repeat until all agents approve or max 2 iterations' -- but this is a recommendation, not an implemented behavior."
+    },
+    {
+      "text": "correct-workflow-selected: Selects Code Review workflow",
+      "passed": true,
+      "evidence": "Task Classification states 'Selected Workflow: Code Review' with reasoning that user asked to 'review code ก่อน merge' covering convention, security, and test coverage."
+    },
+    {
+      "text": "parallel-review-step: Developer + Security + QA run in parallel",
+      "passed": true,
+      "evidence": "Step 2 runs Developer + Security + QA in parallel. The workflow definition confirms: '2. developer + security + qa -> review correctness, security, coverage (PARALLEL)'. Each agent (2A, 2B, 2C) is delegated simultaneously."
+    },
+    {
+      "text": "code-reviewer-first: Code Reviewer runs before parallel agents",
+      "passed": true,
+      "evidence": "Step 1 is 'Code Reviewer -- Check Convention Compliance' which runs solo before Step 2. Code Reviewer findings are passed as context to all three parallel agents in Step 2."
+    }
+  ]
+}

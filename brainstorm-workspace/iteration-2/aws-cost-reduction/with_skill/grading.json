@@ -1,0 +1,27 @@
+{
+  "eval_id": 2,
+  "eval_name": "aws-cost-reduction",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Does not re-ask about services (EC2, RDS) or budget (50k) already stated in the prompt",
+      "passed": true,
+      "evidence": "Phase 1 explicitly listed known facts (50k THB, EC2, RDS) as bullet points. Did not re-ask any of these. Only asked about genuine unknowns."
+    },
+    {
+      "text": "Follow-up questions target useful unknowns: instance sizing, reserved instances, usage patterns, staging environments",
+      "passed": true,
+      "evidence": "Only 2 questions asked: Q1 about EC2 usage pattern (discovered business-hours-only traffic — key insight), Q2 about priority (quick wins vs re-architecture). Both changed the recommendations significantly."
+    },
+    {
+      "text": "Output includes specific, actionable cost-saving strategies (not generic advice)",
+      "passed": true,
+      "evidence": "6 strategies with specific details: EC2 scheduling (save 15-20K THB), RDS optimization (3-8K), right-sizing (2-5K), RI/SP (3-5K), S3 lifecycle (500-1.5K), zombie resources (1-3K). Each has What/Impact/Effort/Estimated saving/Risk/How."
+    },
+    {
+      "text": "Produces brainstorm ideas/strategies rather than forcing an 'Improved Prompt' format",
+      "passed": true,
+      "evidence": "Output is actionable strategies with prioritized action plan table. Correctly used Focused Mode output format (not Improved Prompt). Includes 'Start here this week' action plan with priorities."
+    }
+  ]
+}

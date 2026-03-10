@@ -1,0 +1,32 @@
+{
+  "eval_id": 1,
+  "eval_name": "bugfix-consent-500",
+  "configuration": "old_skill",
+  "expectations": [
+    {
+      "text": "Selects Bug Fix workflow",
+      "passed": true,
+      "evidence": "Output states 'Classified Workflow: Bug Fix' with rationale about 500 error being primary symptom"
+    },
+    {
+      "text": "System Analyzer runs first",
+      "passed": true,
+      "evidence": "Step 1: System Analyzer with full reference content in prompt"
+    },
+    {
+      "text": "Root cause passed from Analyzer to Developer",
+      "passed": false,
+      "evidence": "Developer prompt uses placeholder '[OUTPUT FROM STEP 1 WILL BE INSERTED HERE]' instead of demonstrating actual context passing. The old skill lacks guidance on WHAT to extract and pass."
+    },
+    {
+      "text": "QA adds regression test",
+      "passed": true,
+      "evidence": "Step 3: QA — Add Regression Test Case is present with boundary conditions (0, 1, 99, 100, 101, 500, 1000 records)"
+    },
+    {
+      "text": "QA and Code Reviewer run in parallel at final step",
+      "passed": true,
+      "evidence": "Step 4: QA + Code Reviewer labeled as PARALLEL with both Agent() calls shown"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "eval_id": 3,
+  "eval_name": "landing-page-prompt",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Questions cover key dimensions: target audience, product/service, visual style, tech stack, content needs",
+      "passed": true,
+      "evidence": "6 questions covered: CTA goal (waitlist sign-up), constraints/deal-breakers (no cheap look, no pop-ups, non-tech-savvy audience), approach (single-page hero+benefits+CTA), design reference (Notion/Linear), tech+timeline (Next.js, 2 weeks, solo), criteria ranking (conversion > design > code quality)."
+    },
+    {
+      "text": "Final improved prompt is self-contained — usable without the discovery summary",
+      "passed": true,
+      "evidence": "Prompt includes all context inline: product details, audience, page structure, design requirements, tech requirements, anti-requirements ('สิ่งที่ไม่ต้องมี'), and expected output files. Fully usable standalone."
+    },
+    {
+      "text": "Output includes a Discovery Summary with Goal, Direction, Reference, Context, and Criteria",
+      "passed": true,
+      "evidence": "Discovery Summary present as a table with all 5 dimensions: Goal, Direction, Reference (Notion/Linear), Context (solo dev, Next.js, 2 weeks), Criteria (ranked)."
+    },
+    {
+      "text": "Improved prompt includes specific details (audience, style, features) — not generic template",
+      "passed": true,
+      "evidence": "Highly specific: 'ร้านอาหารขนาดเล็กในไทย อายุ 30-55 ปี', 'Style: Modern, clean คล้าย Notion / Linear', pain points section with specific restaurant problems, 'Form มีแค่ 2 fields: ชื่อร้าน + เบอร์โทร', 'mobile-first เพราะ target มักใช้มือถือ'."
+    }
+  ]
+}

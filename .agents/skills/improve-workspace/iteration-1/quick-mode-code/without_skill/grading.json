@@ -1,0 +1,27 @@
+{
+  "eval_id": 1,
+  "eval_name": "quick-mode-code",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "Chose Quick Mode (single-focus, no full scoring loop)",
+      "passed": false,
+      "evidence": "No mode concept — just fixed the code directly"
+    },
+    {
+      "text": "Shows before/after comparison",
+      "passed": true,
+      "evidence": "Has complexity comparison table and preserved behavior section"
+    },
+    {
+      "text": "Time complexity improved to O(n) or better",
+      "passed": true,
+      "evidence": "Two-pass map approach, O(n)"
+    },
+    {
+      "text": "Asks user if improvement hits the mark",
+      "passed": false,
+      "evidence": "No follow-up question or checkpoint"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "skill_name": "brainstorm",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "อยากทำ side project แต่ยังไม่รู้จะทำอะไรดี ช่วยคิดหน่อย",
+      "expected_output": "Should guide through discovery phases, ask good questions about interests/skills/goals, and produce either ideas or an improved prompt. Should NOT overwhelm with too many phases for a casual request.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "brainstorm วิธีลดค่าใช้จ่าย AWS ของทีม ตอนนี้เดือนละประมาณ 5 หมื่นบาท ใช้ EC2 กับ RDS เป็นหลัก",
+      "expected_output": "Should recognize this as a technical brainstorm with specific context already provided. Should ask targeted follow-ups about usage patterns and constraints, then produce actionable ideas — not just an improved prompt.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "ช่วยคิด prompt สำหรับสร้าง landing page ให้หน่อย จะใช้ Claude สร้าง",
+      "expected_output": "This is the ideal use case — prompt improvement. Should discover target audience, product, style preferences, tech stack, and produce a refined prompt ready to use with Claude.",
+      "files": []
+    }
+  ]
+}

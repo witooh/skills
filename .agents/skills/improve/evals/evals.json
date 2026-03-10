@@ -1,0 +1,23 @@
+{
+  "skill_name": "improve",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "ฟังก์ชันนี้ช้ามาก ช่วยทำให้เร็วขึ้นหน่อย",
+      "expected_output": "Quick Mode: single focused optimization with before/after comparison, no full scoring loop",
+      "files": ["test-inputs/slow_function.go"]
+    },
+    {
+      "id": 2,
+      "prompt": "ช่วย improve README นี้หน่อย มันยาวเกิน อ่านไม่รู้เรื่อง แล้วก็ structure ไม่ดี",
+      "expected_output": "Full Mode: establish criteria (clarity, conciseness, structure), score baseline, iterate with scorecards",
+      "files": ["test-inputs/README.md"]
+    },
+    {
+      "id": 3,
+      "prompt": "ช่วย clean up โค้ดนี้ให้หน่อย",
+      "expected_output": "Should detect multiple issues and choose Full Mode, or start Quick and escalate when complexity becomes apparent",
+      "files": ["test-inputs/messy_handler.go"]
+    }
+  ]
+}

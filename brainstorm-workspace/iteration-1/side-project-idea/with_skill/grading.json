@@ -1,0 +1,27 @@
+{
+  "eval_id": 1,
+  "eval_name": "side-project-idea",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Skill adapts question count to request complexity — does not force all 7 phases for a casual request",
+      "passed": false,
+      "evidence": "All 7 phases were executed with 11 questions total. For a casual 'help me think of a side project' request, this is excessive. The skill has no mechanism to skip or merge phases based on request complexity."
+    },
+    {
+      "text": "Final output includes concrete project ideas, not just a refined prompt",
+      "passed": false,
+      "evidence": "Output is an 'Improved Prompt' asking AI to suggest CLI tool ideas. The user said 'ช่วยคิดหน่อย' (help me think) — they wanted ideas directly, not a prompt to get ideas later. The baseline gave 15 concrete ideas immediately."
+    },
+    {
+      "text": "Uses casual, accessible language matching the user's tone — no unnecessary jargon",
+      "passed": true,
+      "evidence": "Language matched the user's casual Thai tone throughout. No unnecessary jargon was introduced. Questions were framed in everyday language."
+    },
+    {
+      "text": "Total questions asked across all phases is 8 or fewer",
+      "passed": false,
+      "evidence": "11 questions were asked across Phases 2-6, exceeding the target of 8. Multiple phases had 3 questions each."
+    }
+  ]
+}

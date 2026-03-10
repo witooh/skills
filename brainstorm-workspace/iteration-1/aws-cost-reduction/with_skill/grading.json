@@ -1,0 +1,27 @@
+{
+  "eval_id": 2,
+  "eval_name": "aws-cost-reduction",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Does not re-ask about services (EC2, RDS) or budget (50k) already stated in the prompt",
+      "passed": true,
+      "evidence": "The skill acknowledged the existing context (EC2, RDS, 50k) in Phase 1 and did not re-ask about these. Follow-up questions targeted unknown details like instance types and traffic patterns."
+    },
+    {
+      "text": "Follow-up questions target useful unknowns: instance sizing, reserved instances, usage patterns, staging environments",
+      "passed": true,
+      "evidence": "Questions covered: target savings percentage, timeline, deal-breakers, prior optimization attempts, instance breakdown (prod/staging/dev), RDS specs, traffic patterns, team structure. All useful for tailoring recommendations."
+    },
+    {
+      "text": "Output includes specific, actionable cost-saving strategies (not generic advice)",
+      "passed": false,
+      "evidence": "Output is an 'Improved Prompt' with detailed context for asking another AI — not direct strategies. The baseline gave immediate actionable strategies with estimated savings. The skill's output format is wrong for this use case."
+    },
+    {
+      "text": "Produces brainstorm ideas/strategies rather than forcing an 'Improved Prompt' format",
+      "passed": false,
+      "evidence": "Output is rigidly an 'Improved Prompt' + Discovery Summary. User asked to 'brainstorm วิธีลดค่าใช้จ่าย' — they wanted strategies, not a prompt. The skill has no flexibility in output format."
+    }
+  ]
+}

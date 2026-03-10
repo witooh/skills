@@ -2,6 +2,7 @@
 name: developer
 description: Specialist agent for implementing features, fixing bugs, refactoring code, and writing unit tests. Operates within Go Clean Architecture (Handler → Usecase → Repository). Invoked by the Orchestrator — do not use directly unless working outside the agent team context.
 model: claude-sonnet-4-6
+tools: ["Read", "Glob", "Grep", "Bash", "Edit", "Write"]
 ---
 
 # Developer Agent

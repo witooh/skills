@@ -1,8 +1,6 @@
 # Evaluation Guide
 
-Detailed patterns for scoring, baseline capture, and iteration tracking. Read this file when executing the improvement loop to understand how to evaluate each iteration objectively.
-
-**Important:** Always use the `ask_user` tool to ask questions — never embed questions in plain text output. When the answer space is predictable, pass a `choices` array for faster UX.
+Detailed patterns for scoring, baseline capture, and iteration tracking. Read this file when executing the improvement loop (Full Mode) to understand how to evaluate each iteration objectively.
 
 ---
 
@@ -11,12 +9,13 @@ Detailed patterns for scoring, baseline capture, and iteration tracking. Read th
 Criteria come from the user's input:
 
 - **If criteria were provided with the input** — Use them directly after confirming with the user.
+- **If a single clear goal exists** — That's enough. Don't force the user to add more criteria just to hit a number. One focused criterion can drive a productive improvement loop.
 - **If no criteria exist** — Ask before starting:
-  - What are the top 2-3 things that matter most?
+  - What's the most important thing to get right?
   - What would make you reject the result?
-  - Force-rank if more than 3.
+  - If more than 3, force-rank and pick the top 3.
 
-Every criterion must be **specific and observable**:
+Every criterion should be **specific and observable**:
 
 | Vague Criterion | Specific Criterion |
 |---|---|
@@ -24,6 +23,26 @@ Every criterion must be **specific and observable**:
 | High quality | Passes all listed acceptance checks with zero failures |
 | Fast | Completes in under 2 seconds for typical input |
 | Professional | Matches the tone and structure of the provided reference example |
+
+### Domain-Specific Criteria Examples
+
+When the user's criteria are vague, suggest concrete alternatives based on the output type:
+
+**Code:**
+
+| User Says | Suggest Instead |
+|---|---|
+| Clean code | Follows project conventions, no duplicated logic, clear naming |
+| Performant | Reduces time complexity from O(n^2) to O(n), or completes in <100ms |
+| Well-tested | All public methods have unit tests, edge cases covered |
+
+**Prose:**
+
+| User Says | Suggest Instead |
+|---|---|
+| Better writing | Active voice, one idea per paragraph, grade-8 reading level |
+| More engaging | Opens with a hook, uses concrete examples, varies sentence length |
+| Shorter | Under N words while preserving all key information |
 
 ---
 
@@ -54,7 +73,6 @@ Score each criterion on a 3-point scale:
 |---|---|---|
 | [Criterion 1] | 0/1/2 | [What was observed] |
 | [Criterion 2] | 0/1/2 | [What was observed] |
-| [Criterion 3] | 0/1/2 | [What was observed] |
 
 **Total: X / Y**
 **Key gaps:** [List the most impactful unmet criteria]
@@ -75,12 +93,15 @@ After each improvement iteration, produce a scorecard in the same format and com
 |---|---|---|---|
 | [Criterion 1] | 1 | 2 | +1 |
 | [Criterion 2] | 0 | 1 | +1 |
-| [Criterion 3] | 2 | 2 | 0 |
 
 **Total: X / Y (was: Z / Y, delta: +W)**
 **Remaining gaps:** [What's still unmet]
 **Next action:** [What to improve next, targeting the largest gap]
 ```
+
+### User Checkpoint
+
+After presenting the scorecard, pause and ask the user if they agree with the assessment. Self-scoring tends to be generous — the user may see issues you missed, or value things differently than you scored them. If the user disagrees, adjust the scores before deciding the next action. This checkpoint is what keeps the loop honest.
 
 ---
 
@@ -128,3 +149,5 @@ After each iteration, check that NO previously-met criterion has dropped:
 | Ignoring user's criterion ranking | Optimizes for wrong thing | Follow the user's priority order |
 | Continuing after 3 stalled iterations | Wastes time, frustrates user | Stop and discuss with user |
 | Polishing a met criterion while others are unmet | Misallocated effort | Target the largest gap first |
+| Forcing 3 criteria when 1 is enough | Adds friction, slows down simple tasks | Match criteria count to task complexity |
+| Never checking with the user | Self-scoring drifts from reality | Checkpoint after each iteration |

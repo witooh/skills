@@ -1,0 +1,83 @@
+{
+  "skill_name": "brainstorm",
+  "iteration": 1,
+  "timestamp": "2026-03-10T00:00:00Z",
+  "configurations": [
+    {
+      "name": "with_skill",
+      "description": "Current brainstorm skill v1.2",
+      "results": {
+        "pass_rate": {
+          "mean": 0.5,
+          "stddev": 0.29,
+          "per_eval": {
+            "side-project-idea": 0.25,
+            "aws-cost-reduction": 0.5,
+            "landing-page-prompt": 1.0
+          }
+        },
+        "total_tokens": {
+          "mean": 22700,
+          "stddev": 685,
+          "per_eval": {
+            "side-project-idea": 21884,
+            "aws-cost-reduction": 23177,
+            "landing-page-prompt": 23040
+          }
+        },
+        "duration_seconds": {
+          "mean": 165.7,
+          "stddev": 15.3,
+          "per_eval": {
+            "side-project-idea": 162.5,
+            "aws-cost-reduction": 182.2,
+            "landing-page-prompt": 152.3
+          }
+        }
+      }
+    },
+    {
+      "name": "without_skill",
+      "description": "Baseline — no skill loaded",
+      "results": {
+        "pass_rate": {
+          "mean": null,
+          "stddev": null,
+          "per_eval": {}
+        },
+        "total_tokens": {
+          "mean": 12360,
+          "stddev": 371,
+          "per_eval": {
+            "side-project-idea": 11950,
+            "aws-cost-reduction": 12691,
+            "landing-page-prompt": 12438
+          }
+        },
+        "duration_seconds": {
+          "mean": 61.4,
+          "stddev": 7.5,
+          "per_eval": {
+            "side-project-idea": 52.7,
+            "aws-cost-reduction": 66.9,
+            "landing-page-prompt": 64.7
+          }
+        }
+      }
+    }
+  ],
+  "delta": {
+    "tokens": "+83.6% more tokens with skill",
+    "time": "+169.9% slower with skill",
+    "pass_rate": "50% assertion pass rate (with_skill)"
+  },
+  "analyst_observations": [
+    "The skill excels at its core use case (prompt improvement) — eval 3 (landing-page-prompt) scored 100% on all assertions with a highly specific, personalized output",
+    "The skill HURTS for specific technical brainstorming — eval 2 user wanted strategies, got an 'Improved Prompt' instead. Baseline gave immediate actionable advice",
+    "The skill is overkill for casual requests — eval 1 used 11 questions and 162s for a casual 'help me think' request. Baseline gave 15 ideas in 52s",
+    "No adaptive complexity — all 7 phases are forced regardless of request type or specificity",
+    "Output format is rigid — always 'Improved Prompt + Discovery Summary' even when user wants ideas/strategies directly",
+    "Tool names are wrong — uses ask_user instead of AskUserQuestion, web_search instead of WebSearch",
+    "The skill adds ~10K tokens and ~100s overhead per invocation compared to baseline"
+  ]
+}
