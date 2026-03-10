@@ -15,7 +15,7 @@ Transform vague ideas into precise, actionable prompts through structured questi
 2. Agent walks through 7 phases: Receive → Goal → Direction → Reference → Context → Criteria → Synthesize
 3. Each phase uses `ask_user` to ask ONE question at a time (prefer multiple choice)
 4. Output: a self-contained **Improved Prompt** + Discovery Summary
-5. Optionally hand off to the **loop** skill for iterative refinement
+5. Ask if the user wants to create an implementation plan via Plan subagent
 
 ## Tools
 
@@ -138,13 +138,20 @@ The improved prompt must:
 - Be specific enough that any AI would produce a targeted, non-generic answer
 - Reflect the user's vocabulary and intent, not impose new framing
 
-## Next Step — Loop Skill
+## Next Step — Create a Plan
 
-After delivering the improved prompt, suggest the **loop** skill if the user wants to iteratively develop the output:
+After delivering the improved prompt, ask the user using `ask_user` with choices:
 
-*"The improved prompt is ready. If you'd like me to develop it through scored iterations until it meets your criteria, say `/loop`."*
+1. **Create a Plan** — Delegate to the Plan subagent
+2. **Done** — No further action needed
 
-The loop skill accepts the Improved Prompt + Discovery Summary directly and uses the criteria from Phase 6 as its evaluation rubric.
+### If "Create a Plan" is chosen:
+
+Use the **Agent tool** with `subagent_type: "Plan"` to delegate. Pass the full **Improved Prompt** and **Discovery Summary** as context to the Plan subagent. The Plan subagent will produce a step-by-step implementation plan considering architecture, trade-offs, and critical files.
+
+### If "Done" is chosen:
+
+End the workflow.
 
 ## Handling Edge Cases
 
