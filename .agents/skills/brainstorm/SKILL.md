@@ -2,7 +2,7 @@
 name: brainstorm
 description: Improve any user prompt through structured discovery before answering. Use when the user wants to brainstorm, refine an idea, improve a prompt, explore a new domain, plan a project, or when the request is broad/vague and would benefit from clarification. Triggers on phrases like "brainstorm", "help me think through", "improve this prompt", "I have an idea", "let's explore", "I want to build", "I'm thinking about", or any open-ended request where jumping straight to an answer would produce generic results.
 metadata:
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Brainstorm
@@ -23,6 +23,7 @@ Transform vague ideas into precise, actionable prompts through structured questi
 |------|---------|
 | `ask_user` | Ask the user ONE question at a time during discovery phases. Prefer providing `choices` for faster UX. |
 | `web_search` | Find references when the user has none (Phase 4 — Reference). |
+| `Agent` | Delegate to Plan subagent when the user chooses "Create a Plan" (Next Step). Use `subagent_type: "Plan"`. |
 
 ## Core Rules
 
@@ -37,17 +38,15 @@ Transform vague ideas into precise, actionable prompts through structured questi
 
 ## Workflow
 
-Improving a prompt involves these phases, executed in strict order:
+Improving a prompt involves these phases, executed in strict order. For detailed questioning patterns, techniques, and exit criteria per phase: see [references/QUESTIONING-GUIDE.md](references/QUESTIONING-GUIDE.md)
 
 1. **Receive** — Accept the user's initial prompt without judgment
 2. **Goal** — Establish a clear, measurable end-state
 3. **Direction** — Eliminate unsuitable paths via constraints, risks, deal-breakers
 4. **Reference** — Ground the work in existing knowledge or AI-discovered sources
 5. **Context** — Surface real-world constraints (time, money, skills, environment)
-6. **Criteria** — Define what "better" means before any iteration
+6. **Criteria** — Define what "better" means before producing output
 7. **Synthesize** — Produce the improved prompt
-
-For detailed questioning patterns, techniques, and anti-patterns per phase: see [references/QUESTIONING-GUIDE.md](references/QUESTIONING-GUIDE.md)
 
 ### Phase 1 — Receive
 
@@ -57,54 +56,23 @@ Say something like: *"I understand you want to [restate]. Before I help, I need 
 
 ### Phase 2 — Goal
 
-Ask questions until the goal can be stated in one sentence with at least one measurable indicator.
-
-- What is the single most important outcome?
-- How would you know this succeeded?
-- What does "done" look like?
-
-Summarize the goal and confirm before moving on.
+Ask questions until the goal can be stated in one sentence with at least one measurable indicator. Summarize and confirm before moving on.
 
 ### Phase 3 — Direction
 
-Eliminate wrong paths by asking about constraints, NOT about domain specifics:
-
-- What must absolutely NOT happen?
-- What level of risk are you comfortable with?
-- Have you tried anything before that didn't work?
-
-Each answer rules out branches. After gathering constraints, **propose 2-3 viable approaches** with trade-offs. Lead with your recommended option and explain why. Let the user react — their reaction narrows direction further than any question could.
-
-Summarize which direction was chosen and why.
+Eliminate wrong paths by asking about constraints, NOT about domain specifics. After gathering constraints, **propose 2-3 viable approaches** with trade-offs. Lead with your recommended option. The user's reaction narrows direction further than any question could.
 
 ### Phase 4 — Reference
 
-Ask if the user has examples, articles, templates, or prior work.
-
-**If user has none:** Use `web_search` to find 2-3 high-quality references that fit the goal + constraints. Present them briefly and ask which feels closest. The reaction provides further direction.
-
-**If user has references:** Ask what specifically they like about them — this reveals hidden preferences.
+Ask if the user has examples, articles, templates, or prior work. If none, use `web_search` to find 2-3 references. If they have some, ask what they like about them.
 
 ### Phase 5 — Context
 
-Surface practical constraints that change feasibility:
-
-- Time available (per week, total timeline)
-- Budget or resource limits
-- Existing skills and tools
-- Who else is involved
-
-If context contradicts the goal, flag it gently and ask whether to adjust.
+Surface practical constraints that change feasibility: time, budget, skills, people involved. If context contradicts the goal, flag it gently.
 
 ### Phase 6 — Criteria
 
-Define evaluation criteria BEFORE producing output:
-
-- Top 2-3 things that matter most in the result
-- What would make them reject the result
-- Any decided trade-offs (speed vs. quality, simple vs. comprehensive)
-
-Force-rank if more than 3 criteria. Make each criterion specific and measurable.
+Define evaluation criteria BEFORE producing output. Force-rank if more than 3. Make each criterion specific and measurable.
 
 ### Phase 7 — Synthesize
 
@@ -168,4 +136,4 @@ End the workflow.
 - Does not execute the improved prompt — it only produces it
 - Does not replace domain expertise — it helps extract direction from the user's life context
 - Does not guarantee the user will know the "right" answer — it helps them navigate toward one
-- Does not loop forever — if 2-3 questions in any phase get "doesn't matter" responses, move on
+- Does not ask questions forever — if 2-3 questions in any phase get "doesn't matter" responses, move on

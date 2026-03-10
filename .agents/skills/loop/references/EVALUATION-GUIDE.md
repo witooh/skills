@@ -8,13 +8,13 @@ Detailed patterns for scoring, baseline capture, and iteration tracking. Read th
 
 ## Establishing Criteria
 
-Criteria come from one of two sources:
+Criteria come from the user's input:
 
-1. **From brainstorm skill** — The Discovery Summary includes ranked criteria. Use them directly.
-2. **From user input** — If no brainstorm output exists, ask before starting:
-   - What are the top 2-3 things that matter most?
-   - What would make you reject the result?
-   - Force-rank if more than 3.
+- **If criteria were provided with the input** — Use them directly after confirming with the user.
+- **If no criteria exist** — Ask before starting:
+  - What are the top 2-3 things that matter most?
+  - What would make you reject the result?
+  - Force-rank if more than 3.
 
 Every criterion must be **specific and observable**:
 

@@ -114,7 +114,7 @@ This is the critical case. Use the direction constraints from Phase 3 to search:
 
 ## Phase 6 — Criteria
 
-**Intent:** Define what "better" means BEFORE any iteration begins, so improvement is measurable.
+**Intent:** Define what "better" means BEFORE producing output, so quality is measurable.
 
 **Key questions to explore (ask ONE at a time):**
 

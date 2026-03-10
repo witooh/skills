@@ -1,8 +1,8 @@
 ---
 name: loop
-description: Iteratively improve any output until measurable criteria are met. Use after brainstorm to take an improved prompt and develop it through scored iterations, or use standalone when the user wants to refine existing work against specific standards. Triggers on phrases like "improve this", "make it better", "iterate", "loop", "refine", "keep improving", "not good enough yet", or when the user provides criteria and wants repeated improvement until they're satisfied.
+description: Iteratively improve any output until measurable criteria are met. Use when the user wants to refine existing work against specific standards. Triggers on phrases like "improve this", "make it better", "iterate", "loop", "refine", "keep improving", "not good enough yet", or when the user provides criteria and wants repeated improvement until they're satisfied.
 metadata:
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Loop
@@ -11,7 +11,7 @@ Iteratively improve any output until all criteria are met — with scored evalua
 
 ## Quick Start
 
-1. Receive input (brainstorm output, existing work, or raw request)
+1. Receive input (existing work or raw request)
 2. Establish 2-3 ranked, measurable criteria
 3. Score baseline (Iteration 0), then iteratively improve — one focused goal per iteration
 4. Each iteration: improve → score → compare → decide (continue/stop)
@@ -33,13 +33,11 @@ Iteratively improve any output until all criteria are met — with scored evalua
 6. **Stop when appropriate.** All criteria met, 3 stalled iterations, 10 total iterations (soft max), or user says stop.
 7. **Always use `ask_user` for questions.** Never embed questions in plain text output. Prefer providing `choices` when the answer space is predictable.
 
-For detailed scoring rubric, evaluation patterns, and anti-patterns: see [references/EVALUATION-GUIDE.md](references/EVALUATION-GUIDE.md)
-
 ## Workflow
 
-The improvement loop involves these steps, executed in strict order:
+The improvement loop involves these steps, executed in strict order. For detailed scoring rubric, scorecard formats, priority rules, and completion conditions: see [references/EVALUATION-GUIDE.md](references/EVALUATION-GUIDE.md)
 
-1. **Receive** — Accept the input (brainstorm output, existing work, or raw request)
+1. **Receive** — Accept the input (existing work or raw request)
 2. **Establish Criteria** — Extract or ask for measurable evaluation criteria
 3. **Capture Baseline** — Produce first output, score it (Iteration 0)
 4. **Improve** — Make one focused change targeting the largest gap
@@ -51,7 +49,6 @@ The improvement loop involves these steps, executed in strict order:
 
 Accept the input. It can be:
 
-- **Brainstorm output** — Contains an Improved Prompt + Discovery Summary with Criteria. Extract the criteria and prompt directly.
 - **Existing work** — User provides something they want improved. Ask for criteria (Step 2).
 - **Raw request** — User describes what they want. Produce the first version, then ask for criteria.
 
@@ -59,75 +56,23 @@ Acknowledge what was received. Do NOT start improving yet.
 
 ### Step 2 — Establish Criteria
 
-**If criteria came from brainstorm:** Confirm them with the user: *"I'll evaluate against these criteria in priority order: 1) ... 2) ... 3) ... Does this look right?"*
-
-**If no criteria exist:** Ask ONE question at a time:
-
-- What are the top 2-3 things that matter most in the result?
-- What would make you reject the result?
-- Any decided trade-offs?
-
-Force-rank if more than 3. Make each criterion specific and observable.
+Confirm or ask for 2-3 ranked, specific, observable criteria. Force-rank if more than 3.
 
 ### Step 3 — Capture Baseline
 
-Produce the first output (or use the existing work as-is) and score it:
-
-```
-## Iteration 0 — Baseline
-
-| Criterion | Score (0-2) | Evidence |
-|---|---|---|
-| [Criterion 1] | X | [What was observed] |
-| [Criterion 2] | X | [What was observed] |
-
-**Total: X / Y**
-**Key gaps:** [Most impactful unmet criteria]
-```
-
-Present the baseline to the user. Ask: *"Here's where we stand. The biggest gap is [X]. I'll focus on that first. Sound good?"*
+Produce the first output (or use existing work as-is), score it against all criteria, and present to the user with key gaps identified.
 
 ### Step 4 — Improve
 
-Make **one focused change** targeting the criterion with:
-1. Score 0 (not met at all) — highest priority
-2. Highest user-ranked criterion that is not yet 2
-3. Easiest path from 1 → 2 — if priorities are equal
-
-Explain what you're changing and why before making the change.
+Make **one focused change** targeting the largest gap. Explain what you're changing and why before making the change.
 
 ### Step 5 — Evaluate
 
-Score the new output against ALL criteria and compare:
-
-```
-## Iteration N
-
-**Change:** [What was changed and why]
-
-| Criterion | Previous | Current | Delta |
-|---|---|---|---|
-| [Criterion 1] | 1 | 2 | +1 |
-| [Criterion 2] | 0 | 1 | +1 |
-
-**Total: X / Y (was: Z / Y, delta: +W)**
-**Remaining gaps:** [What's still unmet]
-```
-
-**Regression check:** If any criterion dropped, revert or fix before continuing.
+Score the new output against ALL criteria, compare to previous iteration, and check for regressions.
 
 ### Step 6 — Decide
 
-| Condition | Action |
-|---|---|
-| All criteria scored 2 | Go to Step 7 — Deliver |
-| Gaps remain | Go to Step 4 — Improve next gap |
-| 3 consecutive iterations with zero delta | Stop. Ask user to adjust criteria or accept |
-| 10 total iterations reached | Stop. Present best result and ask user whether to continue or accept |
-| User says "good enough" or "stop" | Go to Step 7 — Deliver |
-| A criterion is proven impossible | Flag it. Ask user to remove or relax |
-
-**Scorecard display:** For iterations 1-5, show the full scorecard. From iteration 6 onward, show only changed criteria and the total score to reduce noise.
+Continue if gaps remain, stop if all criteria met, 3 stalled iterations, 10 total iterations, or user says stop.
 
 ### Step 7 — Deliver
 
@@ -165,7 +110,7 @@ Present the final output with a summary:
 
 ## What This Skill Does NOT Do
 
-- Does not brainstorm or discover goals — use the `brainstorm` skill for that
+- Does not discover goals or explore intent — it requires clear input and criteria
 - Does not guess what "better" means — requires explicit criteria
 - Does not make unlimited iterations — has clear stopping conditions
 - Does not trade met criteria for unmet ones without user approval
