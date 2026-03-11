@@ -29,6 +29,7 @@ npx skills add https://github.com/witooh/skills
 | [brainstorm](./.agents/skills/brainstorm/) | 2 | Structured discovery & prompt improvement |
 | [loop](./.agents/skills/loop/) | 1 | Iterative improvement until measurable criteria are met |
 | [neo-team](./.agents/skills/neo-team/) | 2 | Orchestrate specialized software development agent team |
+| [confluence-api-doc](./.agents/skills/confluence-api-doc/) | - | Sync API documentation from Markdown to Confluence pages via acli + REST API |
 
 ## Health & Wellness
 
