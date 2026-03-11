@@ -1,6 +1,6 @@
 ---
 name: neo-team
-description: Orchestrate a specialized software development agent team. Receive user requests, classify task type, select the matching workflow, delegate each step to specialist agents via the Agent tool, and assemble the final output. Use when the user needs multi-step software development involving architecture, implementation, testing, security review, or code review. Trigger this skill whenever a task involves more than one concern (e.g., "add a new endpoint" needs BA + Architect + Developer + QA + Security), when the user mentions team coordination, agent delegation, or when the work clearly benefits from multiple specialist perspectives rather than a single implementation pass.
+description: Orchestrate a specialized software development agent team. Receive user requests, classify task type, select the matching workflow, delegate each step to specialist agents via the Agent tool, and assemble the final output. Use when the user needs multi-step software development involving architecture, implementation, testing, security review, or code review. Also use for production incident investigation — when the user reports a live system issue, service outage, pod crash, data anomaly, or needs root cause analysis using kubectl, psql, argocd, or docker. Trigger this skill whenever a task involves more than one concern (e.g., "add a new endpoint" needs BA + Architect + Developer + QA + Security), when the user mentions team coordination, agent delegation, or when the work clearly benefits from multiple specialist perspectives rather than a single implementation pass.
 metadata:
   version: "2.4"
 ---
@@ -50,6 +50,7 @@ If no convention file exists:
 | QA               | qa               | sonnet                           | [references/qa.md](references/qa.md)                             | Test design, quality review, E2E tests         |
 | Security         | security         | sonnet                           | [references/security.md](references/security.md)                 | Security review, secrets detection             |
 | System Analyzer  | system-analyzer  | sonnet                           | [references/system-analyzer.md](references/system-analyzer.md)   | Diagnose issues, trace root causes (read-only) |
+| Incident Investigator | incident-investigator | sonnet                    | [references/incident-investigator.md](references/incident-investigator.md) | Investigate live systems via kubectl/psql/argocd/docker (read-only) |
 
 †**Architect model selection:** Use opus only for complex tasks — Performance Issue, Refactoring, Database Migration, or when the task involves multi-service design. For everything else (New Feature with clear scope, Bug Fix, Code Review, CI/CD), sonnet is sufficient and faster.
 
@@ -76,6 +77,7 @@ Classify the user's request before selecting a workflow. Use these heuristics:
 | "migration", "schema change", "alter table"                                     | Database Migration        |
 | "docs out of date", "update documentation"                                      | Documentation Sync        |
 | "ready to merge", "final check"                                                 | Pre-Merge Review          |
+| "incident", "production issue", "pod crash", "service down", "investigate"      | Incident Investigation    |
 
 **API doc update trigger:** Whenever a task adds, removes, or changes an endpoint (path, method, request fields, response fields, status codes, business logic), Developer must update `docs/api-doc.md` as part of that workflow step — no separate Documentation Sync trigger needed.
 
@@ -143,6 +145,9 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Architect        | QA            | API contracts (for E2E test design)                   |
 | Architect        | Security      | Design decisions flagged with security implications   |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers |
+| Incident Investigator | Developer | Root cause type, evidence chain, affected files/lines, recommended fix |
+| Incident Investigator | DevOps    | Infrastructure findings, ArgoCD drift, config issues |
+| Incident Investigator | Security  | Security-related findings from logs/DB/infra |
 | Developer        | QA            | Changed files list, implementation notes              |
 | Developer        | Code Reviewer | Changed files list                                    |
 | Developer        | Security      | Changed files, new endpoints, data handling changes   |
@@ -195,6 +200,27 @@ Complex task (separate BA+Architect):
    To qa: Developer's task description + original bug description + System Analyzer's findings
    To code-reviewer: affected files from System Analyzer
 3. [REMEDIATION if step 2 has Blocker/Critical findings]
+```
+
+### Incident Investigation
+
+```
+1. incident-investigator → gather evidence from live systems (kubectl logs, psql queries, argocd status, docker inspect) and trace root cause back to code
+2. Route based on Root Cause Type:
+   ├── Code Bug → developer + qa (PARALLEL)
+   │   To developer: Incident Investigator's root cause + evidence chain + affected files/lines
+   │                 [If fix changes API: also update docs/api-doc.md using api-doc-template.md]
+   │   To qa: Incident Investigator's findings + bug description for regression test
+   ├── Infrastructure Problem → devops
+   │   To devops: Incident Investigator's infra findings + ArgoCD/K8s evidence
+   ├── Configuration Error → devops + security (PARALLEL)
+   │   To devops: config drift details + recommended fix
+   │   To security: credential/secret-related findings if any
+   └── Data Issue → developer (manual fix may need user approval)
+       To developer: Incident Investigator's data anomaly details + affected records
+3. code-reviewer + security → verify fix (PARALLEL)
+   To both: changed files from step 2
+4. [REMEDIATION if step 3 has Blocker/Critical findings]
 ```
 
 ### Security Audit
@@ -422,6 +448,45 @@ Non-development tasks (questions, explanations, research): answer directly witho
 3. **Never let Developer** make security decisions alone — route to Security
 4. **Always read** the specialist's reference file before composing the delegation prompt
 5. **Always include** project conventions from CLAUDE.md in every delegation prompt
+6. **Never stop after Developer** — if a workflow has verification steps (code-reviewer, security, qa) after Developer, you MUST continue to those steps. Developer completing code is NOT the end of the pipeline.
+
+## Pipeline Completion Guard
+
+Before declaring a task complete, verify ALL pipeline steps have been executed. This is a hard requirement — not optional.
+
+### Checklist (run mentally before writing Summary)
+
+```
+For every workflow that includes code changes:
+  ✅ Developer has completed implementation?
+  ✅ QA has been invoked? (if workflow includes QA)
+  ✅ Code Reviewer has been invoked? (if workflow includes Code Reviewer)
+  ✅ Security has been invoked? (if workflow includes Security)
+  ✅ Remediation loop ran? (if any verification agent returned blocking findings)
+  ✅ All blocking findings resolved or escalated to user?
+
+If ANY checkbox is ❌ → DO NOT write the Summary. Continue the pipeline.
+```
+
+### Common Mistake: Stopping After Developer
+
+The most frequent pipeline failure is stopping after Developer returns successful output. Developer output feels like "the job is done" because the code is written — but **unreviewed code is unfinished work**.
+
+After Developer completes, ALWAYS check: **what's the next step in this workflow?** If verification agents remain, delegate to them immediately in the same response.
+
+### Pipeline Step Tracking
+
+When starting a workflow, mentally track which steps remain:
+
+```
+Example: New Feature (Simple)
+  [ ] Step 1: architect
+  [ ] Step 2: developer + qa (parallel)
+  [ ] Step 3: code-reviewer + security (parallel)  ← DON'T FORGET THIS
+  [ ] Step 4: remediation (if needed)
+```
+
+Mark each step as you complete it. Only write the Summary when all steps are marked done.
 
 ## Output Format
 

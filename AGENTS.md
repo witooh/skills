@@ -25,6 +25,7 @@ Repository for creating and managing agent skills following the [Agent Skills Sp
 - [ ] Exceed 500 lines in SKILL.md (split to references/)
 - [ ] Skip the `/skill-creator` skill when creating new skills
 - [ ] Commit node_modules or .sisyphus directories
+- [ ] **Implement skills anywhere other than `./.agents/skills/<skill-name>/` — no exceptions**
 
 ### PREFER
 
