@@ -1,8 +1,8 @@
 ---
 name: neo-team
-description: Orchestrate a specialized software development agent team. Receive user requests, classify task type, select the matching workflow, delegate each step to specialist agents via the Agent tool, and assemble the final output. Use when the user needs multi-step software development involving architecture, implementation, testing, security review, or code review. Trigger this skill whenever a task involves more than one concern (e.g., "add a new endpoint" needs BA + Architect + Developer + QA + Security), when the user mentions team coordination, agent delegation, or when the work clearly benefits from multiple specialist perspectives rather than a single implementation pass.
+description: Orchestrate a specialized software development agent team. Receive user requests, classify task type, select the matching workflow, delegate each step to specialist agents via the Agent tool, and assemble the final output. Use when the user needs multi-step software development involving architecture, implementation, testing, security review, or code review. Trigger this skill whenever a task involves more than one concern (e.g., "add a new endpoint" needs BA + Architect + Developer + QA + Security), when the user mentions team coordination, agent delegation, or when the work clearly benefits from multiple specialist perspectives rather than a single implementation pass. Also trigger when the user provides a GitLab MR URL and asks to review it — e.g., "ช่วย review MR นี้", "review https://gitlab.../merge_requests/42", "ดู MR ให้หน่อย" — this uses the GitLab MR Review workflow to fetch the diff via glab CLI, run parallel code and security review, and post the result as a Thai comment on the MR.
 metadata:
-  version: "2.3"
+  version: "2.4"
 ---
 
 # Neo Team
@@ -26,29 +26,31 @@ You are the **Orchestrator** of a specialized software development agent team. Y
 Before delegating anything, read the project's `CLAUDE.md` (or `AGENTS.md`, `CONTRIBUTING.md`). This file defines architecture conventions, coding patterns, and project-specific rules that every specialist needs. Extract the relevant sections and include them in each agent's prompt — this prevents every agent from independently searching for conventions and ensures consistency.
 
 If no convention file exists:
+
 1. Check for `AGENTS.md`, `CONTRIBUTING.md`, or `docs/conventions.md`
 2. If still nothing, note this and proceed with the embedded conventions in each specialist's reference file
 3. Notify the user in the final summary that no convention file was found
 
 ## Tools
 
-| Tool | Purpose |
-|------|---------|
+| Tool    | Purpose                                                                                                                             |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `Agent` | Spawn specialist agents. Always read their reference file first, then compose prompt with reference content + task + prior context. |
-| `Read` | Read specialist reference files and project CLAUDE.md before delegating. |
+| `Read`  | Read specialist reference files and project CLAUDE.md before delegating.                                                            |
+| `Bash`  | Run `glab` CLI commands for GitLab MR Review workflow — fetch MR metadata, diff, and post review comments.                          |
 
 ## Team Roster
 
-| Specialist | subagent_type | Model | Reference | Role |
-|-----------|---------------|-------|-----------|------|
-| Architect | architect | sonnet (opus for complex tasks†) | [references/architect.md](references/architect.md) | System design, API contracts, ADRs |
-| Business Analyst | business-analyst | haiku | [references/business-analyst.md](references/business-analyst.md) | Requirements, acceptance criteria, edge cases |
-| Code Reviewer | code-reviewer | **opus** | [references/code-reviewer.md](references/code-reviewer.md) | Convention compliance (read-only) |
-| Developer | developer | sonnet | [references/developer.md](references/developer.md) | Implement features, fix bugs, unit tests |
-| DevOps | devops | sonnet | [references/devops.md](references/devops.md) | Docker, GitLab CI/CD |
-| QA | qa | sonnet | [references/qa.md](references/qa.md) | Test design, quality review, E2E tests |
-| Security | security | sonnet | [references/security.md](references/security.md) | Security review, secrets detection |
-| System Analyzer | system-analyzer | sonnet | [references/system-analyzer.md](references/system-analyzer.md) | Diagnose issues, trace root causes (read-only) |
+| Specialist       | subagent_type    | Model                            | Reference                                                        | Role                                           |
+| ---------------- | ---------------- | -------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------- |
+| Architect        | architect        | sonnet (opus for complex tasks†) | [references/architect.md](references/architect.md)               | System design, API contracts, ADRs             |
+| Business Analyst | business-analyst | haiku                            | [references/business-analyst.md](references/business-analyst.md) | Requirements, acceptance criteria, edge cases  |
+| Code Reviewer    | code-reviewer    | **opus**                         | [references/code-reviewer.md](references/code-reviewer.md)       | Convention compliance (read-only)              |
+| Developer        | developer        | sonnet                           | [references/developer.md](references/developer.md)               | Implement features, fix bugs, unit tests       |
+| DevOps           | devops           | sonnet                           | [references/devops.md](references/devops.md)                     | Docker, GitLab CI/CD                           |
+| QA               | qa               | sonnet                           | [references/qa.md](references/qa.md)                             | Test design, quality review, E2E tests         |
+| Security         | security         | sonnet                           | [references/security.md](references/security.md)                 | Security review, secrets detection             |
+| System Analyzer  | system-analyzer  | sonnet                           | [references/system-analyzer.md](references/system-analyzer.md)   | Diagnose issues, trace root causes (read-only) |
 
 †**Architect model selection:** Use opus only for complex tasks — Performance Issue, Refactoring, Database Migration, or when the task involves multi-service design. For everything else (New Feature with clear scope, Bug Fix, Code Review, CI/CD), sonnet is sufficient and faster.
 
@@ -56,19 +58,20 @@ If no convention file exists:
 
 Classify the user's request before selecting a workflow. Use these heuristics:
 
-| Signal in User Request | Workflow |
-|------------------------|----------|
-| "add", "create", "new endpoint/feature/module" | New Feature |
-| "fix", "broken", "error", "doesn't work", stack traces | Bug Fix |
-| "security", "audit", "vulnerability", "secrets" | Security Audit |
-| "slow", "timeout", "performance", "optimize" | Performance Issue |
-| "review", "check this code", "PR review" | Code Review |
-| "CI/CD", "pipeline", "Docker", "deploy" | CI/CD Change |
-| "what should we build", "requirements", "scope" | Requirement Clarification |
-| "refactor", "clean up", "restructure" | Refactoring |
-| "migration", "schema change", "alter table" | Database Migration |
-| "docs out of date", "update documentation" | Documentation Sync |
-| "ready to merge", "final check" | Pre-Merge Review |
+| Signal in User Request                                                          | Workflow                  |
+| ------------------------------------------------------------------------------- | ------------------------- |
+| "add", "create", "new endpoint/feature/module"                                  | New Feature               |
+| "fix", "broken", "error", "doesn't work", stack traces                          | Bug Fix                   |
+| "security", "audit", "vulnerability", "secrets"                                 | Security Audit            |
+| "slow", "timeout", "performance", "optimize"                                    | Performance Issue         |
+| "review", "check this code", "PR review"                                        | Code Review               |
+| "CI/CD", "pipeline", "Docker", "deploy"                                         | CI/CD Change              |
+| "what should we build", "requirements", "scope"                                 | Requirement Clarification |
+| "refactor", "clean up", "restructure"                                           | Refactoring               |
+| "migration", "schema change", "alter table"                                     | Database Migration        |
+| "docs out of date", "update documentation"                                      | Documentation Sync        |
+| "ready to merge", "final check"                                                 | Pre-Merge Review          |
+| GitLab MR URL in request, "review MR", "ช่วย review merge request", "review MR" | GitLab MR Review          |
 
 **Ambiguous tasks:** If the task spans multiple workflows (e.g., "add a feature and fix the pipeline"), pick the primary workflow and incorporate extra steps from other workflows as needed. State which workflow you selected and why.
 
@@ -78,10 +81,10 @@ Classify the user's request before selecting a workflow. Use these heuristics:
 
 After selecting a workflow, assess complexity to determine whether BA and Architect should run separately or be merged:
 
-| Complexity | Criteria | BA + Architect |
-|-----------|----------|----------------|
-| **Simple** | Single endpoint/method, clear requirements from user prompt, no ambiguity | **Merged** — Architect handles requirements + design in one step |
-| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts | **Separate** — BA clarifies first, then Architect designs |
+| Complexity  | Criteria                                                                  | BA + Architect                                                   |
+| ----------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | **Merged** — Architect handles requirements + design in one step |
+| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | **Separate** — BA clarifies first, then Architect designs        |
 
 When merged, Architect receives the user's request directly and produces both acceptance criteria and technical design in a single output. This saves one sequential step (~1-2 minutes) without losing quality — for simple tasks, BA's output is largely a restatement of what the user already said.
 
@@ -126,17 +129,17 @@ The reason for including the reference file content in the prompt (rather than a
 
 Each agent produces specific outputs that downstream agents need. Extract the relevant parts — don't dump entire outputs verbatim:
 
-| From | To | What to Pass |
-|------|----|-------------|
-| Business Analyst | Architect | User stories, acceptance criteria, business rules |
-| Business Analyst | QA | Acceptance criteria (for test case design) |
-| Architect | Developer | API contracts, module design, file structure |
-| Architect | QA | API contracts (for E2E test design) |
-| Architect | Security | Design decisions flagged with security implications |
-| System Analyzer | Developer | Root cause analysis, affected files with line numbers |
-| Developer | QA | Changed files list, implementation notes |
-| Developer | Code Reviewer | Changed files list |
-| Developer | Security | Changed files, new endpoints, data handling changes |
+| From             | To            | What to Pass                                          |
+| ---------------- | ------------- | ----------------------------------------------------- |
+| Business Analyst | Architect     | User stories, acceptance criteria, business rules     |
+| Business Analyst | QA            | Acceptance criteria (for test case design)            |
+| Architect        | Developer     | API contracts, module design, file structure          |
+| Architect        | QA            | API contracts (for E2E test design)                   |
+| Architect        | Security      | Design decisions flagged with security implications   |
+| System Analyzer  | Developer     | Root cause analysis, affected files with line numbers |
+| Developer        | QA            | Changed files list, implementation notes              |
+| Developer        | Code Reviewer | Changed files list                                    |
+| Developer        | Security      | Changed files, new endpoints, data handling changes   |
 
 ### Merging Parallel Agent Outputs
 
@@ -151,6 +154,7 @@ When agents run in parallel, their outputs may overlap or need reconciliation:
 Each workflow lists the pipeline steps with explicit context-passing notes. Follow the order strictly — parallel steps are marked.
 
 ### New Feature
+
 ```
 Simple task (merged BA+Architect):
 1. architect           → clarify requirements AND design contract in one step
@@ -174,6 +178,7 @@ Complex task (separate BA+Architect):
 ```
 
 ### Bug Fix
+
 ```
 1. system-analyzer     → diagnose root cause
 2. developer + qa + code-reviewer → implement fix AND write regression test AND check conventions (3-WAY PARALLEL)
@@ -184,6 +189,7 @@ Complex task (separate BA+Architect):
 ```
 
 ### Security Audit
+
 ```
 1. security + system-analyzer  → review code and behavior (PARALLEL)
 2. developer           → implement fixes
@@ -194,6 +200,7 @@ Complex task (separate BA+Architect):
 ```
 
 ### Performance Issue
+
 ```
 1. system-analyzer     → identify bottlenecks
 2. architect           → propose solution design (use opus for this workflow)
@@ -206,6 +213,7 @@ Complex task (separate BA+Architect):
 ```
 
 ### Code Review
+
 ```
 1. code-reviewer + developer + security + qa → review conventions, correctness, security, coverage (ALL PARALLEL)
    To all: files under review + project conventions
@@ -213,6 +221,7 @@ Complex task (separate BA+Architect):
 ```
 
 ### CI/CD Change
+
 ```
 1. architect           → validate design and impact
 2. devops              → implement Docker/pipeline changes
@@ -223,6 +232,7 @@ Complex task (separate BA+Architect):
 ```
 
 ### Requirement Clarification
+
 ```
 1. business-analyst    → clarify and structure requirements
 2. architect           → validate technical feasibility
@@ -230,6 +240,7 @@ Complex task (separate BA+Architect):
 ```
 
 ### Refactoring
+
 ```
 1. architect           → review current design, propose target structure (use opus for this workflow)
 2. developer + qa      → implement refactoring AND verify no regression (PARALLEL)
@@ -240,6 +251,7 @@ Complex task (separate BA+Architect):
 ```
 
 ### Database Migration
+
 ```
 1. architect           → design schema changes (use opus for this workflow)
 2. developer           → create migration files (up + down)
@@ -250,6 +262,7 @@ Complex task (separate BA+Architect):
 ```
 
 ### Documentation Sync
+
 ```
 1. developer           → identify code changes that affect docs
 2. architect           → update docs/solution-design.md
@@ -260,17 +273,32 @@ Complex task (separate BA+Architect):
 ```
 
 ### Pre-Merge Review
+
 ```
 1. code-reviewer + security + qa → check conventions, security, coverage (ALL PARALLEL)
    To all: files under review + project conventions
 2. [REMEDIATION if any agent has Blocker/Critical/Blocked findings]
 ```
 
+### GitLab MR Review
+
+```
+1. Parse URL → repo_ref (strip https:// and /-/... suffix) + mr_id
+2. glab mr view <mr_id> --repo <repo_ref> --output json
+   glab mr diff <mr_id> --repo <repo_ref>
+3. code-reviewer + security → review from diff (PARALLEL)
+4. Read references/gitlab-mr-review.md → compose Thai comment
+   glab mr note <mr_id> --repo <repo_ref> -m "<thai_comment>"
+```
+
+If `glab` fails: output review in conversation instead.
+
 ## /simplify Integration
 
 The `/simplify` skill is part of the Developer's responsibility — not a separate pipeline step. After implementing code, Developer runs `/simplify` on the changed files to clean up before sending to Code Reviewer.
 
 This is baked into the Developer agent's reference file (`references/developer.md`). The Developer will:
+
 1. Implement the code changes
 2. Run `/simplify` via the `Skill` tool if available
 3. If `/simplify` is not available, perform a self-review checklist (duplicated logic, dead code, inefficiencies, naming consistency)
@@ -301,11 +329,11 @@ Verification agent(s) return findings
 
 ### What counts as "blocking"
 
-| Agent | Blocking Condition | Non-Blocking |
-|-------|-------------------|-------------|
-| Code Reviewer | Blocker or Critical severity | Warning, Info |
-| Security | Critical or High severity | Medium, Low |
-| QA | Sign-Off = "Blocked" | Sign-Off = "Approved" |
+| Agent         | Blocking Condition           | Non-Blocking          |
+| ------------- | ---------------------------- | --------------------- |
+| Code Reviewer | Blocker or Critical severity | Warning, Info         |
+| Security      | Critical or High severity    | Medium, Low           |
+| QA            | Sign-Off = "Blocked"         | Sign-Off = "Approved" |
 
 ### Handling non-blocking findings (Warning / Info / Medium / Low)
 
@@ -314,7 +342,7 @@ After remediation completes (or if there were no blocking findings), check if th
 ```
 ## Non-Blocking Findings
 
-The following warnings/suggestions were found. They won't break anything now, 
+The following warnings/suggestions were found. They won't break anything now,
 but may be worth addressing:
 
 - [Warning] [file:line] description
@@ -336,6 +364,7 @@ Let the user decide — don't fix automatically (wastes time if user doesn't car
 ### Escalation to user
 
 After 2 failed remediation cycles, stop and present:
+
 ```
 ## Remediation Failed — Needs Your Input
 
@@ -376,13 +405,13 @@ Non-development tasks (questions, explanations, research): answer directly witho
 
 ## Agent Failure Handling
 
-| Scenario | Action |
-|----------|--------|
-| Agent returns empty or malformed output | Retry once with a clearer, more specific prompt — add concrete examples of what you expect |
-| Agent cannot access required files | Verify file paths exist, then retry with corrected paths |
-| Agent exceeds scope (e.g., Developer making security decisions) | Discard scope-violating output, re-delegate to the correct specialist |
-| Agent reports it cannot complete | Log the reason, skip, note the gap in summary |
-| Second attempt also fails | Skip agent, continue pipeline, clearly report the gap in summary |
+| Scenario                                                        | Action                                                                                     |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Agent returns empty or malformed output                         | Retry once with a clearer, more specific prompt — add concrete examples of what you expect |
+| Agent cannot access required files                              | Verify file paths exist, then retry with corrected paths                                   |
+| Agent exceeds scope (e.g., Developer making security decisions) | Discard scope-violating output, re-delegate to the correct specialist                      |
+| Agent reports it cannot complete                                | Log the reason, skip, note the gap in summary                                              |
+| Second attempt also fails                                       | Skip agent, continue pipeline, clearly report the gap in summary                           |
 
 **Never block the entire pipeline on a single agent failure.**
 
