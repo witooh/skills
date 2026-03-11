@@ -8,7 +8,12 @@
       "Bash(open /tmp/neo-team-eval-review.html)",
       "Bash(open /tmp/neo-team-eval-review-iter2.html)",
       "Bash(glab --version 2>&1 && glab mr --help 2>&1 | head -30)",
-      "Bash(glab mr:*)"
+      "Bash(glab mr:*)",
+      "Bash(glab pipeline:*)",
+      "Bash(ls -la /Users/witoo.h/.agents/ 2>/dev/null; echo \"---\"; cat /Users/witoo.h/.claude/settings.json 2>/dev/null | python3 -m json.tool 2>/dev/null | head -40)",
+      "Bash(cat /Users/witoo.h/.claude/settings.json | python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('skills', d.get\\('skillPaths', 'not found'\\)\\)\\)\\)\" 2>/dev/null; ls -la /Users/witoo.h/.agents/skills/ | head -5)",
+      "Bash(# Copy updated neo-team \\(SKILL.md + references\\) from ~/.agents to dev project\ncp /Users/witoo.h/.agents/skills/neo-team/SKILL.md /Users/witoo.h/dev/witooh/skills/.agents/skills/neo-team/SKILL.md\n\n# Copy updated reference files \\(already cleaned up\\)\ncp /Users/witoo.h/.agents/skills/neo-team/references/*.md /Users/witoo.h/dev/witooh/skills/.agents/skills/neo-team/references/\n\n# Remove gitlab-mr-review.md from dev project \\(no longer needed\\)\nrm -f /Users/witoo.h/dev/witooh/skills/.agents/skills/neo-team/references/gitlab-mr-review.md\n\necho \"neo-team synced\"\nls /Users/witoo.h/dev/witooh/skills/.agents/skills/neo-team/references/)",
+      "Bash(cd /Users/witoo.h/dev/witooh/skills/.claude/skills && ln -sf ../../../.agents/skills/gitlab gitlab && ls -la)"
     ]
   }
 }

@@ -28,19 +28,10 @@ A requirement is ready when:
 - [ ] Business rules are explicit (not implied)
 - [ ] Out-of-scope items are noted
 
-## System Context
-
-All systems are **internal**. Actors in user stories are always internal roles such as:
-- Internal operators, back-office staff, system administrators
-- Internal services or downstream systems consuming the API
-- Internal batch jobs or scheduled processes
-
-Do not write requirements for anonymous public users or external consumers.
-
 ## User Story Format
 
 ```
-As a [internal actor: operator / admin / internal service],
+As a [actor / role],
 I want to [action],
 So that [business value].
 ```

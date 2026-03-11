@@ -1,6 +1,6 @@
 ---
 name: neo-team
-description: Orchestrate a specialized software development agent team. Receive user requests, classify task type, select the matching workflow, delegate each step to specialist agents via the Agent tool, and assemble the final output. Use when the user needs multi-step software development involving architecture, implementation, testing, security review, or code review. Trigger this skill whenever a task involves more than one concern (e.g., "add a new endpoint" needs BA + Architect + Developer + QA + Security), when the user mentions team coordination, agent delegation, or when the work clearly benefits from multiple specialist perspectives rather than a single implementation pass. Also trigger when the user provides a GitLab MR URL and asks to review it — e.g., "ช่วย review MR นี้", "review https://gitlab.../merge_requests/42", "ดู MR ให้หน่อย" — this uses the GitLab MR Review workflow to fetch the diff via glab CLI, run parallel code and security review, and post the result as a Thai comment on the MR.
+description: Orchestrate a specialized software development agent team. Receive user requests, classify task type, select the matching workflow, delegate each step to specialist agents via the Agent tool, and assemble the final output. Use when the user needs multi-step software development involving architecture, implementation, testing, security review, or code review. Trigger this skill whenever a task involves more than one concern (e.g., "add a new endpoint" needs BA + Architect + Developer + QA + Security), when the user mentions team coordination, agent delegation, or when the work clearly benefits from multiple specialist perspectives rather than a single implementation pass.
 metadata:
   version: "2.4"
 ---
@@ -37,7 +37,6 @@ If no convention file exists:
 | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `Agent` | Spawn specialist agents. Always read their reference file first, then compose prompt with reference content + task + prior context. |
 | `Read`  | Read specialist reference files and project CLAUDE.md before delegating.                                                            |
-| `Bash`  | Run `glab` CLI commands for GitLab MR Review workflow — fetch MR metadata, diff, and post review comments.                          |
 
 ## Team Roster
 
@@ -53,6 +52,12 @@ If no convention file exists:
 | System Analyzer  | system-analyzer  | sonnet                           | [references/system-analyzer.md](references/system-analyzer.md)   | Diagnose issues, trace root causes (read-only) |
 
 †**Architect model selection:** Use opus only for complex tasks — Performance Issue, Refactoring, Database Migration, or when the task involves multi-service design. For everything else (New Feature with clear scope, Bug Fix, Code Review, CI/CD), sonnet is sufficient and faster.
+
+**Shared References (not agent-specific):**
+
+| Reference                                                                        | When to use                                         |
+| -------------------------------------------------------------------------------- | --------------------------------------------------- |
+| [references/api-doc-template.md](references/api-doc-template.md)                | Generating or updating API documentation            |
 
 ## Task Classification
 
@@ -71,7 +76,8 @@ Classify the user's request before selecting a workflow. Use these heuristics:
 | "migration", "schema change", "alter table"                                     | Database Migration        |
 | "docs out of date", "update documentation"                                      | Documentation Sync        |
 | "ready to merge", "final check"                                                 | Pre-Merge Review          |
-| GitLab MR URL in request, "review MR", "ช่วย review merge request", "review MR" | GitLab MR Review          |
+
+**API doc update trigger:** Whenever a task adds, removes, or changes an endpoint (path, method, request fields, response fields, status codes, business logic), Developer must update `docs/api-doc.md` as part of that workflow step — no separate Documentation Sync trigger needed.
 
 **Ambiguous tasks:** If the task spans multiple workflows (e.g., "add a feature and fix the pipeline"), pick the primary workflow and incorporate extra steps from other workflows as needed. State which workflow you selected and why.
 
@@ -160,6 +166,7 @@ Simple task (merged BA+Architect):
 1. architect           → clarify requirements AND design contract in one step
 2. developer + qa      → implement code AND write test specs (PARALLEL)
    To developer: Architect's design + acceptance criteria
+                [If task adds/changes API endpoints: also update docs/api-doc.md using api-doc-template.md]
    To qa: Architect's API contracts + acceptance criteria
 3. code-reviewer + security → check conventions AND security (PARALLEL)
    To both: Developer's changed files list
@@ -171,6 +178,7 @@ Complex task (separate BA+Architect):
    Context: BA's user stories + acceptance criteria + business rules
 3. developer + qa      → implement code AND write test specs (PARALLEL)
    To developer: Architect's design + BA's acceptance criteria
+                [If task adds/changes API endpoints: also update docs/api-doc.md using api-doc-template.md]
    To qa: Architect's API contracts + BA's acceptance criteria
 4. code-reviewer + security → check conventions AND security (PARALLEL)
    To both: Developer's changed files list
@@ -183,6 +191,7 @@ Complex task (separate BA+Architect):
 1. system-analyzer     → diagnose root cause
 2. developer + qa + code-reviewer → implement fix AND write regression test AND check conventions (3-WAY PARALLEL)
    To developer: System Analyzer's root cause + affected files/lines
+                [If fix changes API request/response shape: also update docs/api-doc.md using api-doc-template.md]
    To qa: Developer's task description + original bug description + System Analyzer's findings
    To code-reviewer: affected files from System Analyzer
 3. [REMEDIATION if step 2 has Blocker/Critical findings]
@@ -245,6 +254,7 @@ Complex task (separate BA+Architect):
 1. architect           → review current design, propose target structure (use opus for this workflow)
 2. developer + qa      → implement refactoring AND verify no regression (PARALLEL)
    Context: Architect's target structure
+   [If refactoring changes API contracts (path, method, request/response shape): Developer also updates docs/api-doc.md using api-doc-template.md]
 3. code-reviewer       → check compliance
    Context: Developer's changed files
 4. [REMEDIATION if step 3 has Blocker/Critical or QA Blocked]
@@ -266,11 +276,14 @@ Complex task (separate BA+Architect):
 ```
 1. developer           → identify code changes that affect docs
 2. architect           → update docs/solution-design.md
+                         If updating API docs (e.g. docs/api-doc.md), read references/api-doc-template.md first
    Context: Developer's findings
 3. qa                  → verify docs match implementation
    Context: Architect's updated docs
 4. [REMEDIATION if step 3 QA Blocked]
 ```
+
+When generating or updating API documentation, the Architect (or Developer) must read [`references/api-doc-template.md`](references/api-doc-template.md) and follow its structure exactly — endpoint layout, field table columns, Business Logic section, and Error Responses format. This ensures all API docs across services look consistent.
 
 ### Pre-Merge Review
 
@@ -279,19 +292,6 @@ Complex task (separate BA+Architect):
    To all: files under review + project conventions
 2. [REMEDIATION if any agent has Blocker/Critical/Blocked findings]
 ```
-
-### GitLab MR Review
-
-```
-1. Parse URL → repo_ref (strip https:// and /-/... suffix) + mr_id
-2. glab mr view <mr_id> --repo <repo_ref> --output json
-   glab mr diff <mr_id> --repo <repo_ref>
-3. code-reviewer + security → review from diff (PARALLEL)
-4. Read references/gitlab-mr-review.md → compose Thai comment
-   glab mr note <mr_id> --repo <repo_ref> -m "<thai_comment>"
-```
-
-If `glab` fails: output review in conversation instead.
 
 ## /simplify Integration
 
@@ -448,10 +448,3 @@ Each agent's output under its own heading.]
 **Next Steps:** [recommended actions if any]
 ```
 
-## System Context
-
-- All systems are **internal-facing** — not exposed to the public internet
-- Users and consumers are internal operators, services, or systems
-- Security focuses on internal access control, injection, secrets, and data integrity
-- Primary stack: **Go with Clean Architecture** (Handler → Usecase → Repository)
-- If the project has a `CLAUDE.md`, project-specific rules take precedence over embedded conventions
