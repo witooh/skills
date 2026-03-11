@@ -51,7 +51,7 @@ skills/                              # Repository root
 ├── .gitignore                       # Git ignore rules
 │
 ├── .agents/                         # Deployed agent skills
-│   └── skills/                      # All active skills (12 skills)
+│   └── skills/                      # All active skills (13 skills)
 │       └── {skill-name}/
 │           ├── SKILL.md             # Required - metadata + instructions
 │           ├── package.json         # Dependencies (if applicable)
