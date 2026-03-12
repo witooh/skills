@@ -47,7 +47,7 @@ When establishing criteria, suggest domain-relevant dimensions the user might no
 
 ## Asking Questions
 
-Use `ask_user` (with `choices` when the answer space is predictable) if available. If `ask_user` is not available, ask questions in plain text — the important thing is to ask, not how you ask.
+Use `AskUserQuestion` (with `options` array when the answer space is predictable) if available. If not, fall back to `ask_user` (with `choices`). If neither is available, ask in plain text — the important thing is to ask, not how you ask.
 
 ## Core Rules
 

@@ -7,11 +7,11 @@ description: >-
   Also trigger for: side projects, career decisions, project planning, migration strategies, architecture decisions, cost optimization, or any request where the user hasn't decided direction yet and would benefit from structured discovery.
   Do NOT skip — this skill adapts depth automatically (2-7 questions) and produces BETTER results by asking targeted questions first.
 compatibility:
-  environment: claude-code
+  environment: claude-code (primary), copilot-cli (fallback)
   tools:
-    - AskUserQuestion
+    - AskUserQuestion (fallback: ask_user, plain text)
     - WebSearch
-    - Agent
+    - Agent (fallback: task, inline)
 metadata:
   version: "2.1"
 ---
@@ -32,14 +32,14 @@ Transform vague ideas into precise, actionable outputs through adaptive structur
 
 | Tool | Purpose |
 |------|---------|
-| `AskUserQuestion` | Ask the user ONE question at a time. Use `options` array for multiple choice when possible. |
+| `AskUserQuestion` | Ask the user ONE question at a time (Claude Code). Use `options` array for multiple choice. Fallback: `ask_user` with `choices` (Copilot), then plain text. |
 | `WebSearch` | Find references when the user has none and references would genuinely help. |
-| `Agent` | Delegate to Plan subagent when the user wants an implementation plan. Use `subagent_type: "Plan"`. |
+| `Agent` | Delegate to Plan subagent (Claude Code): `subagent_type: "Plan"`. Fallback: `task` with `agent_type: "general-purpose"` + `# Role: Planner` block (Copilot). Fallback: create plan inline. |
 
 ## Core Principles
 
 1. **Don't answer before you understand.** The urge to help immediately produces generic output. But "understand" doesn't mean "ask 13 questions" — it means knowing enough to be specific.
-2. **One question at a time via `AskUserQuestion`.** Multiple questions get shallow answers. Never embed questions in plain text — always use the tool.
+2. **One question at a time via tool.** Multiple questions get shallow answers. Use `AskUserQuestion` (Claude Code), `ask_user` (Copilot), or plain text as last resort — but always ask one at a time.
 3. **Prefer multiple choice.** Provide an `options` array when the answer space is predictable. Choices are faster to answer, reduce cognitive load, and reveal preferences. Use open-ended only when the answer truly can't be predicted.
 4. **Mirror the user's language.** Don't introduce jargon they didn't use.
 5. **Ask about life, not the domain.** Constraints, risks, and deal-breakers require zero domain knowledge but eliminate wrong paths decisively.
@@ -152,9 +152,9 @@ For specific problems where the user already provided good context.
 
 ## Next Step
 
-After delivering the output (regardless of mode), offer next steps using `AskUserQuestion`:
+After delivering the output (regardless of mode), offer next steps using `AskUserQuestion` (or `ask_user` / plain text if unavailable):
 
-- **Create a Plan** — Delegate to Plan subagent with `subagent_type: "Plan"`, passing the full output as context
+- **Create a Plan** — Delegate to Plan subagent: `Agent(subagent_type: "Plan")` (Claude Code), or `task(agent_type: "general-purpose")` with `# Role: Planner` block (Copilot), or create the plan inline if neither is available
 - **Go deeper** — Continue exploring a specific aspect
 - **Done** — End the workflow
 
