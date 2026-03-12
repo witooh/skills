@@ -1,6 +1,6 @@
 ---
 name: gitlab
-description: Interact with GitLab via the glab CLI. Primary use case is MR review — fetches the diff, runs parallel code review + security review via specialist agents, then posts the result as a Thai comment on the MR. Also supports listing MRs, viewing MR status, checking CI/CD pipelines, approving MRs, and other glab operations. Trigger whenever the user provides a GitLab MR URL or says anything like "review MR", "ช่วย review MR นี้", "ดู MR ให้หน่อย", "review https://gitlab.../merge_requests/42", "check pipeline", "list open MRs", or any GitLab-related task.
+description: Interact with GitLab via the glab CLI. Primary use case is MR review — fetches the diff, runs parallel code review + security review via specialist agents, then posts the result as a Thai comment on the MR. Also supports listing MRs, viewing MR status, checking CI/CD pipelines, approving MRs, and other glab operations. Trigger whenever the user provides a GitLab MR URL or says anything like "review MR", "ช่วย review MR นี้", "ดู MR ให้หน่อย", "review https://gitlab.../merge_requests/42", "check pipeline", "list open MRs", or any GitLab-related task. Also trigger when the user wants to fix issues from a MR — e.g. "แก้ตาม MR นี้", "fix MR", "แก้ issue ตาม MR", "แก้ MR <url>", "แก้ตาม review", or any combination of a GitLab MR URL with fix/แก้ intent. In this case, run the MR Fix workflow (review then auto-chain to /neo-team for implementation).
 ---
 
 # GitLab Skill
@@ -16,9 +16,22 @@ When given a GitLab MR URL like `https://gitlab.com/group/subgroup/project/-/mer
 
 These two values power most glab commands: `glab mr <cmd> <mr_id> --repo <repo_ref>`
 
+## Intent Detection
+
+When given a GitLab MR URL, determine the user's intent before selecting a workflow:
+
+| Signal in User Request | Workflow |
+|------------------------|----------|
+| "review", "ดู", "check", "ตรวจ", no action verb (just URL) | **MR Review** — review only, post findings as comment |
+| "แก้", "fix", "แก้ตาม", "แก้ issue", "implement", "ทำตาม" | **MR Fix** — review first, then auto-chain to /neo-team to implement fixes |
+
+**Decision rule:** If the user's message contains both a GitLab MR URL and a fix/แก้ keyword, route to **MR Fix**. If only a review keyword or just a bare URL, route to **MR Review**. When ambiguous, default to **MR Review** (safer — review doesn't change code).
+
+---
+
 ## MR Review Workflow
 
-When the user asks to review a MR, run this pipeline:
+When the user asks to review a MR (or intent is detected as "review"), run this pipeline:
 
 ```
 1. Fetch MR info, diff, and existing comments
@@ -152,6 +165,124 @@ glab mr note <mr_id> --repo <repo_ref> -m "<thai_comment>"
 ```
 
 If `glab` is not authenticated or fails, output the review in the conversation instead and tell the user.
+
+---
+
+## MR Fix Workflow
+
+When intent is detected as "fix" (user wants to fix issues from a MR), run review first then auto-chain to /neo-team for implementation.
+
+```
+1. Fetch MR info, diff, and existing comments          (same as MR Review Step 1)
+2. Read & summarize existing comments                   (same as MR Review Step 2)
+3. code-reviewer + security + qa → review in PARALLEL   (same as MR Review Step 3)
+4. Compile findings into structured handoff context
+5. Invoke /neo-team via Skill tool with findings
+6. Post summary comment on MR (after fix is done)
+```
+
+### Steps 1-3: Same as MR Review
+
+Run the exact same fetch → read comments → parallel review pipeline. The only difference is what happens after.
+
+**Important for MR Fix:** When composing the agent prompts in Step 3, add this instruction to each agent:
+
+> Categorize every finding with a severity level: **Blocker**, **Critical**, **Warning**, or **Info**. Format each finding as: `[Severity] file:line — description`. This structured output is required for the handoff to the fix pipeline.
+
+### Step 4: Compile Findings for Handoff
+
+After all three review agents return, compile their findings into a structured context for /neo-team:
+
+```
+## MR Fix Context
+
+**MR:** !<mr_id> — <mr_title>
+**Branch:** <source_branch> → <target_branch>
+**Repository:** <repo_ref>
+
+### Review Findings
+
+#### Code Review Findings
+<code_reviewer_output — full findings with severity levels>
+
+#### Security Findings
+<security_output — full findings with severity levels>
+
+#### QA Findings
+<qa_output — full findings with severity levels>
+
+### Severity Summary
+| Level | Count |
+|-------|-------|
+| Blocker | X |
+| Critical | X |
+| Warning | X |
+| Info | X |
+
+### MR Diff
+<full diff for reference>
+```
+
+Only proceed to Step 5 if there are **Blocker or Critical** findings. If all findings are Warning/Info only:
+1. Post the review comment on the MR (using the MR Review template from Step 4-5 of the Review workflow)
+2. Inform the user in the conversation: "ไม่พบ Blocker/Critical — findings ทั้งหมดเป็น Warning/Info เท่านั้น ไม่จำเป็นต้องแก้ไขเร่งด่วน"
+3. **End the workflow here.** Do NOT invoke /neo-team. The user can manually request fixes if desired.
+
+### Step 5: Invoke /neo-team
+
+Use the `Skill` tool to invoke /neo-team with the compiled findings:
+
+```
+Skill(
+  skill_name: "neo-team",
+  prompt: """
+  แก้ไขโค้ดตาม review findings จาก MR
+
+  <compiled findings from Step 4>
+
+  ## Instructions
+  - Fix all Blocker and Critical findings
+  - Address Warning findings where practical
+  - Info findings are optional improvements
+  - The MR diff is provided for context — the code is already in the working directory
+  - After fixing, run existing tests to verify nothing is broken
+  """
+)
+```
+
+/neo-team will classify this as a **Bug Fix** workflow internally and run:
+1. system-analyzer → understand the codebase + findings
+2. developer + qa + code-reviewer → implement fixes + test + verify (3-WAY PARALLEL)
+3. Remediation if needed
+
+### Step 6: Post Summary Comment
+
+After /neo-team completes, post a summary comment on the MR:
+
+```bash
+glab mr note <mr_id> --repo <repo_ref> -m "<summary_comment>"
+```
+
+The comment should follow this format:
+
+```
+## 🤖 MR Fix Summary
+
+**MR:** !<mr_id> — <mr_title>
+
+### สิ่งที่แก้ไข
+<list of fixes applied, mapped to original findings>
+
+### สถานะ
+- Blocker: X/Y แก้แล้ว
+- Critical: X/Y แก้แล้ว
+- Warning: X/Y แก้แล้ว
+
+**ผลลัพธ์:** ✅ แก้ไขเสร็จ / ⚠️ แก้ไขบางส่วน (ดูรายละเอียดด้านบน)
+
+---
+*Fix โดย GitLab Skill + Neo Team · Claude Code*
+```
 
 ---
 
