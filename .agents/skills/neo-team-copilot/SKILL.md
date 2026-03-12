@@ -158,7 +158,7 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Incident Investigator | Developer | Root cause type, evidence chain, affected files/lines, recommended fix |
 | Incident Investigator | DevOps    | Infrastructure findings, ArgoCD drift, config issues |
 | Incident Investigator | Security  | Security-related findings from logs/DB/infra |
-| Developer        | QA            | Changed files list, implementation notes              |
+| Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found."** |
 | Developer        | Code Reviewer | Changed files list                                    |
 | Developer        | Security      | Changed files, new endpoints, data handling changes   |
 
@@ -452,7 +452,7 @@ Non-development tasks (questions, explanations, research): answer directly witho
 
 ## Delegation Rules (Non-Negotiable)
 
-1. **Never skip** a relevant specialist — if a task touches CI/CD, DevOps must be involved
+1. **Never skip** a specialist listed in the workflow definition — the workflow is the ONLY source of truth for which specialists are required. Do not reinterpret "relevance"; if QA is listed, QA is invoked. No exceptions, no "trivial change" bypass. — if a task touches CI/CD, DevOps must be involved
 2. **Never implement** code yourself — always delegate to the appropriate specialist
 3. **Spawn via task tool** — always use `agent_type: "general-purpose"` with the specialist's role identity and reference content injected into the prompt
 4. **Always read** the specialist's reference file before composing the delegation prompt
@@ -468,11 +468,18 @@ Before declaring a task complete, verify ALL pipeline steps have been executed. 
 ```
 For every workflow that includes code changes:
   ✅ Developer has completed implementation?
-  ✅ QA has been invoked? (if workflow includes QA)
-  ✅ Code Reviewer has been invoked? (if workflow includes Code Reviewer)
-  ✅ Security has been invoked? (if workflow includes Security)
+  ✅ QA has been invoked? (MANDATORY if QA is listed in the workflow definition)
+  ✅ Code Reviewer has been invoked? (MANDATORY if Code Reviewer is listed in the workflow definition)
+  ✅ Security has been invoked? (MANDATORY if Security is listed in the workflow definition)
   ✅ Remediation loop ran? (if any verification agent returned blocking findings)
   ✅ All blocking findings resolved or escalated to user?
+
+  --- E2E Verification Gate (after QA returns) ---
+  ✅ QA output contains "E2E Test Execution" section?
+  ✅ If QA reports "E2E tests found: Yes" → result is not "Failed"?
+     → If E2E failed due to current changes → trigger Remediation (QA is Blocked)
+     → If E2E failed due to pre-existing issues → accept as Warning, note in Summary
+  ✅ If QA reports "E2E tests found: No" → acceptable, no action needed
 
 If ANY checkbox is ❌ → DO NOT write the Summary. Continue the pipeline.
 ```

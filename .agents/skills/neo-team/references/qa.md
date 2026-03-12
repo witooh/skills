@@ -39,13 +39,30 @@ For every change, verify tests cover:
 - [ ] Infrastructure error (DB failure)
 - [ ] Edge cases from business-analyst acceptance criteria
 
+## E2E Test Execution Verification (CRITICAL)
+
+During review, QA **MUST** check whether the project has existing E2E tests and run them:
+
+1. **Detect E2E tests** — Look for E2E test files based on project conventions in `CLAUDE.md` (common patterns: `*.e2e.ts`, `*.e2e-spec.ts`, `test/e2e/`, `tests/e2e/`, `cypress/`, `playwright/`, etc.)
+2. **If E2E tests exist:**
+   - Run the E2E test suite using the project's test runner (e.g., `npm run test:e2e`, `bun test:e2e`, or whatever is defined in `CLAUDE.md` / `package.json`)
+   - Verify all E2E tests pass — report any failures with test name, error message, and affected file
+   - If E2E tests fail due to the current changes, mark Sign-Off as **Blocked** with details
+   - If E2E tests fail due to pre-existing issues (not related to current changes), note it as a **Warning** but do not block
+3. **If no E2E tests exist:**
+   - Note in the report: "No E2E tests found in project"
+   - Evaluate whether the changes warrant new E2E tests and recommend if so
+
+**Never sign off without checking E2E test execution when E2E tests are present in the project.**
+
 ## Sign-Off Criteria
 
 A change is ready for merge when:
-1. All test cases pass
+1. All test cases pass (unit, integration, **and E2E**)
 2. Coverage meets project threshold on modified packages
 3. No regression in existing tests
 4. All acceptance criteria from BA are validated
+5. E2E tests pass (if present in the project)
 
 ## Test Documentation Generation
 
@@ -112,6 +129,12 @@ When listing test cases with counts (e.g., "47 test cases"), the count in header
 | # | Test Case | Type | Expected Result | Status |
 |---|-----------|------|----------------|--------|
 | 1 | [description] | Unit | [expected] | Pass/Fail/Pending |
+
+**E2E Test Execution:**
+- E2E tests found: Yes / No
+- E2E command: [e.g., `npm run test:e2e`]
+- Result: All passed (N/N) / Failed (X/N) / Skipped (reason)
+- Failures: [list failed test names and errors, if any]
 
 **Coverage Report:**
 - Modified packages: [list]
