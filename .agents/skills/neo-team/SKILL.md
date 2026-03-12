@@ -1,8 +1,14 @@
 ---
 name: neo-team
 description: Orchestrate a specialized software development agent team. Receive user requests, classify task type, select the matching workflow, delegate each step to specialist agents via the Agent tool, and assemble the final output. Use when the user needs multi-step software development involving architecture, implementation, testing, security review, or code review. Also use for production incident investigation — when the user reports a live system issue, service outage, pod crash, data anomaly, or needs root cause analysis using kubectl, psql, argocd, or docker. Trigger this skill whenever a task involves more than one concern (e.g., "add a new endpoint" needs BA + Architect + Developer + QA + Security), when the user mentions team coordination, agent delegation, or when the work clearly benefits from multiple specialist perspectives rather than a single implementation pass.
+compatibility:
+  environment: claude-code
+  tools:
+    - Agent
+    - Read
+    - Skill
 metadata:
-  version: "2.4"
+  version: "2.5"
 ---
 
 # Neo Team
@@ -326,10 +332,9 @@ The `/simplify` skill is part of the Developer's responsibility — not a separa
 This is baked into the Developer agent's reference file (`references/developer.md`). The Developer will:
 
 1. Implement the code changes
-2. Run `/simplify` via the `Skill` tool if available
-3. If `/simplify` is not available, perform a self-review checklist (duplicated logic, dead code, inefficiencies, naming consistency)
-4. Run `go build ./...` to verify compilation
-5. Report the final code as output
+2. Run `/simplify` via the `Skill` tool on the changed files
+3. Run the project's build command (from CLAUDE.md) to verify compilation
+4. Report the final code as output
 
 By making this the Developer's job rather than a separate orchestration step, we eliminate one sequential step from every workflow while maintaining the same code quality — the Developer owns the cleanliness of their output, just like in a real team.
 

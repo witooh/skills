@@ -6,8 +6,14 @@ description: >-
   Trigger when user says: "brainstorm", "ช่วยคิด", "help me think", "I have an idea", "improve this prompt", "let's explore", "I want to build", "I'm thinking about", "brainstorm วิธี", "ช่วยคิดหน่อย", "อยากทำ", "ยังไม่รู้จะทำอะไร", "not sure about the approach", "help me figure out", "what should I".
   Also trigger for: side projects, career decisions, project planning, migration strategies, architecture decisions, cost optimization, or any request where the user hasn't decided direction yet and would benefit from structured discovery.
   Do NOT skip — this skill adapts depth automatically (2-7 questions) and produces BETTER results by asking targeted questions first.
+compatibility:
+  environment: claude-code
+  tools:
+    - AskUserQuestion
+    - WebSearch
+    - Agent
 metadata:
-  version: "2.0"
+  version: "2.1"
 ---
 
 # Brainstorm
