@@ -1,6 +1,6 @@
 ---
 name: gitlab
-description: Interact with GitLab via the glab CLI. Primary use case is MR review — fetches the diff, runs parallel code review + security review via specialist agents, then posts the result as a Thai comment on the MR. Also supports listing MRs, viewing MR status, checking CI/CD pipelines, approving MRs, and other glab operations. Trigger whenever the user provides a GitLab MR URL or says anything like "review MR", "ช่วย review MR นี้", "ดู MR ให้หน่อย", "review https://gitlab.../merge_requests/42", "check pipeline", "list open MRs", or any GitLab-related task. Also trigger when the user wants to fix issues from a MR — e.g. "แก้ตาม MR นี้", "fix MR", "แก้ issue ตาม MR", "แก้ MR <url>", "แก้ตาม review", or any combination of a GitLab MR URL with fix/แก้ intent. In this case, run the MR Fix workflow (review then auto-chain to /neo-team for implementation).
+description: Interact with GitLab via the glab CLI. Supports three MR workflows — Read (summarize), Review (full code/security/QA review), and Fix (review + implement). Trigger whenever the user provides a GitLab MR URL or says anything like "อ่าน MR", "ดู MR", "check MR", "review MR", "ช่วย review MR นี้", "ตรวจ MR", "แก้ตาม MR", "fix MR", or just pastes a GitLab MR URL. Also supports listing MRs, viewing MR status, checking CI/CD pipelines, approving MRs, and other glab operations. Trigger on "check pipeline", "list open MRs", or any GitLab-related task. When the user wants to fix issues from a MR — e.g. "แก้ตาม MR นี้", "fix MR", "แก้ issue ตาม MR", "แก้ MR <url>", "แก้ตาม review" — run the MR Fix workflow (review then auto-chain to /neo-team for implementation).
 compatibility:
   environment: claude-code
   tools:
@@ -12,7 +12,7 @@ compatibility:
 
 # GitLab Skill
 
-Use the `glab` CLI to interact with GitLab. The primary workflow is MR Review — but this skill handles any GitLab operation the user needs.
+Use the `glab` CLI to interact with GitLab. Supports three MR workflows (Read → Review → Fix) plus general glab operations.
 
 ## URL Parsing
 
@@ -25,14 +25,47 @@ These two values power most glab commands: `glab mr <cmd> <mr_id> --repo <repo_r
 
 ## Intent Detection
 
-When given a GitLab MR URL, determine the user's intent before selecting a workflow:
+When given a GitLab MR URL, determine the user's intent before selecting a workflow. There are three distinct workflows — **Read** is the lightest (just summarize), **Review** runs full specialist agents, and **Fix** reviews then implements changes. Default to Read when no strong signal indicates the user wants a full review or fix.
 
 | Signal in User Request | Workflow |
 |------------------------|----------|
-| "review", "ดู", "check", "ตรวจ", no action verb (just URL) | **MR Review** — review only, post findings as comment |
+| "อ่าน", "ดู", "check", "สรุป", "summary", bare URL with no action verb | **MR Read** — fetch MR info + diff, then summarize. No specialist agents. |
+| "review", "ตรวจ", "ช่วย review", "review ให้หน่อย" | **MR Review** — full code/security/QA review via 3 parallel specialist agents, post findings as comment |
 | "แก้", "fix", "แก้ตาม", "แก้ issue", "implement", "ทำตาม" | **MR Fix** — review first, then auto-chain to /neo-team to implement fixes |
 
-**Decision rule:** If the user's message contains both a GitLab MR URL and a fix/แก้ keyword, route to **MR Fix**. If only a review keyword or just a bare URL, route to **MR Review**. When ambiguous, default to **MR Review** (safer — review doesn't change code).
+**Decision rule:**
+1. If the user's message contains a fix/แก้ keyword → **MR Fix**
+2. If the user's message explicitly says "review" or "ตรวจ" → **MR Review**
+3. Everything else (bare URL, "อ่าน", "ดู", "check", "สรุป", or ambiguous) → **MR Read** (lightest option, no side effects)
+
+---
+
+## MR Read Workflow
+
+The lightest workflow — no specialist agents, no comments posted. Just fetch MR data and present a concise summary to the user in the conversation.
+
+```
+1. Fetch MR info (JSON) and diff
+2. Summarize in conversation
+```
+
+### Step 1: Fetch
+
+```bash
+glab mr view <mr_id> --repo <repo_ref> --output json
+glab mr diff <mr_id> --repo <repo_ref>
+```
+
+### Step 2: Summarize
+
+Present a concise Thai summary covering:
+
+- **MR metadata** — title, author, status, source → target branch, pipeline status
+- **What changed** — brief description of the changes (group by area: features, refactoring, CI, docs, tests)
+- **Files changed** — count and key files
+- **Existing comments** — if there are review comments, briefly note them
+
+Keep it terminal-friendly and scannable. Do NOT spawn specialist agents or post any comments on the MR.
 
 ---
 
