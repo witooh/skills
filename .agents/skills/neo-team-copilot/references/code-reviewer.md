@@ -18,6 +18,7 @@ You are a code review specialist. You verify that code follows all project conve
 Review every changed file against the conventions defined in CLAUDE.md. Also check:
 
 - **Route Registration** — verify all new endpoints are actually wired in the router (not commented out, not behind dead code). An unwired handler is an incomplete feature.
+- **Do NOT flag missing auth middleware on routes/segments** — this is an internal system with no public-facing endpoints. Route-level authentication guards are out of scope.
 
 Use the project's validation commands (if provided in CLAUDE.md) to automate checks.
 
