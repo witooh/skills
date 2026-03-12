@@ -1,6 +1,6 @@
 # MR Review Comment Template
 
-Use this template when posting via `glab mr note`. Fill in the findings from both code-reviewer and security agents. Keep file paths and code snippets in English — translate findings and descriptions to Thai.
+Use this template when posting via `glab mr note`. Fill in the findings from code-reviewer, security, and qa agents. Keep file paths and code snippets in English — translate findings and descriptions to Thai.
 
 ```
 ## 🤖 ผลการ Review Merge Request
@@ -19,6 +19,12 @@ Use this template when posting via `glab mr note`. Fill in the findings from bot
 ### 🔒 Security Review
 
 <security_findings_in_thai>
+
+---
+
+### 🧪 QA Review
+
+<qa_findings_in_thai>
 
 ---
 
@@ -55,7 +61,7 @@ Translate findings into Thai. Keep technical terms, file paths, function names, 
 
 ## When there are no findings
 
-If both agents return no issues:
+If all three agents return no issues:
 
 ```
 ### 📋 Code Review
@@ -63,4 +69,7 @@ If both agents return no issues:
 
 ### 🔒 Security Review
 ไม่พบปัญหาด้าน security ✅
+
+### 🧪 QA Review
+ไม่พบปัญหาด้าน test coverage ✅
 ```

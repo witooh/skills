@@ -21,10 +21,11 @@ These two values power most glab commands: `glab mr <cmd> <mr_id> --repo <repo_r
 When the user asks to review a MR, run this pipeline:
 
 ```
-1. Fetch MR info and diff
-2. code-reviewer + security → review in PARALLEL
-3. Compose Thai comment from template
-4. Post comment to the MR
+1. Fetch MR info, diff, and existing comments
+2. Read & summarize existing comments (understand what's already discussed)
+3. code-reviewer + security + qa → review in PARALLEL (with comment context)
+4. Compose Thai comment from template
+5. Post comment to the MR
 ```
 
 ### Step 1: Fetch
@@ -32,13 +33,25 @@ When the user asks to review a MR, run this pipeline:
 ```bash
 glab mr view <mr_id> --repo <repo_ref> --output json
 glab mr diff <mr_id> --repo <repo_ref>
+glab mr note list <mr_id> --repo <repo_ref>
 ```
 
 Extract from the view output: MR title, source branch, target branch, author.
 
-### Step 2: Parallel Review
+### Step 2: Read Existing Comments
 
-Read the project's `CLAUDE.md` if available (for conventions). Then spawn both agents at the same time:
+Before diving into the review, read through all existing MR comments/notes fetched in Step 1. This gives crucial context — other reviewers may have already flagged issues, the author may have explained design decisions, or there may be ongoing discussions that affect how you should review. Summarize the key points:
+
+- Issues already raised by other reviewers
+- Author's explanations or decisions
+- Unresolved discussions that need attention
+- Resolved items (avoid duplicating feedback)
+
+This prevents the review from repeating what's already been said and helps focus on gaps that haven't been addressed yet.
+
+### Step 3: Parallel Review
+
+Read the project's `CLAUDE.md` if available (for conventions). Then spawn all three agents at the same time, including a summary of existing comments so reviewers have full context:
 
 ```
 Agent(
@@ -51,6 +64,11 @@ Agent(
 ---
 ## Project Conventions
 [relevant sections from CLAUDE.md if available, else omit]
+
+---
+## Existing MR Comments
+[summary of existing comments from Step 2 — issues raised, author explanations, unresolved discussions]
+Do NOT repeat issues that other reviewers have already flagged unless you have additional insight to add.
 
 ---
 ## Task
@@ -72,8 +90,45 @@ Agent(
 [security agent instructions — read from ~/.claude/agents/security.agent.md]
 
 ---
+## Existing MR Comments
+[summary of existing comments from Step 2 — issues raised, author explanations, unresolved discussions]
+Do NOT repeat security concerns that have already been raised unless you have additional findings.
+
+---
 ## Task
 Security review the following MR diff.
+
+MR: !<mr_id> — <mr_title>
+Branch: <source> → <target>
+
+## Diff
+<full diff output>
+"""
+)
+
+Agent(
+  description: "QA review MR diff",
+  subagent_type: "qa",
+  model: "sonnet",
+  prompt: """
+[qa agent instructions — read from ~/.claude/agents/qa.agent.md]
+
+---
+## Project Conventions
+[relevant sections from CLAUDE.md if available, else omit]
+
+---
+## Existing MR Comments
+[summary of existing comments from Step 2 — issues raised, author explanations, unresolved discussions]
+Do NOT repeat QA concerns that have already been raised unless you have additional findings.
+
+---
+## Task
+QA review the following MR diff. Focus on:
+- Test coverage gaps (are new code paths tested?)
+- Missing edge case tests
+- Regression risks
+- Acceptance criteria validation (if available)
 
 MR: !<mr_id> — <mr_title>
 Branch: <source> → <target>
@@ -86,11 +141,11 @@ Branch: <source> → <target>
 
 Read the agent files from `~/.claude/agents/` before spawning, so the full agent instructions are included in the prompt.
 
-### Step 3: Compose Thai comment
+### Step 4: Compose Thai comment
 
-Read [references/mr-review-template.md](references/mr-review-template.md) and fill in findings from both agents.
+Read [references/mr-review-template.md](references/mr-review-template.md) and fill in findings from all three agents (code-reviewer, security, qa).
 
-### Step 4: Post
+### Step 5: Post
 
 ```bash
 glab mr note <mr_id> --repo <repo_ref> -m "<thai_comment>"
