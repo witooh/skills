@@ -2,7 +2,7 @@
 name: gitlab-copilot
 description: Interact with GitLab via the glab CLI. Primary use case is MR review — fetches the diff, runs parallel code review + security review via specialist agents, then posts the result as a Thai comment on the MR. Also supports listing MRs, viewing MR status, checking CI/CD pipelines, approving MRs, and other glab operations. Trigger whenever the user provides a GitLab MR URL or says anything like "review MR", "ช่วย review MR นี้", "ดู MR ให้หน่อย", "review https://gitlab.../merge_requests/42", "check pipeline", "list open MRs", or any GitLab-related task. Also trigger when the user wants to fix issues from a MR — e.g. "แก้ตาม MR นี้", "fix MR", "แก้ issue ตาม MR", "แก้ MR <url>", "แก้ตาม review", or any combination of a GitLab MR URL with fix/แก้ intent. In this case, run the MR Fix workflow (review then auto-chain to /neo-team-copilot for implementation).
 compatibility:
-  environment: copilot
+  environment: copilot-cli
   tools:
     - task
     - view
