@@ -1,6 +1,13 @@
 ---
 name: gitlab
 description: Interact with GitLab via the glab CLI. Primary use case is MR review — fetches the diff, runs parallel code review + security review via specialist agents, then posts the result as a Thai comment on the MR. Also supports listing MRs, viewing MR status, checking CI/CD pipelines, approving MRs, and other glab operations. Trigger whenever the user provides a GitLab MR URL or says anything like "review MR", "ช่วย review MR นี้", "ดู MR ให้หน่อย", "review https://gitlab.../merge_requests/42", "check pipeline", "list open MRs", or any GitLab-related task. Also trigger when the user wants to fix issues from a MR — e.g. "แก้ตาม MR นี้", "fix MR", "แก้ issue ตาม MR", "แก้ MR <url>", "แก้ตาม review", or any combination of a GitLab MR URL with fix/แก้ intent. In this case, run the MR Fix workflow (review then auto-chain to /neo-team for implementation).
+compatibility:
+  environment: copilot
+  tools:
+    - task
+    - view
+    - Bash
+    - Skill
 ---
 
 # GitLab Skill
@@ -67,12 +74,13 @@ This prevents the review from repeating what's already been said and helps focus
 Read the project's `CLAUDE.md` if available (for conventions). Then spawn all three agents at the same time, including a summary of existing comments so reviewers have full context:
 
 ```
-Agent(
+task(
   description: "Code review MR diff",
-  subagent_type: "code-reviewer",
-  model: "opus",
+  agent_type: "general-purpose",
+  model: "claude-opus-4-5",
   prompt: """
-[code-reviewer agent instructions — read from ~/.claude/agents/code-reviewer.agent.md]
+# Role: Code Reviewer
+[code-reviewer agent instructions — use `view` to read from ~/.claude/agents/code-reviewer.agent.md]
 
 ---
 ## Project Conventions
@@ -95,12 +103,13 @@ Branch: <source> → <target>
 """
 )
 
-Agent(
+task(
   description: "Security review MR diff",
-  subagent_type: "security",
-  model: "sonnet",
+  agent_type: "general-purpose",
+  model: "claude-sonnet-4-5",
   prompt: """
-[security agent instructions — read from ~/.claude/agents/security.agent.md]
+# Role: Security Reviewer
+[security agent instructions — use `view` to read from ~/.claude/agents/security.agent.md]
 
 ---
 ## Existing MR Comments
@@ -119,12 +128,13 @@ Branch: <source> → <target>
 """
 )
 
-Agent(
+task(
   description: "QA review MR diff",
-  subagent_type: "qa",
-  model: "sonnet",
+  agent_type: "general-purpose",
+  model: "claude-sonnet-4-5",
   prompt: """
-[qa agent instructions — read from ~/.claude/agents/qa.agent.md]
+# Role: QA Reviewer
+[qa agent instructions — use `view` to read from ~/.claude/agents/qa.agent.md]
 
 ---
 ## Project Conventions
@@ -152,7 +162,7 @@ Branch: <source> → <target>
 )
 ```
 
-Read the agent files from `~/.claude/agents/` before spawning, so the full agent instructions are included in the prompt.
+Use `view` to read the agent files from `~/.claude/agents/` before spawning, so the full agent instructions are included in the prompt.
 
 ### Step 4: Compose Thai comment
 
