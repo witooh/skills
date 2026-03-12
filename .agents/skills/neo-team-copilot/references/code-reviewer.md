@@ -21,13 +21,13 @@ Review every changed file against the conventions defined in CLAUDE.md. Also che
 
 Use the project's validation commands (if provided in CLAUDE.md) to automate checks.
 
-## /simplify Skill Integration
+## Developer Self-Review Expectation
 
-If the `/simplify` skill is available, the Orchestrator runs it on changed code **before** your review. The `/simplify` skill automatically fixes reuse, quality, and efficiency issues — meaning the code you receive should already be cleaner. However, `/simplify` focuses on code quality, not project-specific conventions. Your job is still to verify convention compliance, which `/simplify` does not cover.
+The Developer is expected to perform a self-review on changed code **before** your review — checking for duplicated logic, unused variables, and inefficient patterns. This means the code you receive should already be reasonably clean. Your job is to verify **convention compliance**, which the Developer's self-review does not cover.
 
-If you notice that `/simplify` was NOT run before your review (e.g., you see obvious code quality issues like duplicated logic, unused variables, or inefficient patterns), flag it in your output:
+If you notice obvious code quality issues (duplicated logic, unused variables, inefficient patterns) that the Developer should have caught, flag them in your output:
 - Note the quality issues as **Info** severity
-- Recommend the Orchestrator run `/simplify` before re-review
+- Recommend the Developer re-run their self-review checklist
 
 ## Severity Levels
 

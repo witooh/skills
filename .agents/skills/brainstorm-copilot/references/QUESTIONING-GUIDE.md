@@ -2,7 +2,7 @@
 
 Detailed patterns for each discovery phase across all three modes. Read this file when executing the brainstorm workflow to understand the intent, techniques, and examples for each phase.
 
-**Important:** Always use `AskUserQuestion` to ask questions — never embed questions in plain text output. When the answer space is predictable, provide an `options` array for faster UX.
+**Important:** Always use `ask_user` to ask questions — never embed questions in plain text output. When the answer space is predictable, provide a `choices` array for faster UX.
 
 ---
 
@@ -69,7 +69,7 @@ Detailed patterns for each discovery phase across all three modes. Read this fil
 
 **If included (1 question max):**
 - Ask if they have examples. If yes, ask what they like about them.
-- If no, and references would genuinely help, use `WebSearch` to find 2–3 relevant ones.
+- If no, and references would genuinely help, use `web_search` to find 2–3 relevant ones.
 
 ---
 

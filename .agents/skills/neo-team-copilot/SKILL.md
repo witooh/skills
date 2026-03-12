@@ -329,17 +329,16 @@ When generating or updating API documentation, the Architect (or Developer) must
 2. [REMEDIATION if any agent has Blocker/Critical/Blocked findings]
 ```
 
-## /simplify Integration
+## Self-Review Integration
 
-The `/simplify` skill is part of the Developer's responsibility — not a separate pipeline step. After implementing code, Developer runs `/simplify` on the changed files to clean up before sending to Code Reviewer.
+Code quality review is the Developer's responsibility — not a separate pipeline step. After implementing code, Developer performs a self-review checklist on the changed files to clean up before sending to Code Reviewer.
 
 This is baked into the Developer agent's reference file (`references/developer.md`). The Developer will:
 
 1. Implement the code changes
-2. Run `/simplify` via the `Skill` tool if available
-3. If `/simplify` is not available, perform a self-review checklist (duplicated logic, dead code, inefficiencies, naming consistency)
-4. Run `go build ./...` to verify compilation
-5. Report the final code as output
+2. Perform a self-review checklist (duplicated logic, dead code, inefficiencies, naming consistency)
+3. Run `go build ./...` to verify compilation
+4. Report the final code as output
 
 By making this the Developer's job rather than a separate orchestration step, we eliminate one sequential step from every workflow while maintaining the same code quality — the Developer owns the cleanliness of their output, just like in a real team.
 
@@ -357,7 +356,7 @@ Verification agent(s) return findings
     └── Has blocking findings → Remediation cycle:
             1. Collect all blocking findings into a single prioritized list
             2. Delegate to Developer (or DevOps for CI/CD) to fix
-               (Developer runs /simplify or self-review as part of their fix)
+               (Developer runs self-review as part of their fix)
             3. Re-run ONLY the agents that returned blocking findings
             4. If still blocked → try one more cycle (max 2 total)
             5. If blocked after 2 cycles → stop pipeline, escalate to user
@@ -393,7 +392,7 @@ Let the user decide — don't fix automatically (wastes time if user doesn't car
 
 - **Only re-run failing agents** — if Code Reviewer approved but Security blocked, only re-run Security after the fix
 - **Pass specific findings** — give Developer the exact findings list with file:line references, not a vague "fix the issues"
-- **Developer owns quality** — Developer applies /simplify or self-review during their fix, same as initial implementation
+- **Developer owns quality** — Developer applies self-review during their fix, same as initial implementation
 - **Max 2 remediation cycles** — if the issue can't be resolved in 2 passes, it likely needs human judgment (architectural disagreement, ambiguous requirements, complex trade-off)
 - **Report all cycles in Summary** — show which findings were found, which were fixed, and which remain unresolved
 

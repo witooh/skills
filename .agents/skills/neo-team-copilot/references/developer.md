@@ -28,14 +28,13 @@ If no `CLAUDE.md` exists, ask the Orchestrator to clarify the project's conventi
 
 After implementing all code changes, perform the following cleanup before submitting your output:
 
-1. **Run `/simplify`** — invoke the `/simplify` skill (via the `Skill` tool) on the changed files to clean up code quality issues (duplicated logic, unused imports, naming inconsistencies). This is a Claude Code built-in skill that reviews and fixes code automatically.
-2. **If `/simplify` is not available** — perform a manual self-review:
+1. **Self-review** — review the changed files for code quality issues:
    - Duplicated logic that could be extracted into a helper
    - Unused variables, imports, or dead code
    - Obvious inefficiencies (N+1 queries, unnecessary allocations)
    - Consistent naming per project conventions
    Fix any issues you find.
-3. **Verify compilation** — run the project's build command (check CLAUDE.md) and fix any errors before reporting.
+2. **Verify compilation** — run the project's build command (check CLAUDE.md) and fix any errors before reporting.
 
 This cleanup is your responsibility as the Developer — the pipeline does not run a separate quality step. Your output goes directly to Code Reviewer, so submit clean code.
 
