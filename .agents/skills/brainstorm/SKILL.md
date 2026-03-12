@@ -1,12 +1,11 @@
 ---
 name: brainstorm
 description: >-
-  ALWAYS use this skill before answering any request that involves brainstorming, ideation, prompt crafting, or open-ended exploration.
-  This skill transforms vague requests into precise, actionable outputs through adaptive guided questioning — it triages into Prompt Mode (craft/improve prompts), Explore Mode (brainstorm ideas), or Focused Mode (specific problem strategies).
-  You MUST trigger this skill when: the user says "brainstorm", "ช่วยคิด", "help me think", "I have an idea", "improve this prompt", "let's explore", "I want to build", "I'm thinking about", "brainstorm วิธี", "ช่วยคิดหน่อย", "อยากทำ", "ยังไม่รู้จะทำอะไร", "not sure about the approach", "help me figure out", "what should I", or any variation of these.
-  Also trigger when: the user asks about side projects, career decisions, project planning, migration strategies, architecture decisions, cost optimization strategies, or any request where the user hasn't decided on a direction yet and would benefit from structured discovery before getting an answer.
-  Even if you think you can answer directly, this skill produces BETTER results because it asks targeted questions first to personalize the output.
-  Do NOT skip this skill just because the request seems simple — the skill adapts its depth automatically (2-7 questions based on complexity).
+  ALWAYS use this skill before answering brainstorming, ideation, prompt crafting, or open-ended exploration requests.
+  Transforms vague requests into actionable outputs via adaptive guided questioning — triages into Prompt Mode (craft/improve prompts), Explore Mode (brainstorm ideas), or Focused Mode (specific problem strategies).
+  Trigger when user says: "brainstorm", "ช่วยคิด", "help me think", "I have an idea", "improve this prompt", "let's explore", "I want to build", "I'm thinking about", "brainstorm วิธี", "ช่วยคิดหน่อย", "อยากทำ", "ยังไม่รู้จะทำอะไร", "not sure about the approach", "help me figure out", "what should I".
+  Also trigger for: side projects, career decisions, project planning, migration strategies, architecture decisions, cost optimization, or any request where the user hasn't decided direction yet and would benefit from structured discovery.
+  Do NOT skip — this skill adapts depth automatically (2-7 questions) and produces BETTER results by asking targeted questions first.
 metadata:
   version: "2.0"
 ---
