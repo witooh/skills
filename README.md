@@ -56,5 +56,5 @@ npx skills add https://github.com/witooh/skills
 
 **Skills:** 14 total | **Tests:** [fastmail](./tests/fastmail/)
 **Usage:** `cd .agents/skills/{skill-name} && bun scripts/cli.ts {tool} '{"param": "value"}'`
-**Create:** Run `/skill-creator` first, see [AGENTS.md](./AGENTS.md)
+**Create:** Run `/skill-creator` first, see [CLAUDE.md](./CLAUDE.md)
 **Spec:** https://agentskills.io/specification
