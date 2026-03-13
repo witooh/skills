@@ -1,16 +1,26 @@
 ---
-name: gitlab
-description: Interact with GitLab via the glab CLI. Supports three MR workflows — Read (summarize), Review (full code/security/QA review), and Fix (review + implement). Trigger whenever the user provides a GitLab MR URL or says anything like "อ่าน MR", "ดู MR", "check MR", "review MR", "ช่วย review MR นี้", "ตรวจ MR", "แก้ตาม MR", "fix MR", or just pastes a GitLab MR URL. Also supports listing MRs, viewing MR status, checking CI/CD pipelines, approving MRs, and other glab operations. Trigger on "check pipeline", "list open MRs", or any GitLab-related task. When the user wants to fix issues from a MR — e.g. "แก้ตาม MR นี้", "fix MR", "แก้ issue ตาม MR", "แก้ MR <url>", "แก้ตาม review" — run the MR Fix workflow (review then auto-chain to /neo-team for implementation).
+name: gitlab-claude
+description: >
+  Interact with GitLab via the glab CLI. Supports three MR workflows — Read (summarize),
+  Review (full code/security/QA review), and Fix (review + implement). Trigger whenever the
+  user provides a GitLab MR URL or says anything like "อ่าน MR", "ดู MR", "check MR",
+  "review MR", "ช่วย review MR นี้", "ตรวจ MR", "แก้ตาม MR", "fix MR", or just pastes a
+  GitLab MR URL. Also supports listing MRs, viewing MR status, checking CI/CD pipelines,
+  approving MRs, and other glab operations. Trigger on "check pipeline", "list open MRs",
+  or any GitLab-related task. When the user wants to fix issues from a MR — e.g. "แก้ตาม MR นี้",
+  "fix MR", "แก้ issue ตาม MR", "แก้ MR <url>", "แก้ตาม review" — run the MR Fix workflow
+  (review then ask user to invoke /neo-team-claude for implementation).
 compatibility:
   environment: claude-code
   tools:
-    - Agent
-    - Read
     - Bash
-    - Skill
+    - Read
+    - Agent
+metadata:
+  version: "1.0"
 ---
 
-# GitLab Skill
+# GitLab Skill (Claude Code)
 
 Use the `glab` CLI to interact with GitLab. Supports three MR workflows (Read → Review → Fix) plus general glab operations.
 
@@ -31,12 +41,24 @@ When given a GitLab MR URL, determine the user's intent before selecting a workf
 |------------------------|----------|
 | "อ่าน", "ดู", "check", "สรุป", "summary", bare URL with no action verb | **MR Read** — fetch MR info + diff, then summarize. No specialist agents. |
 | "review", "ตรวจ", "ช่วย review", "review ให้หน่อย" | **MR Review** — full code/security/QA review via 3 parallel specialist agents, post findings as comment |
-| "แก้", "fix", "แก้ตาม", "แก้ issue", "implement", "ทำตาม" | **MR Fix** — review first, then auto-chain to /neo-team to implement fixes |
+| "แก้", "fix", "แก้ตาม", "แก้ issue", "implement", "ทำตาม" | **MR Fix** — review first, then ask user to invoke /neo-team-claude to implement fixes |
 
 **Decision rule:**
 1. If the user's message contains a fix/แก้ keyword → **MR Fix**
 2. If the user's message explicitly says "review" or "ตรวจ" → **MR Review**
 3. Everything else (bare URL, "อ่าน", "ดู", "check", "สรุป", or ambiguous) → **MR Read** (lightest option, no side effects)
+
+---
+
+## Specialist Reference Files
+
+This skill delegates review work to three specialist agents. Their detailed instructions live in the neo-team-claude skill's reference files. Before spawning review agents, read these files with `Read`:
+
+| Specialist | Reference File |
+|------------|---------------|
+| Code Reviewer | `.agents/skills/neo-team-claude/references/code-reviewer.md` |
+| Security | `.agents/skills/neo-team-claude/references/security.md` |
+| QA | `.agents/skills/neo-team-claude/references/qa.md` |
 
 ---
 
@@ -104,15 +126,14 @@ This prevents the review from repeating what's already been said and helps focus
 
 ### Step 3: Parallel Review
 
-Read the project's `CLAUDE.md` if available (for conventions). Then spawn all three agents at the same time, including a summary of existing comments so reviewers have full context:
+Read the project's `CLAUDE.md` if available (for conventions). Then read the three specialist reference files listed above, and spawn all three agents at the same time — including a summary of existing comments so reviewers have full context:
 
 ```
 Agent(
-  description: "Code review MR diff",
-  subagent_type: "code-reviewer",
-  model: "opus",
+  subagent_type: "Code Reviewer",
   prompt: """
-[code-reviewer agent instructions — read from ~/.claude/agents/code-reviewer.agent.md]
+# Role: Code Reviewer
+[paste full code-reviewer instructions from .agents/skills/neo-team-claude/references/code-reviewer.md]
 
 ---
 ## Project Conventions
@@ -136,15 +157,14 @@ Branch: <source> → <target>
 )
 
 Agent(
-  description: "Security review MR diff",
-  subagent_type: "security",
-  model: "sonnet",
+  subagent_type: "Security Reviewer",
   prompt: """
-[security agent instructions — read from ~/.claude/agents/security.agent.md]
+# Role: Security Reviewer
+[paste full security instructions from .agents/skills/neo-team-claude/references/security.md]
 
 ---
 ## Existing MR Comments
-[summary of existing comments from Step 2 — issues raised, author explanations, unresolved discussions]
+[summary of existing comments from Step 2]
 Do NOT repeat security concerns that have already been raised unless you have additional findings.
 
 ---
@@ -160,11 +180,10 @@ Branch: <source> → <target>
 )
 
 Agent(
-  description: "QA review MR diff",
-  subagent_type: "qa",
-  model: "sonnet",
+  subagent_type: "QA Reviewer",
   prompt: """
-[qa agent instructions — read from ~/.claude/agents/qa.agent.md]
+# Role: QA Reviewer
+[paste full QA instructions from .agents/skills/neo-team-claude/references/qa.md]
 
 ---
 ## Project Conventions
@@ -172,7 +191,7 @@ Agent(
 
 ---
 ## Existing MR Comments
-[summary of existing comments from Step 2 — issues raised, author explanations, unresolved discussions]
+[summary of existing comments from Step 2]
 Do NOT repeat QA concerns that have already been raised unless you have additional findings.
 
 ---
@@ -192,8 +211,6 @@ Branch: <source> → <target>
 )
 ```
 
-Read the agent files from `~/.claude/agents/` before spawning, so the full agent instructions are included in the prompt.
-
 ### Step 4: Compose Thai comment
 
 Read [references/mr-review-template.md](references/mr-review-template.md) and fill in findings from all three agents (code-reviewer, security, qa).
@@ -210,14 +227,14 @@ If `glab` is not authenticated or fails, output the review in the conversation i
 
 ## MR Fix Workflow
 
-When intent is detected as "fix" (user wants to fix issues from a MR), run review first then auto-chain to /neo-team for implementation.
+When intent is detected as "fix" (user wants to fix issues from a MR), run review first then hand off to /neo-team-claude for implementation.
 
 ```
 1. Fetch MR info, diff, and existing comments          (same as MR Review Step 1)
 2. Read & summarize existing comments                   (same as MR Review Step 2)
 3. code-reviewer + security + qa → review in PARALLEL   (same as MR Review Step 3)
 4. Compile findings into structured handoff context
-5. Invoke /neo-team via Skill tool with findings
+5. Ask user to invoke /neo-team-claude with compiled findings
 6. Post summary comment on MR (after fix is done)
 ```
 
@@ -231,7 +248,7 @@ Run the exact same fetch → read comments → parallel review pipeline. The onl
 
 ### Step 4: Compile Findings for Handoff
 
-After all three review agents return, compile their findings into a structured context for /neo-team:
+After all three review agents return, compile their findings into a structured context:
 
 ```
 ## MR Fix Context
@@ -266,38 +283,35 @@ After all three review agents return, compile their findings into a structured c
 Only proceed to Step 5 if there are **Blocker or Critical** findings. If all findings are Warning/Info only:
 1. Post the review comment on the MR (using the MR Review template from Step 4-5 of the Review workflow)
 2. Inform the user in the conversation: "ไม่พบ Blocker/Critical — findings ทั้งหมดเป็น Warning/Info เท่านั้น ไม่จำเป็นต้องแก้ไขเร่งด่วน"
-3. **End the workflow here.** Do NOT invoke /neo-team. The user can manually request fixes if desired.
+3. **End the workflow here.** Do NOT proceed to fix. The user can manually request fixes if desired.
 
-### Step 5: Invoke /neo-team
+### Step 5: Ask User to Invoke /neo-team-claude
 
-Use the `Skill` tool to invoke /neo-team with the compiled findings:
+Since Claude Code does not have programmatic skill invocation, ask the user to load the neo-team-claude skill:
 
 ```
-Skill(
-  skill_name: "neo-team",
-  prompt: """
-  แก้ไขโค้ดตาม review findings จาก MR
+กรุณาเรียก /neo-team-claude แล้ว paste context ด้านล่างนี้:
 
-  <compiled findings from Step 4>
+แก้ไขโค้ดตาม review findings จาก MR
 
-  ## Instructions
-  - Fix all Blocker and Critical findings
-  - Address Warning findings where practical
-  - Info findings are optional improvements
-  - The MR diff is provided for context — the code is already in the working directory
-  - After fixing, run existing tests to verify nothing is broken
-  """
-)
+<compiled findings from Step 4>
+
+## Instructions
+- Fix all Blocker and Critical findings
+- Address Warning findings where practical
+- Info findings are optional improvements
+- The MR diff is provided for context — the code is already in the working directory
+- After fixing, run existing tests to verify nothing is broken
 ```
 
-/neo-team will classify this as a **Bug Fix** workflow internally and run:
+/neo-team-claude will classify this as a **Bug Fix** workflow internally and run:
 1. system-analyzer → understand the codebase + findings
 2. developer + qa + code-reviewer → implement fixes + test + verify (3-WAY PARALLEL)
 3. Remediation if needed
 
 ### Step 6: Post Summary Comment
 
-After /neo-team completes, post a summary comment on the MR:
+After /neo-team-claude completes (user will come back to this conversation), post a summary comment on the MR:
 
 ```bash
 glab mr note <mr_id> --repo <repo_ref> -m "<summary_comment>"
