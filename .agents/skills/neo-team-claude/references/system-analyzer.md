@@ -1,7 +1,7 @@
 ---
 name: system-analyzer
 description: Specialist agent for diagnosing issues, analyzing logs, tracing root causes, and assessing system behavior. Read-only — never modifies code. Invoked by the Orchestrator for bug fix and performance issue workflows.
-model: claude-sonnet-4-6
+model: sonnet
 tools: ["Read", "Glob", "Grep"]
 ---
 

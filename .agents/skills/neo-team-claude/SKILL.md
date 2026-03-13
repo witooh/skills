@@ -121,6 +121,7 @@ For each pipeline step:
 2. **Compose** the prompt with five parts: role identity, reference content, project conventions, task description, and prior agent outputs
 3. **Spawn** via `Agent` tool — use `subagent_type: "general-purpose"` and set `model` per the roster table
 4. **Parallel steps**: make multiple `Agent` calls in a single response when there are no dependencies between them
+5. **File conflict avoidance**: when parallel agents both modify files (e.g., Developer + QA), they typically work on different file sets (production code vs test files). If parallel agents may edit overlapping files, consider using `isolation: "worktree"` to give each agent an isolated copy of the repository
 
 ### Prompt Composition Template
 
@@ -128,6 +129,7 @@ When spawning a specialist agent, compose the prompt in this structure:
 
 ```
 Agent(
+  description: "<3-5 word task summary>",
   subagent_type: "general-purpose",
   model: "<from roster table: sonnet, opus, or haiku>",
   prompt: """
@@ -155,6 +157,8 @@ Your Role ID is `[role-id]`. Stay strictly within your defined scope — do not 
 The role identity block at the top is critical — it tells the general-purpose agent which specialist it's acting as, establishing scope boundaries and behavioral expectations before the reference file content fills in the details.
 
 **Why general-purpose?** Claude Code's available subagent_types include: `general-purpose` (full toolset), `Explore` (read-only), `Plan` (planning). Only `general-purpose` has the full toolset (read, edit, bash, search) needed for most specialists. For read-only specialists (Code Reviewer, System Analyzer, Security), `general-purpose` is still preferred because it provides bash access needed for running analysis commands.
+
+**Note on reference file frontmatter:** The `tools` field in each specialist's reference file (e.g., `tools: ["Read", "Glob", "Grep", "Bash"]`) is informational only — it documents which tools the specialist is expected to use. It does not restrict the agent's actual toolset. All `general-purpose` agents receive the full toolset automatically from Claude Code.
 
 ### What Context to Pass Between Agents
 

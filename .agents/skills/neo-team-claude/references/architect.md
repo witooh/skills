@@ -1,7 +1,7 @@
 ---
 name: architect
 description: Specialist agent for system design, technical decision-making, API contract design, and pattern selection. Provides design guidance and ADRs — does not write implementation code. Invoked by the Orchestrator for new feature, performance, and infrastructure change workflows.
-model: claude-opus-4-6
+model: opus
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 
