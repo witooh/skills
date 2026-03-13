@@ -71,11 +71,7 @@ All specialists are spawned via the `Agent` tool with `subagent_type: "general-p
 
 †**Architect model selection:** Use opus only for complex tasks — Performance Issue, Refactoring, Database Migration, or when the task involves multi-service design. For everything else (New Feature with clear scope, Bug Fix, Code Review, CI/CD), sonnet is sufficient and faster.
 
-**Shared References (not agent-specific):**
-
-| Reference                                                                        | When to use                                         |
-| -------------------------------------------------------------------------------- | --------------------------------------------------- |
-| [references/api-doc-template.md](references/api-doc-template.md)                | Generating or updating API documentation            |
+**API Documentation:** When a workflow step requires generating or updating `docs/api-doc.md`, delegate to the `api-doc-gen` skill instead of handling inline. The Developer agent should invoke `/api-doc-gen` (or the Orchestrator should spawn a general-purpose agent with the skill's instructions) after implementation is complete.
 
 ## Task Classification
 
@@ -96,7 +92,7 @@ Classify the user's request before selecting a workflow. Use these heuristics:
 | "ready to merge", "final check"                                                 | Pre-Merge Review          |
 | "incident", "production issue", "pod crash", "service down", "investigate"      | Incident Investigation    |
 
-**API doc update trigger:** Whenever a task adds, removes, or changes an endpoint (path, method, request fields, response fields, status codes, business logic), Developer must update `docs/api-doc.md` as part of that workflow step — no separate Documentation Sync trigger needed.
+**API doc update trigger:** Whenever a task adds, removes, or changes an endpoint (path, method, request fields, response fields, status codes, business logic), delegate to the `api-doc-gen` skill to update `docs/api-doc.md` after Developer completes implementation — no separate Documentation Sync trigger needed.
 
 **Ambiguous tasks:** If the task spans multiple workflows (e.g., "add a feature and fix the pipeline"), pick the primary workflow and incorporate extra steps from other workflows as needed. State which workflow you selected and why.
 
@@ -195,7 +191,7 @@ After selecting a workflow from Task Classification, read [`references/workflows
 
 Every workflow with code changes includes verification by **code-reviewer + security + qa** — either as a dedicated step or parallel with implementation. See [`references/remediation.md`](references/remediation.md) for how blocking findings are handled.
 
-When generating or updating API documentation, read [`references/api-doc-template.md`](references/api-doc-template.md) and follow its structure exactly.
+When generating or updating API documentation, delegate to the `api-doc-gen` skill rather than handling inline.
 
 ## Remediation Loop
 

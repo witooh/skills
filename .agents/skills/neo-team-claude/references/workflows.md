@@ -9,7 +9,7 @@ Simple task (merged BA+Architect):
 1. architect           → clarify requirements AND design contract in one step
 2. developer + qa      → implement code AND write test specs (PARALLEL)
    To developer: Architect's design + acceptance criteria
-                [If task adds/changes API endpoints: also update docs/api-doc.md using api-doc-template.md]
+                [If task adds/changes API endpoints: delegate to `api-doc-gen` skill to update docs/api-doc.md]
    To qa: Architect's API contracts + acceptance criteria
 3. code-reviewer + security → check conventions AND security (PARALLEL)
    To both: Developer's changed files list
@@ -21,7 +21,7 @@ Complex task (separate BA+Architect):
    Context: BA's user stories + acceptance criteria + business rules
 3. developer + qa      → implement code AND write test specs (PARALLEL)
    To developer: Architect's design + BA's acceptance criteria
-                [If task adds/changes API endpoints: also update docs/api-doc.md using api-doc-template.md]
+                [If task adds/changes API endpoints: delegate to `api-doc-gen` skill to update docs/api-doc.md]
    To qa: Architect's API contracts + BA's acceptance criteria
 4. code-reviewer + security → check conventions AND security (PARALLEL)
    To both: Developer's changed files list
@@ -34,7 +34,7 @@ Complex task (separate BA+Architect):
 1. system-analyzer     → diagnose root cause
 2. developer + qa + code-reviewer + security → implement fix AND write regression test AND check conventions AND security (4-WAY PARALLEL)
    To developer: System Analyzer's root cause + affected files/lines
-                [If fix changes API request/response shape: also update docs/api-doc.md using api-doc-template.md]
+                [If fix changes API request/response shape: delegate to `api-doc-gen` skill to update docs/api-doc.md]
    To qa: Developer's task description + original bug description + System Analyzer's findings
    To code-reviewer: affected files from System Analyzer
    To security: affected files from System Analyzer
@@ -48,7 +48,7 @@ Complex task (separate BA+Architect):
 2. Route based on Root Cause Type:
    ├── Code Bug → developer + qa (PARALLEL)
    │   To developer: Incident Investigator's root cause + evidence chain + affected files/lines
-   │                 [If fix changes API: also update docs/api-doc.md using api-doc-template.md]
+   │                 [If fix changes API: delegate to `api-doc-gen` skill to update docs/api-doc.md]
    │   To qa: Incident Investigator's findings + bug description for regression test
    ├── Infrastructure Problem → devops
    │   To devops: Incident Investigator's infra findings + ArgoCD/K8s evidence
@@ -119,7 +119,7 @@ Complex task (separate BA+Architect):
 1. architect           → review current design, propose target structure (use opus for this workflow)
 2. developer + qa      → implement refactoring AND verify no regression (PARALLEL)
    Context: Architect's target structure
-   [If refactoring changes API contracts (path, method, request/response shape): Developer also updates docs/api-doc.md using api-doc-template.md]
+   [If refactoring changes API contracts (path, method, request/response shape): delegate to `api-doc-gen` skill to update docs/api-doc.md]
 3. code-reviewer + security → check compliance AND security (PARALLEL)
    Context: Developer's changed files
 4. [REMEDIATION if step 3 has Blocker/Critical or QA Blocked]
@@ -141,14 +141,14 @@ Complex task (separate BA+Architect):
 ```
 1. developer           → identify code changes that affect docs
 2. architect           → update docs/solution-design.md
-                         If updating API docs (e.g. docs/api-doc.md), read references/api-doc-template.md first
+                         If updating API docs (e.g. docs/api-doc.md), delegate to `api-doc-gen` skill
    Context: Developer's findings
 3. qa + code-reviewer + security → verify docs match implementation, check conventions, AND security (ALL PARALLEL)
    Context: Architect's updated docs
 4. [REMEDIATION if step 3 has Blocker/Critical or QA Blocked]
 ```
 
-When generating or updating API documentation, the Architect (or Developer) must read [`api-doc-template.md`](api-doc-template.md) and follow its structure exactly — endpoint layout, field table columns, Business Logic section, and Error Responses format. This ensures all API docs across services look consistent.
+When generating or updating API documentation, delegate to the `api-doc-gen` skill which handles scanning code, following the standardized template, and producing consistent docs across services.
 
 ## Pre-Merge Review
 
