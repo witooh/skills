@@ -45,17 +45,17 @@ All specialists are spawned via the `task` tool with `agent_type: "general-purpo
 
 | Specialist            | Role ID                 | Model                                      | Reference                                                                  | Role                                           |
 | --------------------- | ----------------------- | ------------------------------------------ | -------------------------------------------------------------------------- | ---------------------------------------------- |
-| Architect             | `architect`             | claude-sonnet-4 (claude-opus-4 for complex†) | [references/architect.md](references/architect.md)                       | System design, API contracts, ADRs             |
+| Architect             | `architect`             | claude-sonnet-4.6 (claude-opus-4.6 for complex†) | [references/architect.md](references/architect.md)                       | System design, API contracts, ADRs             |
 | Business Analyst      | `business-analyst`      | claude-haiku-4.5                           | [references/business-analyst.md](references/business-analyst.md)           | Requirements, acceptance criteria, edge cases  |
-| Code Reviewer         | `code-reviewer`         | **claude-opus-4**                          | [references/code-reviewer.md](references/code-reviewer.md)                 | Convention compliance (read-only)              |
-| Developer             | `developer`             | claude-sonnet-4                            | [references/developer.md](references/developer.md)                         | Implement features, fix bugs, unit tests       |
-| DevOps                | `devops`                | claude-sonnet-4                            | [references/devops.md](references/devops.md)                               | Docker, GitLab CI/CD                           |
-| QA                    | `qa`                    | claude-sonnet-4                            | [references/qa.md](references/qa.md)                                       | Test design, quality review, E2E tests         |
-| Security              | `security`              | claude-sonnet-4                            | [references/security.md](references/security.md)                           | Security review, secrets detection             |
-| System Analyzer       | `system-analyzer`       | claude-sonnet-4                            | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues, trace root causes (read-only) |
-| Incident Investigator | `incident-investigator` | claude-sonnet-4                            | [references/incident-investigator.md](references/incident-investigator.md) | Investigate live systems (read-only)           |
+| Code Reviewer         | `code-reviewer`         | **claude-opus-4.6**                        | [references/code-reviewer.md](references/code-reviewer.md)                 | Convention compliance (read-only)              |
+| Developer             | `developer`             | claude-sonnet-4.6                          | [references/developer.md](references/developer.md)                         | Implement features, fix bugs, unit tests       |
+| DevOps                | `devops`                | claude-sonnet-4.6                          | [references/devops.md](references/devops.md)                               | Docker, GitLab CI/CD                           |
+| QA                    | `qa`                    | claude-sonnet-4.6                          | [references/qa.md](references/qa.md)                                       | Test design, quality review, E2E tests         |
+| Security              | `security`              | claude-sonnet-4.6                          | [references/security.md](references/security.md)                           | Security review, secrets detection             |
+| System Analyzer       | `system-analyzer`       | claude-sonnet-4.6                          | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues, trace root causes (read-only) |
+| Incident Investigator | `incident-investigator` | claude-sonnet-4.6                          | [references/incident-investigator.md](references/incident-investigator.md) | Investigate live systems (read-only)           |
 
-†**Architect model selection:** Use claude-opus-4 only for complex tasks — Performance Issue, Refactoring, Database Migration, or when the task involves multi-service design. For everything else (New Feature with clear scope, Bug Fix, Code Review, CI/CD), claude-sonnet-4 is sufficient and faster.
+†**Architect model selection:** Use claude-opus-4.6 only for complex tasks — Performance Issue, Refactoring, Database Migration, or when the task involves multi-service design. For everything else (New Feature with clear scope, Bug Fix, Code Review, CI/CD), claude-sonnet-4.6 is sufficient and faster.
 
 **Shared References (not agent-specific):**
 
@@ -116,7 +116,8 @@ When spawning a specialist agent, compose the prompt in this structure. Since Co
 task(
   description: "<3-5 word summary of what the specialist will do>",
   agent_type: "general-purpose",
-  model: "<from roster table, e.g. claude-sonnet-4>",
+  model: "<from roster table, e.g. claude-sonnet-4.6>",
+  mode: "background",  // Use background for Developer to enable write_agent remediation
   prompt: """
 # Role: [Specialist Name]
 

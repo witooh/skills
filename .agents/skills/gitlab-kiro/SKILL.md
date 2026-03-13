@@ -1,15 +1,15 @@
 ---
 name: gitlab-kiro
 description: >
-  Interact with GitLab via the glab CLI. Supports three MR workflows — Read (summarize),
-  Review (full code/security/QA review), and Fix (review + implement). Trigger whenever the
-  user provides a GitLab MR URL or says anything like "อ่าน MR", "ดู MR", "check MR",
-  "review MR", "ช่วย review MR นี้", "ตรวจ MR", "แก้ตาม MR", "fix MR", or just pastes a
-  GitLab MR URL. Also supports listing MRs, viewing MR status, checking CI/CD pipelines,
-  approving MRs, and other glab operations. Trigger on "check pipeline", "list open MRs",
-  or any GitLab-related task. When the user wants to fix issues from a MR — e.g. "แก้ตาม MR นี้",
-  "fix MR", "แก้ issue ตาม MR", "แก้ MR <url>", "แก้ตาม review" — run the MR Fix workflow
-  (review then ask user to invoke /neo-team-kiro for implementation).
+  Interact with GitLab via the glab CLI. Supports five MR workflows — Read (summarize),
+  Review (full code/security/QA review), Fix (review + implement), CI Fix (fix pipeline failures),
+  and Feedback (address review comments). Trigger whenever the user provides a GitLab MR URL
+  or says anything like "อ่าน MR", "ดู MR", "check MR", "review MR", "ช่วย review MR นี้",
+  "ตรวจ MR", "แก้ตาม MR", "fix MR", "fix CI", "fix pipeline", "แก้ pipeline",
+  "แก้ตาม comment", "แก้ตาม feedback", "address feedback", or just pastes a GitLab MR URL.
+  Also supports listing MRs, viewing MR status, checking CI/CD pipelines, approving MRs,
+  and other glab operations. Trigger on "check pipeline", "list open MRs", "pipeline failed",
+  or any GitLab-related task.
 compatibility:
   environment: kiro-cli
   tools:
@@ -22,7 +22,7 @@ metadata:
 
 # GitLab Skill (Kiro CLI)
 
-Use the `glab` CLI to interact with GitLab. Supports three MR workflows (Read → Review → Fix) plus general glab operations.
+Use the `glab` CLI to interact with GitLab. Supports five MR workflows (Read → Review → Fix → CI Fix → Feedback) plus general glab operations.
 
 ## URL Parsing
 
@@ -35,18 +35,22 @@ These two values power most glab commands: `glab mr <cmd> <mr_id> --repo <repo_r
 
 ## Intent Detection
 
-When given a GitLab MR URL, determine the user's intent before selecting a workflow. There are three distinct workflows — **Read** is the lightest (just summarize), **Review** runs full specialist agents, and **Fix** reviews then implements changes. Default to Read when no strong signal indicates the user wants a full review or fix.
+When given a GitLab MR URL, determine the user's intent before selecting a workflow. There are five distinct workflows — **Read** is the lightest (just summarize), **Review** runs full specialist agents, **Fix** reviews then implements, **CI Fix** targets pipeline failures, and **Feedback** addresses reviewer comments. Default to Read when no strong signal indicates the user wants more.
 
 | Signal in User Request | Workflow |
 |------------------------|----------|
 | "อ่าน", "ดู", "check", "สรุป", "summary", bare URL with no action verb | **MR Read** — fetch MR info + diff, then summarize. No specialist agents. |
 | "review", "ตรวจ", "ช่วย review", "review ให้หน่อย" | **MR Review** — full code/security/QA review via 3 parallel specialist agents, post findings as comment |
 | "แก้", "fix", "แก้ตาม", "แก้ issue", "implement", "ทำตาม" | **MR Fix** — review first, then ask user to invoke /neo-team-kiro to implement fixes |
+| "fix CI", "fix pipeline", "แก้ pipeline", "pipeline fail", "CI fail", "build fail" | **MR CI Fix** — fetch failed job logs, analyze, ask user to invoke /neo-team-kiro to fix |
+| "address feedback", "แก้ตาม comment", "แก้ตาม feedback", "resolve threads", "ตอบ review" | **MR Feedback** — parse unresolved review threads, implement fixes, resolve |
 
 **Decision rule:**
-1. If the user's message contains a fix/แก้ keyword → **MR Fix**
-2. If the user's message explicitly says "review" or "ตรวจ" → **MR Review**
-3. Everything else (bare URL, "อ่าน", "ดู", "check", "สรุป", or ambiguous) → **MR Read** (lightest option, no side effects)
+1. If the user's message mentions CI/pipeline failure → **MR CI Fix**
+2. If the user's message mentions feedback/comments to address → **MR Feedback**
+3. If the user's message contains a fix/แก้ keyword (not CI/feedback-specific) → **MR Fix**
+4. If the user's message explicitly says "review" or "ตรวจ" → **MR Review**
+5. Everything else (bare URL, "อ่าน", "ดู", "check", "สรุป", or ambiguous) → **MR Read** (lightest option, no side effects)
 
 ---
 
@@ -279,6 +283,236 @@ The comment should follow this format:
 
 ---
 
+## MR CI Fix Workflow
+
+When the user wants to fix CI/pipeline failures for a MR, run this pipeline:
+
+```
+1. Fetch MR info and pipeline status
+2. Identify failed jobs and fetch logs
+3. Analyze failures and categorize
+4. Ask user to invoke /neo-team-kiro to implement fixes
+5. Push fix and optionally retry pipeline
+```
+
+### Step 1: Fetch MR + Pipeline Status
+
+```bash
+glab mr view <mr_id> --repo <repo_ref> --output json
+glab ci list --repo <repo_ref> --branch <source_branch>
+```
+
+Extract MR metadata and identify the latest pipeline. If the MR URL wasn't provided but the user mentions a branch or "fix pipeline", use `glab ci status` to find the current pipeline.
+
+### Step 2: Get Failed Job Logs
+
+```bash
+# List jobs in the failed pipeline:
+glab ci view <pipeline_id> --repo <repo_ref>
+
+# Fetch logs for each failed job:
+glab ci trace <job_id> --repo <repo_ref>
+```
+
+Collect the last ~100 lines of each failed job's log output. These contain the actual error messages.
+
+### Step 3: Analyze Failures
+
+Categorize each failure:
+
+| Category | Examples | Typical Fix |
+|----------|----------|-------------|
+| Build failure | Compilation errors, missing imports, type errors | Fix source code |
+| Test failure | Unit/integration/E2E test failures | Fix code or update tests |
+| Lint failure | Style violations, formatting issues | Run formatter, fix violations |
+| Config failure | Docker build, missing env vars, bad CI config | Fix config files |
+
+Present a summary to the user before proceeding:
+
+```
+## CI Failure Analysis
+
+**Pipeline:** #<pipeline_id> — <status>
+**Branch:** <source_branch>
+
+### Failed Jobs
+1. [Build] job-name — CompilationError: missing import "pkg/util"
+2. [Test] test-unit — FAIL TestUserCreate: expected 200, got 500
+
+Proceed to fix?
+```
+
+### Step 4: Ask User to Invoke /neo-team-kiro
+
+Since Kiro CLI does not have programmatic skill invocation, ask the user to load the neo-team-kiro skill:
+
+```
+กรุณาเรียก /neo-team-kiro แล้ว paste context ด้านล่างนี้:
+
+แก้ไข CI/pipeline failures จาก MR
+
+## CI Failure Context
+**MR:** !<mr_id> — <mr_title>
+**Branch:** <source_branch>
+**Pipeline:** #<pipeline_id>
+
+### Failed Jobs
+<for each failed job:>
+- **Job:** <job_name> (stage: <stage>)
+- **Category:** <Build|Test|Lint|Config>
+- **Error:** <relevant error excerpt from logs>
+
+## Instructions
+- Fix all failing jobs
+- Run the failing commands locally to verify fixes before pushing
+- Do NOT change CI configuration unless the config itself is the problem
+- If a test failure reveals a genuine bug, fix the code (not the test)
+```
+
+/neo-team-kiro will classify this as a **Bug Fix** workflow and route through system-analyzer → developer → verification agents.
+
+### Step 5: Push and Retry
+
+After /neo-team-kiro completes (user returns to this conversation):
+
+```bash
+git push origin <source_branch>
+glab ci retry <pipeline_id> --repo <repo_ref>
+```
+
+Post a summary comment on the MR:
+
+```bash
+glab mr note <mr_id> --repo <repo_ref> -m "<summary>"
+```
+
+Summary format:
+
+```
+## 🤖 CI Fix Summary
+
+**MR:** !<mr_id> — <mr_title>
+**Pipeline:** #<pipeline_id>
+
+### สิ่งที่แก้ไข
+- ✅ [Build] job-name — fixed missing import
+- ✅ [Test] test-unit — fixed handler returning wrong status code
+
+### Pipeline
+🔄 Retry triggered — pipeline #<new_pipeline_id>
+
+---
+*CI Fix โดย GitLab Skill + Neo Team · Kiro CLI*
+```
+
+---
+
+## MR Feedback Workflow
+
+When the user wants to address review feedback/comments on a MR, parse unresolved threads and implement fixes.
+
+```
+1. Fetch MR info, diff, and all comments/discussions
+2. Filter and group unresolved feedback
+3. Ask user to invoke /neo-team-kiro with structured feedback
+4. Push fix, post summary, and resolve threads
+```
+
+### Step 1: Fetch
+
+```bash
+glab mr view <mr_id> --repo <repo_ref> --output json
+glab mr diff <mr_id> --repo <repo_ref>
+glab mr note list <mr_id> --repo <repo_ref>
+```
+
+### Step 2: Parse Unresolved Feedback
+
+From the notes/comments, identify:
+- **Actionable feedback** — explicit change requests ("fix this", "add error handling", "rename to X")
+- **Suggestions** — optional improvements ("consider using...", "might be better to...")
+- **Questions** — need user input before acting ("why did you choose X?", "should this handle Y?")
+
+Group by file and classify:
+
+```
+### Unresolved Feedback
+
+#### file: src/handler.go
+1. @reviewer1: "Missing error handling on line 42" — Actionable
+2. @reviewer2: "Consider using context.WithTimeout" — Suggestion
+
+#### file: src/service.go
+1. @reviewer1: "N+1 query in GetUsers" — Actionable
+
+#### Questions (need user input)
+1. @reviewer1: "Should this endpoint support pagination?"
+```
+
+**If there are questions**, present them to the user before proceeding. The user's answers become part of the context for /neo-team-kiro.
+
+### Step 3: Ask User to Invoke /neo-team-kiro
+
+```
+กรุณาเรียก /neo-team-kiro แล้ว paste context ด้านล่างนี้:
+
+แก้ไขโค้ดตาม review feedback จาก MR
+
+## Feedback Context
+**MR:** !<mr_id> — <mr_title>
+**Branch:** <source_branch> → <target_branch>
+
+### Actionable Feedback
+<list of actionable items with file, line, reviewer, and description>
+
+### Suggestions
+<list of suggestions — implement where practical>
+
+### User Answers to Questions
+<answers from Step 2, if any>
+
+### MR Diff
+<current diff for context>
+
+## Instructions
+- Address ALL actionable feedback items
+- Implement suggestions where practical; explain in summary if skipped
+- Run existing tests after changes
+- Do not modify code unrelated to the feedback
+```
+
+### Step 4: Push, Post Summary, and Resolve
+
+After fixes are applied (user returns to this conversation):
+
+```bash
+git push origin <source_branch>
+glab mr note <mr_id> --repo <repo_ref> -m "<summary>"
+```
+
+Summary format:
+
+```
+## 🤖 Feedback Addressed
+
+**MR:** !<mr_id> — <mr_title>
+
+### สิ่งที่แก้ไข
+- ✅ src/handler.go:42 — เพิ่ม error handling ตาม @reviewer1
+- ✅ src/service.go:15 — แก้ N+1 query ตาม @reviewer1
+- ✅ src/handler.go:58 — ใช้ context.WithTimeout ตาม @reviewer2
+- ⏭️ src/config.go:10 — skipped: ไม่เกี่ยวกับ scope ของ MR นี้
+
+### ผลลัพธ์
+- Actionable: X/Y แก้แล้ว
+- Suggestions: X/Y implemented
+
+---
+*Feedback addressed โดย GitLab Skill + Neo Team · Kiro CLI*
+```
+
+---
+
 ## Common glab Operations
 
 Use these directly via `execute_bash` when the user asks for something other than a full review:
@@ -301,3 +535,4 @@ For `--repo`, you can omit it if you're already inside the project directory (gl
 - **glab command fails**: output the review as conversation text instead of posting, explain what failed
 - **Empty diff**: note that the MR has no file changes and skip the review agents
 - **Large diff (>500 lines)**: warn the user, proceed but note the review may miss details
+- **Large single-line files** (minified JS, large JSON): the view tool now shows partial content — note this in the review if such files are part of the diff

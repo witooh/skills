@@ -1,7 +1,7 @@
 ---
 name: incident-investigator
 description: Specialist agent for investigating production incidents by gathering evidence from live systems (Kubernetes, PostgreSQL, ArgoCD, Docker) and tracing root causes back to code. Read-only — never modifies code or infrastructure. Invoked by the Orchestrator for incident investigation workflows.
-model: claude-sonnet-4-6
+model: claude-sonnet-4.6
 tools: ["Bash", "Read", "Glob", "Grep"]
 ---
 
