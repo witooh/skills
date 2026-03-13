@@ -44,6 +44,22 @@ When the user's criteria are vague, suggest concrete alternatives based on the o
 | More engaging | Opens with a hook, uses concrete examples, varies sentence length |
 | Shorter | Under N words while preserving all key information |
 
+**Data/Config:**
+
+| User Says | Suggest Instead |
+|---|---|
+| Fix this config | Validates against schema, no missing required fields, no deprecated keys |
+| Make it consistent | Uniform naming convention, consistent indentation, sorted keys |
+| More secure | No hardcoded secrets, least-privilege permissions, no wildcard access |
+
+**Design/Visual (CSS/HTML/Templates):**
+
+| User Says | Suggest Instead |
+|---|---|
+| Looks messy | Consistent spacing, aligned elements, clear visual hierarchy |
+| Not accessible | WCAG 2.1 AA compliant: contrast ratio >= 4.5:1, alt text, keyboard nav |
+| Make it responsive | Works at 320px-1920px without horizontal scroll or overlapping elements |
+
 ---
 
 ## Capturing Baseline
