@@ -52,7 +52,7 @@ When given a GitLab MR URL, determine the user's intent before selecting a workf
 
 ## Specialist Reference Files
 
-This skill delegates review work to three specialist agents. Their detailed instructions live in the neo-team-kiro skill's reference files. Before spawning review agents, read these files with `read`:
+This skill delegates review work to three specialist agents. Their detailed instructions live in the neo-team-kiro skill's reference files. Before spawning review agents, read these files with `fs_read`:
 
 | Specialist | Reference File |
 |------------|---------------|
@@ -281,7 +281,7 @@ The comment should follow this format:
 
 ## Common glab Operations
 
-Use these directly via `shell` when the user asks for something other than a full review:
+Use these directly via `execute_bash` when the user asks for something other than a full review:
 
 | Task | Command |
 |------|---------|

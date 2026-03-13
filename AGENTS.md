@@ -311,11 +311,16 @@ Some skills have **platform-specific variants** that must be kept in sync across
 
 | Capability     | Claude Code          | Copilot CLI                | Kiro CLI                        |
 | -------------- | -------------------- | -------------------------- | ------------------------------- |
-| Shell exec     | `Bash`               | `bash`                     | `shell`                         |
-| Read file      | `Read`               | `view`                     | `read`                          |
+| Shell exec     | `Bash`               | `bash`                     | `execute_bash`                  |
+| Read file      | `Read`               | `view`                     | `fs_read`                       |
+| Write file     | `Write`              | `edit`/`create`            | `fs_write`                      |
 | Ask user       | `AskUserQuestion`    | `ask_user`                 | plain text                      |
-| Sub-agent      | `Agent`              | `task`                     | `InvokeSubagents`                 |
-| Web search     | `WebSearch`           | `web_search`               | `WebSearch`                     |
+| Sub-agent      | `Agent`              | `task`                     | `use_subagent`                  |
+| Web search     | `WebSearch`           | `web_search`               | `web_search`                    |
+| Web fetch      | -                    | `web_fetch`                | `web_fetch`                     |
+| Glob           | `Glob`               | `glob`                     | `glob`                          |
+| Grep           | `Grep`               | `grep`                     | `grep`                          |
+| Code intel     | -                    | -                          | `code`                          |
 | Invoke skill   | ❌ (user `/skill`)    | `skill()`                  | ❌ (user `/skill`)              |
 | Model select   | ✅ sonnet/opus/haiku  | ✅ full model names         | ❌ default model only           |
 

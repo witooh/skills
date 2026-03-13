@@ -12,7 +12,7 @@ description: >
 compatibility:
   environment: claude-code, copilot-cli, kiro-cli
   tools:
-    - Bash (fallback: bash, shell)
+    - Bash (fallback: bash, execute_bash)
 metadata:
   version: "1.0"
 ---
@@ -21,7 +21,7 @@ metadata:
 
 Use `acli` (installed at `/opt/homebrew/bin/acli`) to interact with Jira and Confluence from the terminal.
 
-> **Shell tool mapping:** Claude Code → `Bash`, Copilot CLI → `bash`, Kiro CLI → `shell`. All commands below should be executed via your platform's shell execution tool.
+> **Shell tool mapping:** Claude Code → `Bash`, Copilot CLI → `bash`, Kiro CLI → `execute_bash`. All commands below should be executed via your platform's shell execution tool.
 
 ## Authentication
 
