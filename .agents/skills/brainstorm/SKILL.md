@@ -3,9 +3,7 @@ name: brainstorm
 description: >-
   ALWAYS use this skill before answering brainstorming, ideation, prompt crafting, or open-ended exploration requests.
   Transforms vague requests into actionable outputs via adaptive guided questioning — triages into Prompt Mode (craft/improve prompts), Explore Mode (brainstorm ideas), or Focused Mode (specific problem strategies).
-  Trigger when user says: "brainstorm", "ช่วยคิด", "help me think", "I have an idea", "improve this prompt", "let's explore", "I want to build", "I'm thinking about", "brainstorm วิธี", "ช่วยคิดหน่อย", "อยากทำ", "ยังไม่รู้จะทำอะไร", "not sure about the approach", "help me figure out", "what should I".
-  Also trigger for: side projects, career decisions, project planning, migration strategies, architecture decisions, cost optimization, or any request where the user hasn't decided direction yet and would benefit from structured discovery.
-  Do NOT skip — this skill adapts depth automatically (2-7 questions) and produces BETTER results by asking targeted questions first.
+  Trigger when user says: "brainstorm", "ช่วยคิด", "help me think", "I have an idea", "improve this prompt", "let's explore", "I want to build", "I'm thinking about", "brainstorm วิธี", "ช่วยคิดหน่อย", "อยากทำ", "ยังไม่รู้จะทำอะไร", "not sure about the approach", "help me figure out", "what should I". Also trigger for: side projects, career decisions, project planning, migration strategies, architecture decisions, cost optimization, or any request where the user hasn't decided direction yet and would benefit from structured discovery. Do NOT skip — adapts depth automatically (2-7 questions) and produces BETTER results by asking targeted questions first.
 compatibility:
   environment: claude-code, copilot-cli, kiro-cli
   tools:
@@ -13,7 +11,7 @@ compatibility:
     - WebSearch
     - Agent (fallback: use_subagent, task, inline)
 metadata:
-  version: "2.1"
+  version: "2.2"
 ---
 
 # Brainstorm
@@ -32,15 +30,29 @@ Transform vague ideas into precise, actionable outputs through adaptive structur
 
 | Tool | Purpose |
 |------|---------|
-| `AskUserQuestion` | Ask the user ONE question at a time. Claude Code: native `AskUserQuestion` with `options`. Copilot: `ask_user` with `choices`. Kiro/other: plain text with numbered options. |
+| `AskUserQuestion` | Ask the user ONE question at a time. Claude Code: native `AskUserQuestion` with `options` (see **AskUserQuestion Usage** below). Copilot: `ask_user` with `choices`. Kiro/other: plain text with numbered options. |
 | `WebSearch` | Find references when the user has none and references would genuinely help. Claude Code: `WebSearch`. Copilot/Kiro: `web_search`. |
 | `Agent` | Delegate to Plan subagent. Claude Code: `Agent(subagent_type: "Plan")`. Copilot: `task(agent_type: "general-purpose")` + `# Role: Planner` block. Kiro: `use_subagent`. Fallback: create plan inline. |
+
+### AskUserQuestion Usage
+
+Use **one question per call** even though the API supports up to 4 — multiple questions get shallow answers.
+
+Each question requires:
+- `question`: Clear question text ending with `?`
+- `header`: Short label (max 12 chars) displayed as a chip, e.g. `"Goal"`, `"Priority"`, `"Approach"`
+- `options`: Array of 2-4 choices — each with `label` (1-5 words) and `description` (explains trade-offs). "Other" is added automatically — do not include one.
+- `multiSelect`: Set to `true` only when choices are not mutually exclusive. Omit otherwise (defaults to `false`).
+
+Put your recommended option first and append `"(Recommended)"` to its label.
+
+**Example:** `{"questions": [{"question": "Which matters more?", "header": "Priority", "options": [{"label": "Speed (Recommended)", "description": "Ship fast, iterate later"}, {"label": "Quality", "description": "Get it right the first time"}]}]}`
 
 ## Core Principles
 
 1. **Don't answer before you understand.** The urge to help immediately produces generic output. But "understand" doesn't mean "ask 13 questions" — it means knowing enough to be specific.
 2. **One question at a time via tool.** Multiple questions get shallow answers. Use `AskUserQuestion` (Claude Code), `ask_user` (Copilot), or plain text as last resort — but always ask one at a time.
-3. **Prefer multiple choice.** Provide an `options` array when the answer space is predictable. Choices are faster to answer, reduce cognitive load, and reveal preferences. Use open-ended only when the answer truly can't be predicted.
+3. **Prefer multiple choice.** Provide options when the answer space is predictable. Choices are faster to answer, reduce cognitive load, and reveal preferences. Use open-ended only when the answer truly can't be predicted.
 4. **Mirror the user's language.** Don't introduce jargon they didn't use.
 5. **Ask about life, not the domain.** Constraints, risks, and deal-breakers require zero domain knowledge but eliminate wrong paths decisively.
 6. **Never re-ask what's already known.** Track information from the initial prompt and all answers.
@@ -65,7 +77,7 @@ Before asking any questions, read the user's request and classify it into one of
 ### Focused Mode
 **When:** User has a specific problem with existing context and wants strategies or recommendations.
 **Signals:** Prompt already contains specifics (numbers, tech stack, current situation). User says "brainstorm วิธี...", "how to reduce...", "what's the best approach to..."
-**Flow:** Targeted discovery (2–4 questions) — only ask about genuine unknowns, skip what's already stated
+**Flow:** Targeted discovery (0–2 questions) — only ask about genuine unknowns, skip what's already stated
 **Output:** Actionable strategies/recommendations with priorities and estimated impact
 
 ## Workflow by Mode
@@ -84,7 +96,7 @@ The most thorough path. Use all phases when the user needs a well-crafted prompt
 
 **Phase 3 — Direction:** What must NOT happen? What approaches exist? Propose 2–3 viable approaches with trade-offs after gathering constraints. Lead with your recommendation. (1–2 questions + proposal)
 
-**Phase 4 — Reference (optional):** Only if references would genuinely help (e.g., style/design requests). Ask if they have examples. If none and it would help, use `WebSearch`. Skip entirely for straightforward requests. (0–1 questions)
+**Phase 4 — Reference (optional):** Only if references would genuinely help (e.g., style/design requests). Ask if they have examples. If none and it would help, use `WebSearch`. If search returns poor or no results, tell the user and ask whether to proceed without references or try different search terms. Skip entirely for straightforward requests. (0–1 questions)
 
 **Phase 5 — Context:** Surface practical constraints: time, budget, skills, team, environment. Flag contradictions with the goal gently. (1–2 questions)
 
@@ -117,7 +129,7 @@ Present it and ask: *"Does this capture what you need? Anything to adjust?"* Ite
 
 For open-ended brainstorming where the user wants ideas, not a prompt.
 
-**Phase 1 — Receive + Quick Goal:** Acknowledge, then ask ONE question combining goal + motivation. Example: *"What draws you to this — learning, earning, solving a personal problem, or something else?"* (1 question)
+**Phase 1 — Receive + Quick Goal:** Acknowledge, then ask ONE question combining goal + motivation via the questioning tool (see Tools table) with options like: Learning / Earning / Solving a problem / Building portfolio. (1 question)
 
 **Phase 2 — Constraints:** Ask about deal-breakers and practical limits in 1–2 questions. Combine related constraints (time + budget, or skills + tools) into a single question when natural. (1–2 questions)
 

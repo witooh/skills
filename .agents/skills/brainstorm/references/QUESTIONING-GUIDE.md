@@ -2,7 +2,7 @@
 
 Detailed patterns for each discovery phase across all three modes. Read this file when executing the brainstorm workflow to understand the intent, techniques, and examples for each phase.
 
-**Important:** Always use `AskUserQuestion` to ask questions — never embed questions in plain text output. When the answer space is predictable, provide an `options` array for faster UX.
+**Important:** Always use `AskUserQuestion` (Claude Code), `ask_user` (Copilot), or plain text with numbered options (Kiro) — never embed questions in unstructured text output. See SKILL.md's **AskUserQuestion Usage** section for the Claude Code call schema.
 
 ---
 
@@ -17,9 +17,9 @@ Detailed patterns for each discovery phase across all three modes. Read this fil
 - How would you know this succeeded? What does "done" look like?
 - Who benefits from this and how?
 
-**Prefer multiple choice when the answer space is predictable:**
-- "Which matters more to you?" → A) Speed of delivery B) Quality of result C) Cost efficiency
-- "What does success look like?" → A) Revenue target B) User growth C) Personal learning
+**Prefer structured options when the answer space is predictable:**
+- "Which matters more to you?" → Speed / Quality / Cost efficiency
+- "What does success look like?" → Revenue target / User growth / Personal learning
 
 **Techniques:**
 - If the goal is vague ("I want to make money"), ask what "enough" looks like in concrete terms.
@@ -47,7 +47,7 @@ Detailed patterns for each discovery phase across all three modes. Read this fil
 **Proposing approaches:** After collecting constraints, propose 2–3 viable approaches:
 - Lead with your recommended option and explain why
 - Include trade-offs for each (what you gain vs. what you give up)
-- Frame as multiple choice: "Given your constraints, I see these paths: A) ... B) ... C) ... I'd recommend A because [reason]. Which resonates?"
+- Frame as structured options with recommended first: Option A (Recommended) / Option B / Option C — each with a description explaining trade-offs
 
 **Exit criteria:** At least 2 constraints that meaningfully narrow the solution space, AND the user has selected from proposed approaches.
 
@@ -70,6 +70,7 @@ Detailed patterns for each discovery phase across all three modes. Read this fil
 **If included (1 question max):**
 - Ask if they have examples. If yes, ask what they like about them.
 - If no, and references would genuinely help, use `WebSearch` to find 2–3 relevant ones.
+- If search returns poor or no results, inform the user and ask: proceed without references, or try different search terms?
 
 ---
 
@@ -113,9 +114,9 @@ Detailed patterns for each discovery phase across all three modes. Read this fil
 
 **Intent:** Understand motivation and general direction in a single question.
 
-**Example questions:**
-- "What draws you to this — learning something new, solving a problem you face, earning money, or building your portfolio?"
-- "What kind of result would make you feel this was time well spent?"
+**Example questions (ask via tool with structured options):**
+- "What draws you to this?" → options: Learning / Solving a problem / Earning money / Building portfolio
+- "What kind of result would make you feel this was time well spent?" → options: Working product / New skill learned / Revenue generated
 
 **Techniques:**
 - This replaces the separate Goal + Direction phases. One good question here is worth three mediocre ones.
@@ -127,7 +128,7 @@ Detailed patterns for each discovery phase across all three modes. Read this fil
 
 **Combine into 1–2 questions:**
 - "Any hard limits I should know? Like budget, time, or skills?" (open-ended is fine here — you need their unique situation)
-- Or use choices if you can predict: "How much time do you have? A) A few hours/week B) Part-time C) Full-time"
+- Or use structured options if predictable: "How much time do you have?" → A few hours/week / Part-time / Full-time
 
 ### Generate (Phase 3)
 
