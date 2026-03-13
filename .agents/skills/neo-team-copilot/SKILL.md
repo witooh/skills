@@ -172,246 +172,23 @@ When agents run in parallel, their outputs may overlap or need reconciliation:
 
 ## Workflows
 
-Each workflow lists the pipeline steps with explicit context-passing notes. Follow the order strictly — parallel steps are marked.
+After selecting a workflow from Task Classification, read [`references/workflows.md`](references/workflows.md) and follow the pipeline steps exactly.
 
-### New Feature
+**Available workflows:** New Feature, Bug Fix, Incident Investigation, Security Audit, Performance Issue, Code Review, CI/CD Change, Requirement Clarification, Refactoring, Database Migration, Documentation Sync, Pre-Merge Review
 
-```
-Simple task (merged BA+Architect):
-1. architect           → clarify requirements AND design contract in one step
-2. developer + qa      → implement code AND write test specs (PARALLEL)
-   To developer: Architect's design + acceptance criteria
-                [If task adds/changes API endpoints: also update docs/api-doc.md using api-doc-template.md]
-   To qa: Architect's API contracts + acceptance criteria
-3. code-reviewer + security → check conventions AND security (PARALLEL)
-   To both: Developer's changed files list
-4. [REMEDIATION if step 3 has Blocker/Critical findings]
+Every workflow with code changes includes verification by **code-reviewer + security + qa** — either as a dedicated step or parallel with implementation. See [`references/remediation.md`](references/remediation.md) for how blocking findings are handled.
 
-Complex task (separate BA+Architect):
-1. business-analyst    → clarify requirements and acceptance criteria
-2. architect           → design endpoint/module contract and data flow
-   Context: BA's user stories + acceptance criteria + business rules
-3. developer + qa      → implement code AND write test specs (PARALLEL)
-   To developer: Architect's design + BA's acceptance criteria
-                [If task adds/changes API endpoints: also update docs/api-doc.md using api-doc-template.md]
-   To qa: Architect's API contracts + BA's acceptance criteria
-4. code-reviewer + security → check conventions AND security (PARALLEL)
-   To both: Developer's changed files list
-5. [REMEDIATION if step 4 has Blocker/Critical findings]
-```
-
-### Bug Fix
-
-```
-1. system-analyzer     → diagnose root cause
-2. developer + qa + code-reviewer → implement fix AND write regression test AND check conventions (3-WAY PARALLEL)
-   To developer: System Analyzer's root cause + affected files/lines
-                [If fix changes API request/response shape: also update docs/api-doc.md using api-doc-template.md]
-   To qa: Developer's task description + original bug description + System Analyzer's findings
-   To code-reviewer: affected files from System Analyzer
-3. [REMEDIATION if step 2 has Blocker/Critical findings]
-```
-
-### Incident Investigation
-
-```
-1. incident-investigator → gather evidence from live systems (kubectl logs, psql queries, argocd status, docker inspect) and trace root cause back to code
-2. Route based on Root Cause Type:
-   ├── Code Bug → developer + qa (PARALLEL)
-   │   To developer: Incident Investigator's root cause + evidence chain + affected files/lines
-   │                 [If fix changes API: also update docs/api-doc.md using api-doc-template.md]
-   │   To qa: Incident Investigator's findings + bug description for regression test
-   ├── Infrastructure Problem → devops
-   │   To devops: Incident Investigator's infra findings + ArgoCD/K8s evidence
-   ├── Configuration Error → devops + security (PARALLEL)
-   │   To devops: config drift details + recommended fix
-   │   To security: credential/secret-related findings if any
-   └── Data Issue → developer (manual fix may need user approval)
-       To developer: Incident Investigator's data anomaly details + affected records
-3. code-reviewer + security → verify fix (PARALLEL)
-   To both: changed files from step 2
-4. [REMEDIATION if step 3 has Blocker/Critical findings]
-```
-
-### Security Audit
-
-```
-1. security + system-analyzer  → review code and behavior (PARALLEL)
-2. developer           → implement fixes
-   Context: Security findings + System Analyzer's analysis
-3. qa + security        → verify fixes AND re-check security (PARALLEL)
-   Context: Security's original findings + Developer's changes
-4. [REMEDIATION if step 3 has Critical/High or QA Blocked]
-```
-
-### Performance Issue
-
-```
-1. system-analyzer     → identify bottlenecks
-2. architect           → propose solution design (use opus for this workflow)
-   Context: System Analyzer's bottleneck analysis
-3. developer + qa      → implement optimization AND write perf tests (PARALLEL)
-   Context: Architect's solution design
-4. code-reviewer       → check conventions
-   Context: Developer's changed files
-5. [REMEDIATION if step 4 has Blocker/Critical or QA Blocked]
-```
-
-### Code Review
-
-```
-1. code-reviewer + developer + security + qa → review conventions, correctness, security, coverage (ALL PARALLEL)
-   To all: files under review + project conventions
-2. [REMEDIATION if step 1 has Blocker/Critical findings]
-```
-
-### CI/CD Change
-
-```
-1. architect           → validate design and impact
-2. devops              → implement Docker/pipeline changes
-   Context: Architect's design review
-3. security            → verify no new attack surface
-   Context: DevOps's changed files
-4. [REMEDIATION if step 3 has Critical/High findings — DevOps fixes, not Developer]
-```
-
-### Requirement Clarification
-
-```
-1. business-analyst    → clarify and structure requirements
-2. architect           → validate technical feasibility
-   Context: BA's structured requirements
-```
-
-### Refactoring
-
-```
-1. architect           → review current design, propose target structure (use opus for this workflow)
-2. developer + qa      → implement refactoring AND verify no regression (PARALLEL)
-   Context: Architect's target structure
-   [If refactoring changes API contracts (path, method, request/response shape): Developer also updates docs/api-doc.md using api-doc-template.md]
-3. code-reviewer       → check compliance
-   Context: Developer's changed files
-4. [REMEDIATION if step 3 has Blocker/Critical or QA Blocked]
-```
-
-### Database Migration
-
-```
-1. architect           → design schema changes (use opus for this workflow)
-2. developer           → create migration files (up + down)
-   Context: Architect's schema design
-3. qa                  → verify migration runs correctly
-   Context: Developer's migration files
-4. [REMEDIATION if step 3 QA Blocked]
-```
-
-### Documentation Sync
-
-```
-1. developer           → identify code changes that affect docs
-2. architect           → update docs/solution-design.md
-                         If updating API docs (e.g. docs/api-doc.md), read references/api-doc-template.md first
-   Context: Developer's findings
-3. qa                  → verify docs match implementation
-   Context: Architect's updated docs
-4. [REMEDIATION if step 3 QA Blocked]
-```
-
-When generating or updating API documentation, the Architect (or Developer) must read [`references/api-doc-template.md`](references/api-doc-template.md) and follow its structure exactly — endpoint layout, field table columns, Business Logic section, and Error Responses format. This ensures all API docs across services look consistent.
-
-### Pre-Merge Review
-
-```
-1. code-reviewer + security + qa → check conventions, security, coverage (ALL PARALLEL)
-   To all: files under review + project conventions
-2. [REMEDIATION if any agent has Blocker/Critical/Blocked findings]
-```
-
-## Self-Review Integration
-
-Code quality review is the Developer's responsibility — not a separate pipeline step. After implementing code, Developer performs a self-review checklist on the changed files to clean up before sending to Code Reviewer.
-
-This is baked into the Developer agent's reference file (`references/developer.md`). The Developer will:
-
-1. Implement the code changes
-2. Perform a self-review checklist (duplicated logic, dead code, inefficiencies, naming consistency)
-3. Run `go build ./...` to verify compilation
-4. Report the final code as output
-
-By making this the Developer's job rather than a separate orchestration step, we eliminate one sequential step from every workflow while maintaining the same code quality — the Developer owns the cleanliness of their output, just like in a real team.
+When generating or updating API documentation, read [`references/api-doc-template.md`](references/api-doc-template.md) and follow its structure exactly.
 
 ## Remediation Loop
 
-When verification agents (Code Reviewer, Security, QA) return blocking findings, the pipeline doesn't stop — it loops back for remediation. The goal is to resolve issues automatically without requiring the user to intervene, while capping iterations to prevent infinite loops.
+When verification agents return blocking findings, the pipeline loops back for remediation. Read [`references/remediation.md`](references/remediation.md) for the full process, flowchart, and escalation procedures.
 
-### How it works
-
-```
-Verification agent(s) return findings
-    │
-    ├── All Approved / no blocking findings → Proceed to Summary
-    │
-    └── Has blocking findings → Remediation cycle:
-            1. Collect all blocking findings into a single prioritized list
-            2. Delegate to Developer (or DevOps for CI/CD) to fix
-               (Developer runs self-review as part of their fix)
-            3. Re-run ONLY the agents that returned blocking findings
-            4. If still blocked → try one more cycle (max 2 total)
-            5. If blocked after 2 cycles → stop pipeline, escalate to user
-```
-
-### What counts as "blocking"
-
-| Agent         | Blocking Condition           | Non-Blocking          |
-| ------------- | ---------------------------- | --------------------- |
-| Code Reviewer | Blocker or Critical severity | Warning, Info         |
-| Security      | Critical or High severity    | Medium, Low           |
-| QA            | Sign-Off = "Blocked"         | Sign-Off = "Approved" |
-
-### Handling non-blocking findings (Warning / Info / Medium / Low)
-
-After remediation completes (or if there were no blocking findings), check if there are non-blocking findings. If yes, present them to the user and ask:
-
-```
-## Non-Blocking Findings
-
-The following warnings/suggestions were found. They won't break anything now,
-but may be worth addressing:
-
-- [Warning] [file:line] description
-- [Info] [file:line] description
-
-Would you like me to fix these too, or skip for now?
-```
-
-Let the user decide — don't fix automatically (wastes time if user doesn't care) and don't silently ignore (user may want to know).
-
-### Remediation rules
-
-- **Only re-run failing agents** — if Code Reviewer approved but Security blocked, only re-run Security after the fix
-- **Pass specific findings** — give Developer the exact findings list with file:line references, not a vague "fix the issues"
-- **Developer owns quality** — Developer applies self-review during their fix, same as initial implementation
-- **Max 2 remediation cycles** — if the issue can't be resolved in 2 passes, it likely needs human judgment (architectural disagreement, ambiguous requirements, complex trade-off)
-- **Report all cycles in Summary** — show which findings were found, which were fixed, and which remain unresolved
-
-### Escalation to user
-
-After 2 failed remediation cycles, stop and present:
-
-```
-## Remediation Failed — Needs Your Input
-
-**Unresolved Findings:**
-- [list of remaining Blocker/Critical/Blocked items with details]
-
-**What was attempted:**
-- Cycle 1: Developer fixed X, Y — but Z remains
-- Cycle 2: Developer attempted Z — but [reason it failed]
-
-**Recommendation:** [suggested path forward]
-```
+**Key rules:**
+- Only re-run failing agents — don't re-run agents that already approved
+- Max 2 remediation cycles — escalate to user if still unresolved
+- Pass specific findings with file:line references to Developer
+- Report all cycles in Summary
 
 ## When to Ask the User
 
@@ -461,48 +238,9 @@ Non-development tasks (questions, explanations, research): answer directly witho
 
 ## Pipeline Completion Guard
 
-Before declaring a task complete, verify ALL pipeline steps have been executed. This is a hard requirement — not optional.
+Before writing the Summary, read [`references/pipeline-guard.md`](references/pipeline-guard.md) and run the full checklist. Do NOT write the Summary until all workflow steps are complete.
 
-### Checklist (run mentally before writing Summary)
-
-```
-For every workflow that includes code changes:
-  ✅ Developer has completed implementation?
-  ✅ QA has been invoked? (MANDATORY if QA is listed in the workflow definition)
-  ✅ Code Reviewer has been invoked? (MANDATORY if Code Reviewer is listed in the workflow definition)
-  ✅ Security has been invoked? (MANDATORY if Security is listed in the workflow definition)
-  ✅ Remediation loop ran? (if any verification agent returned blocking findings)
-  ✅ All blocking findings resolved or escalated to user?
-
-  --- E2E Verification Gate (after QA returns) ---
-  ✅ QA output contains "E2E Test Execution" section?
-  ✅ If QA reports "E2E tests found: Yes" → result is not "Failed"?
-     → If E2E failed due to current changes → trigger Remediation (QA is Blocked)
-     → If E2E failed due to pre-existing issues → accept as Warning, note in Summary
-  ✅ If QA reports "E2E tests found: No" → acceptable, no action needed
-
-If ANY checkbox is ❌ → DO NOT write the Summary. Continue the pipeline.
-```
-
-### Common Mistake: Stopping After Developer
-
-The most frequent pipeline failure is stopping after Developer returns successful output. Developer output feels like "the job is done" because the code is written — but **unreviewed code is unfinished work**.
-
-After Developer completes, ALWAYS check: **what's the next step in this workflow?** If verification agents remain, delegate to them immediately in the same response.
-
-### Pipeline Step Tracking
-
-When starting a workflow, mentally track which steps remain:
-
-```
-Example: New Feature (Simple)
-  [ ] Step 1: architect
-  [ ] Step 2: developer + qa (parallel)
-  [ ] Step 3: code-reviewer + security (parallel)  ← DON'T FORGET THIS
-  [ ] Step 4: remediation (if needed)
-```
-
-Mark each step as you complete it. Only write the Summary when all steps are marked done.
+**Critical:** The most common mistake is stopping after Developer returns. After Developer completes, ALWAYS check what verification steps remain in the workflow and delegate to them immediately.
 
 ## Output Format
 
