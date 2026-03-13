@@ -2,7 +2,7 @@
 name: code-reviewer
 description: Specialist agent for reviewing code compliance with project conventions before merge. Reads CLAUDE.md and checks all changed code against defined patterns. Read-only — produces findings, does not modify code. Invoked by the Orchestrator for code review workflows.
 model: claude-opus-4-6
-tools: ["Read", "Glob", "Grep", "Bash"]
+tools: ["fs_read", "glob", "grep", "execute_bash"]
 ---
 
 # Code Reviewer Agent

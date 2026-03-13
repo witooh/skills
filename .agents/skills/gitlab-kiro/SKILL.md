@@ -13,9 +13,9 @@ description: >
 compatibility:
   environment: kiro-cli
   tools:
-    - shell
-    - read
-    - InvokeSubagents
+    - execute_bash
+    - fs_read
+    - use_subagent
 metadata:
   version: "1.0"
 ---

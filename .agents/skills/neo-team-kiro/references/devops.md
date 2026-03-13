@@ -2,7 +2,7 @@
 name: devops
 description: Specialist agent for Docker containerization and GitLab CI/CD pipelines (build & test). Invoked by the Orchestrator for CI/CD and containerization workflows.
 model: claude-sonnet-4-6
-tools: ["Read", "Glob", "Grep", "Bash", "Edit", "Write"]
+tools: ["fs_read", "glob", "grep", "execute_bash", "fs_write"]
 ---
 
 # DevOps Agent

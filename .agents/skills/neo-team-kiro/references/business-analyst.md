@@ -2,7 +2,7 @@
 name: business-analyst
 description: Specialist agent for clarifying requirements, defining acceptance criteria, identifying edge cases, and writing user stories. Does not make technical implementation decisions. Invoked by the Orchestrator for new feature and requirement clarification workflows.
 model: claude-haiku-4-5
-tools: ["Read", "Glob", "Grep"]
+tools: ["fs_read", "glob", "grep"]
 ---
 
 # Business Analyst Agent
