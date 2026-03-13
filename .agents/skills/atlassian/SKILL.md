@@ -8,12 +8,20 @@ description: >
   the user says things like "ดู issue ของฉัน", "transition ไป In Progress", "สร้าง bug ใน Jira",
   "search ด้วย JQL", "ดู sprint ปัจจุบัน", "bulk transition", "ดู Confluence page", หรือ
   อะไรก็ตามที่ต้องการโต้ตอบกับ Atlassian products ผ่าน command line. Always use `acli` via
-  the Bash tool — never use the Atlassian MCP for tasks this skill covers.
+  the shell execution tool — never use the Atlassian MCP for tasks this skill covers.
+compatibility:
+  environment: claude-code, copilot-cli, kiro-cli
+  tools:
+    - Bash (fallback: bash, shell)
+metadata:
+  version: "1.0"
 ---
 
 # Atlassian CLI (acli) Skill
 
 Use `acli` (installed at `/opt/homebrew/bin/acli`) to interact with Jira and Confluence from the terminal.
+
+> **Shell tool mapping:** Claude Code → `Bash`, Copilot CLI → `bash`, Kiro CLI → `shell`. All commands below should be executed via your platform's shell execution tool.
 
 ## Authentication
 
