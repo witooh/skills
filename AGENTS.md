@@ -52,7 +52,7 @@ skills/                              # Repository root
 ├── .gitignore                       # Git ignore rules
 │
 ├── .agents/                         # Deployed agent skills
-│   └── skills/                      # All active skills (13 skills)
+│   └── skills/                      # All active skills (14 skills)
 │       └── {skill-name}/
 │           ├── SKILL.md             # Required - metadata + instructions
 │           ├── package.json         # Dependencies (if applicable)
@@ -300,6 +300,45 @@ skills-ref validate ./.agents/skills/{skill-name}
 | Config             | Environment variables for secrets           |
 | Testing            | Manual validation before packaging          |
 | **Skill Creation** | **Always use `/skill-creator` skill first** |
+
+---
+
+## Multi-Platform Skill Sync Rules
+
+Some skills have **platform-specific variants** that must be kept in sync across all 3 CLI platforms:
+
+### Platform Tool Mapping
+
+| Capability     | Claude Code          | Copilot CLI                | Kiro CLI                        |
+| -------------- | -------------------- | -------------------------- | ------------------------------- |
+| Shell exec     | `Bash`               | `bash`                     | `shell`                         |
+| Read file      | `Read`               | `view`                     | `read`                          |
+| Ask user       | `AskUserQuestion`    | `ask_user`                 | plain text                      |
+| Sub-agent      | `Agent`              | `task`                     | `InvokeSubagents`                 |
+| Web search     | `WebSearch`           | `web_search`               | `WebSearch`                     |
+| Invoke skill   | ❌ (user `/skill`)    | `skill()`                  | ❌ (user `/skill`)              |
+| Model select   | ✅ sonnet/opus/haiku  | ✅ full model names         | ❌ default model only           |
+
+### Skills Requiring Multi-Platform Sync
+
+When modifying any of the following skills, you **MUST** update all 3 variants to keep them consistent:
+
+| Skill Family | Claude Code | Copilot CLI | Kiro CLI |
+| ------------ | ----------- | ----------- | -------- |
+| **neo-team** | `neo-team-claude` | `neo-team-copilot` | `neo-team-kiro` |
+| **gitlab**   | `gitlab-claude` | `gitlab-copilot` | `gitlab-kiro` |
+
+**What to sync:**
+- Workflow logic (pipelines, steps, context-passing)
+- Specialist reference files (`references/`)
+- Review templates
+- Task classification rules
+
+**What differs per platform (do NOT copy blindly):**
+- Tool names and invocation syntax
+- Agent spawning syntax
+- Model selection (Kiro has no model param)
+- Skill invocation (Copilot uses `skill()`, others ask user)
 
 ---
 

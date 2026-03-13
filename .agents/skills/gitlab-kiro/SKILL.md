@@ -15,7 +15,7 @@ compatibility:
   tools:
     - shell
     - read
-    - use_subagent
+    - InvokeSubagents
 metadata:
   version: "1.0"
 ---

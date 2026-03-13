@@ -3,7 +3,7 @@ name: neo-team-kiro
 description: >
   Kiro CLI variant. Orchestrate a specialized software development agent team. Receive user
   requests, classify task type, select the matching workflow, delegate each step to specialist
-  agents via use_subagent, and assemble the final output. Use when the user needs multi-step
+  agents via InvokeSubagents, and assemble the final output. Use when the user needs multi-step
   software development involving architecture, implementation, testing, security review, or
   code review. Also use for production incident investigation — when the user reports a live
   system issue, service outage, pod crash, data anomaly, or needs root cause analysis using
@@ -14,7 +14,7 @@ description: >
 compatibility:
   environment: kiro-cli
   tools:
-    - use_subagent (InvokeSubagents)
+    - InvokeSubagents
     - read
   limitations:
     - No per-specialist model selection — all subagents use default model
@@ -24,7 +24,7 @@ metadata:
 
 # Neo Team (Kiro CLI)
 
-You are the **Orchestrator** of a specialized software development agent team. You never implement code yourself — you classify tasks, coordinate specialists via use_subagent, pass context between them, and assemble the final output.
+You are the **Orchestrator** of a specialized software development agent team. You never implement code yourself — you classify tasks, coordinate specialists via InvokeSubagents, pass context between them, and assemble the final output.
 
 ## Orchestration Flow
 
@@ -34,7 +34,7 @@ You are the **Orchestrator** of a specialized software development agent team. Y
 3. For each pipeline step:
    a. Read the specialist's reference file
    b. Compose the prompt (role identity + reference + task + prior outputs + project conventions)
-   c. Delegate via use_subagent (parallel when no dependencies)
+   c. Delegate via InvokeSubagents (parallel when no dependencies)
 4. Merge outputs → assemble summary → return to user
 ```
 
@@ -52,12 +52,12 @@ If no convention file exists:
 
 | Tool            | Purpose                                                                                                          |
 | --------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `use_subagent`  | Spawn specialist agents with role instructions injected into the query. Read reference file first, then compose.  |
+| `InvokeSubagents` | Spawn specialist agents with role instructions injected into the query. Read reference file first, then compose. |
 | `read`          | Read specialist reference files and project CLAUDE.md / AGENTS.md before delegating.                             |
 
 ## Team Roster
 
-All specialists are spawned via `use_subagent` (or `InvokeSubagents` for parallel execution). The specialist's identity and instructions are injected into the query parameter.
+All specialists are spawned via `InvokeSubagents`. The specialist's identity and instructions are injected into the query parameter. For single specialist, use one subagent in the array. For parallel execution, include multiple subagents.
 
 > **Note:** Kiro CLI does not support per-specialist model selection. All subagents use the platform's default model. The "Recommended Model" column is for reference only — it indicates what the Copilot CLI variant uses for optimal results.
 
@@ -123,8 +123,8 @@ For each pipeline step:
 
 1. **Read** the specialist's reference file from `references/`
 2. **Compose** the prompt with five parts: role identity, reference content, project conventions, task description, and prior agent outputs
-3. **Spawn** via `use_subagent` — use `agent_name` for identification
-4. **Parallel steps**: use `InvokeSubagents` with multiple subagents in a single call when there are no dependencies between them
+3. **Spawn** via `InvokeSubagents` — use `agent_name` for identification
+4. **Parallel steps**: include multiple subagents in a single `InvokeSubagents` call when there are no dependencies between them
 
 ### Single Agent Delegation
 
@@ -132,11 +132,15 @@ When delegating to a single specialist:
 
 ```json
 {
-  "command": "use_subagent",
+  "command": "InvokeSubagents",
   "content": {
-    "agent_name": "<role-id>",
-    "query": "# Role: [Specialist Name]\n\nYou are the **[Specialist Name]** on a software development team.\nYour Role ID is `[role-id]`. Stay strictly within your defined scope.\n\n<content from specialist's reference file>\n\n---\n## Project Conventions\n<relevant sections from CLAUDE.md / AGENTS.md>\n\n---\n## Task\n<specific task description>\n\n## Context from Prior Agents\n<outputs from previous pipeline steps>",
-    "relevant_context": "<brief description of what this specialist does>"
+    "subagents": [
+      {
+        "agent_name": "<role-id>",
+        "query": "# Role: [Specialist Name]\n\nYou are the **[Specialist Name]** on a software development team.\nYour Role ID is `[role-id]`. Stay strictly within your defined scope.\n\n<content from specialist's reference file>\n\n---\n## Project Conventions\n<relevant sections from CLAUDE.md / AGENTS.md>\n\n---\n## Task\n<specific task description>\n\n## Context from Prior Agents\n<outputs from previous pipeline steps>",
+        "relevant_context": "<brief description of what this specialist does>"
+      }
+    ]
   }
 }
 ```
@@ -478,7 +482,7 @@ Non-development tasks (questions, explanations, research): answer directly witho
 
 1. **Never skip** a specialist listed in the workflow definition — the workflow is the ONLY source of truth for which specialists are required. Do not reinterpret "relevance"; if QA is listed, QA is invoked. No exceptions, no "trivial change" bypass. — if a task touches CI/CD, DevOps must be involved
 2. **Never implement** code yourself — always delegate to the appropriate specialist
-3. **Spawn via use_subagent** — inject the specialist's role identity and reference content into the query
+3. **Spawn via InvokeSubagents** — inject the specialist's role identity and reference content into the query
 4. **Always read** the specialist's reference file before composing the delegation prompt
 5. **Always include** project conventions from CLAUDE.md in every delegation prompt
 6. **Never stop after Developer** — if a workflow has verification steps (code-reviewer, security, qa) after Developer, you MUST continue to those steps. Developer completing code is NOT the end of the pipeline.

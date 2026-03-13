@@ -11,7 +11,7 @@ compatibility:
   tools:
     - AskUserQuestion (fallback: ask_user, plain text conversation)
     - WebSearch
-    - Agent (fallback: use_subagent, task, inline)
+    - Agent (fallback: InvokeSubagents, task, inline)
 metadata:
   version: "2.1"
 ---
@@ -34,7 +34,7 @@ Transform vague ideas into precise, actionable outputs through adaptive structur
 |------|---------|
 | `AskUserQuestion` | Ask the user ONE question at a time. Claude Code: native `AskUserQuestion` with `options`. Copilot: `ask_user` with `choices`. Kiro/other: plain text with numbered options. |
 | `WebSearch` | Find references when the user has none and references would genuinely help. Available on all platforms. |
-| `Agent` | Delegate to Plan subagent. Claude Code: `Agent(subagent_type: "Plan")`. Copilot: `task(agent_type: "general-purpose")` + `# Role: Planner` block. Kiro: `use_subagent`. Fallback: create plan inline. |
+| `Agent` | Delegate to Plan subagent. Claude Code: `Agent(subagent_type: "Plan")`. Copilot: `task(agent_type: "general-purpose")` + `# Role: Planner` block. Kiro: `InvokeSubagents`. Fallback: create plan inline. |
 
 ## Core Principles
 
@@ -154,7 +154,7 @@ For specific problems where the user already provided good context.
 
 After delivering the output (regardless of mode), offer next steps using `AskUserQuestion` (or `ask_user` / plain text if unavailable):
 
-- **Create a Plan** — Delegate to Plan subagent: `Agent(subagent_type: "Plan")` (Claude Code), `task(agent_type: "general-purpose")` with `# Role: Planner` block (Copilot), `use_subagent` (Kiro), or create the plan inline if none available
+- **Create a Plan** — Delegate to Plan subagent: `Agent(subagent_type: "Plan")` (Claude Code), `task(agent_type: "general-purpose")` with `# Role: Planner` block (Copilot), `InvokeSubagents` (Kiro), or create the plan inline if none available
 - **Go deeper** — Continue exploring a specific aspect
 - **Done** — End the workflow
 
