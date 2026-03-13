@@ -7,11 +7,11 @@ description: >-
   Also trigger for: side projects, career decisions, project planning, migration strategies, architecture decisions, cost optimization, or any request where the user hasn't decided direction yet and would benefit from structured discovery.
   Do NOT skip — this skill adapts depth automatically (2-7 questions) and produces BETTER results by asking targeted questions first.
 compatibility:
-  environment: claude-code (primary), copilot-cli (fallback)
+  environment: claude-code, copilot-cli, kiro-cli
   tools:
-    - AskUserQuestion (fallback: ask_user, plain text)
+    - AskUserQuestion (fallback: ask_user, plain text conversation)
     - WebSearch
-    - Agent (fallback: task, inline)
+    - Agent (fallback: use_subagent, task, inline)
 metadata:
   version: "2.1"
 ---
@@ -32,9 +32,9 @@ Transform vague ideas into precise, actionable outputs through adaptive structur
 
 | Tool | Purpose |
 |------|---------|
-| `AskUserQuestion` | Ask the user ONE question at a time (Claude Code). Use `options` array for multiple choice. Fallback: `ask_user` with `choices` (Copilot), then plain text. |
-| `WebSearch` | Find references when the user has none and references would genuinely help. |
-| `Agent` | Delegate to Plan subagent (Claude Code): `subagent_type: "Plan"`. Fallback: `task` with `agent_type: "general-purpose"` + `# Role: Planner` block (Copilot). Fallback: create plan inline. |
+| `AskUserQuestion` | Ask the user ONE question at a time. Claude Code: native `AskUserQuestion` with `options`. Copilot: `ask_user` with `choices`. Kiro/other: plain text with numbered options. |
+| `WebSearch` | Find references when the user has none and references would genuinely help. Available on all platforms. |
+| `Agent` | Delegate to Plan subagent. Claude Code: `Agent(subagent_type: "Plan")`. Copilot: `task(agent_type: "general-purpose")` + `# Role: Planner` block. Kiro: `use_subagent`. Fallback: create plan inline. |
 
 ## Core Principles
 
@@ -154,7 +154,7 @@ For specific problems where the user already provided good context.
 
 After delivering the output (regardless of mode), offer next steps using `AskUserQuestion` (or `ask_user` / plain text if unavailable):
 
-- **Create a Plan** — Delegate to Plan subagent: `Agent(subagent_type: "Plan")` (Claude Code), or `task(agent_type: "general-purpose")` with `# Role: Planner` block (Copilot), or create the plan inline if neither is available
+- **Create a Plan** — Delegate to Plan subagent: `Agent(subagent_type: "Plan")` (Claude Code), `task(agent_type: "general-purpose")` with `# Role: Planner` block (Copilot), `use_subagent` (Kiro), or create the plan inline if none available
 - **Go deeper** — Continue exploring a specific aspect
 - **Done** — End the workflow
 
