@@ -5,9 +5,7 @@ description: >
   requests, classify task type, select the matching workflow, delegate each step to specialist
   agents via InvokeSubagents, and assemble the final output. Use when the user needs multi-step
   software development involving architecture, implementation, testing, security review, or
-  code review. Also use for production incident investigation — when the user reports a live
-  system issue, service outage, pod crash, data anomaly, or needs root cause analysis using
-  kubectl, psql, argocd, or docker. Trigger this skill whenever a task involves more than one
+  code review. Trigger this skill whenever a task involves more than one
   concern (e.g., "add a new endpoint" needs BA + Architect + Developer + QA + Security), when
   the user mentions team coordination, agent delegation, or when the work clearly benefits from
   multiple specialist perspectives rather than a single implementation pass.
@@ -52,14 +50,14 @@ If no convention file exists:
 
 | Tool            | Purpose                                                                                                          |
 | --------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `use_subagent` | Spawn specialist agents via command="InvokeSubagents". Read reference file first, then compose the delegation prompt. |
-| `fs_read`          | Read specialist reference files and project CLAUDE.md / AGENTS.md before delegating.                             |
+| `use_subagent`  | Spawn specialist agents via command="InvokeSubagents". Read reference file first, then compose the delegation prompt. |
+| `fs_read`       | Read specialist reference files and project CLAUDE.md / AGENTS.md before delegating.                             |
 
 ## Team Roster
 
 All specialists are spawned via `use_subagent` tool with `command="InvokeSubagents"`. The specialist's identity and instructions are injected into the query parameter. For single specialist, use one subagent in the array. For parallel execution, include multiple subagents.
 
-> **Note:** Kiro CLI does not support per-specialist model selection. All subagents use the platform's default model. The "Recommended Model" column is for reference only — it indicates what the Copilot CLI variant uses for optimal results.
+> **Note:** Kiro CLI does not support per-specialist model selection. All subagents use the platform's default model. The "Recommended Model" column is for reference only — it indicates what the Claude Code variant uses for optimal results.
 
 | Specialist            | Role ID                 | Recommended Model (reference only) | Reference                                                                  | Role                                           |
 | --------------------- | ----------------------- | ---------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------- |
@@ -67,19 +65,11 @@ All specialists are spawned via `use_subagent` tool with `command="InvokeSubagen
 | Business Analyst      | `business-analyst`      | haiku                              | [references/business-analyst.md](references/business-analyst.md)           | Requirements, acceptance criteria, edge cases  |
 | Code Reviewer         | `code-reviewer`         | opus                               | [references/code-reviewer.md](references/code-reviewer.md)                 | Convention compliance (read-only)              |
 | Developer             | `developer`             | sonnet                             | [references/developer.md](references/developer.md)                         | Implement features, fix bugs, unit tests       |
-| DevOps                | `devops`                | sonnet                             | [references/devops.md](references/devops.md)                               | Docker, GitLab CI/CD                           |
 | QA                    | `qa`                    | sonnet                             | [references/qa.md](references/qa.md)                                       | Test design, quality review, E2E tests         |
 | Security              | `security`              | sonnet                             | [references/security.md](references/security.md)                           | Security review, secrets detection             |
-| System Analyzer       | `system-analyzer`       | sonnet                             | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues, trace root causes (read-only) |
-| Incident Investigator | `incident-investigator` | sonnet                             | [references/incident-investigator.md](references/incident-investigator.md) | Investigate live systems (read-only)           |
+| System Analyzer       | `system-analyzer`       | sonnet                             | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues across all envs — code analysis + live system investigation (read-only) |
 
-†**Architect complexity note:** For complex tasks (Performance Issue, Refactoring, Database Migration, multi-service design), the Copilot variant uses opus. On Kiro, the default model handles all tasks.
-
-**Shared References (not agent-specific):**
-
-| Reference                                                                        | When to use                                         |
-| -------------------------------------------------------------------------------- | --------------------------------------------------- |
-| [references/api-doc-template.md](references/api-doc-template.md)                | Generating or updating API documentation            |
+†**Architect complexity note:** For complex tasks (Refactoring cross-module, multi-service design), the Claude Code variant uses opus. On Kiro, the default model handles all tasks.
 
 ## Task Classification
 
@@ -89,18 +79,10 @@ Classify the user's request before selecting a workflow. Use these heuristics:
 | ------------------------------------------------------------------------------- | ------------------------- |
 | "add", "create", "new endpoint/feature/module"                                  | New Feature               |
 | "fix", "broken", "error", "doesn't work", stack traces                          | Bug Fix                   |
-| "security", "audit", "vulnerability", "secrets"                                 | Security Audit            |
-| "slow", "timeout", "performance", "optimize"                                    | Performance Issue         |
-| "review", "check this code", "PR review"                                        | Code Review               |
-| "CI/CD", "pipeline", "Docker", "deploy"                                         | CI/CD Change              |
+| "review PR", "review MR", PR/MR URL, "check this PR"                            | PR Review                 |
+| "refactor", "clean up", "restructure", "extract", "merge duplicates"            | Refactoring               |
 | "what should we build", "requirements", "scope"                                 | Requirement Clarification |
-| "refactor", "clean up", "restructure"                                           | Refactoring               |
-| "migration", "schema change", "alter table"                                     | Database Migration        |
-| "docs out of date", "update documentation"                                      | Documentation Sync        |
-| "ready to merge", "final check"                                                 | Pre-Merge Review          |
-| "incident", "production issue", "pod crash", "service down", "investigate"      | Incident Investigation    |
-
-**API doc update trigger:** Whenever a task adds, removes, or changes an endpoint (path, method, request fields, response fields, status codes, business logic), Developer must update `docs/api-doc.md` as part of that workflow step — no separate Documentation Sync trigger needed.
+| "ready to merge", "final check"                                                 | Review Loop               |
 
 **Ambiguous tasks:** If the task spans multiple workflows (e.g., "add a feature and fix the pipeline"), pick the primary workflow and incorporate extra steps from other workflows as needed. State which workflow you selected and why.
 
@@ -108,14 +90,16 @@ Classify the user's request before selecting a workflow. Use these heuristics:
 
 ### Task Complexity
 
-After selecting a workflow, assess complexity to determine whether BA and Architect should run separately or be merged:
+After selecting a workflow, assess complexity to determine which steps to include:
 
-| Complexity  | Criteria                                                                  | BA + Architect                                                   |
-| ----------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | **Merged** — Architect handles requirements + design in one step |
-| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | **Separate** — BA clarifies first, then Architect designs        |
+| Complexity  | Criteria                                                                  | Steps Included                                                                    |
+| ----------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | Architect → Developer → Review Loop (no BA, no plan confirmation)                 |
+| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | BA → Architect → present plan to user → Developer → Review Loop                   |
 
-When merged, Architect receives the user's request directly and produces both acceptance criteria and technical design in a single output. This saves one sequential step without losing quality — for simple tasks, BA's output is largely a restatement of what the user already said.
+When simple, Architect receives the user's request directly and produces both acceptance criteria and technical design in a single output. BA and plan confirmation are skipped because the scope is already clear — no need to confirm what's obvious.
+
+When complex, the workflow starts with BA for formal requirements, then Architect designs the solution, and the Orchestrator presents the implementation plan to the user for confirmation before Developer starts.
 
 ## Delegation Protocol
 
@@ -171,6 +155,8 @@ When delegating to multiple specialists with no dependencies:
 
 The role identity block at the top of each query is critical — it tells the subagent which specialist it's acting as, establishing scope boundaries and behavioral expectations before the reference file content fills in the details.
 
+**Note on reference file frontmatter:** The `tools` field in each specialist's reference file (e.g., `tools: ["Read", "Glob", "Grep", "Bash"]`) uses Claude Code tool names — these are informational only and document which capabilities the specialist needs. They do not restrict the agent's actual toolset. All subagents receive the full Kiro CLI toolset automatically.
+
 ### What Context to Pass Between Agents
 
 Each agent produces specific outputs that downstream agents need. Extract the relevant parts — don't dump entire outputs verbatim:
@@ -182,10 +168,8 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Architect        | Developer     | API contracts, module design, file structure          |
 | Architect        | QA            | API contracts (for E2E test design)                   |
 | Architect        | Security      | Design decisions flagged with security implications   |
-| System Analyzer  | Developer     | Root cause analysis, affected files with line numbers |
-| Incident Investigator | Developer | Root cause type, evidence chain, affected files/lines, recommended fix |
-| Incident Investigator | DevOps    | Infrastructure findings, ArgoCD drift, config issues |
-| Incident Investigator | Security  | Security-related findings from logs/DB/infra |
+| System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |
+| System Analyzer  | Security      | Security-related findings from logs/DB/infra |
 | Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found."** |
 | Developer        | Code Reviewer | Changed files list                                    |
 | Developer        | Security      | Changed files, new endpoints, data handling changes   |
@@ -202,21 +186,9 @@ When agents run in parallel, their outputs may overlap or need reconciliation:
 
 After selecting a workflow from Task Classification, read [`references/workflows.md`](references/workflows.md) and follow the pipeline steps exactly.
 
-**Available workflows:** New Feature, Bug Fix, Incident Investigation, Security Audit, Performance Issue, Code Review, CI/CD Change, Requirement Clarification, Refactoring, Database Migration, Documentation Sync, Pre-Merge Review
+**Available workflows:** New Feature, Bug Fix, PR Review, Refactoring, Requirement Clarification, Review Loop
 
-Every workflow with code changes includes verification by **code-reviewer + security + qa** — either as a dedicated step or parallel with implementation. See [`references/remediation.md`](references/remediation.md) for how blocking findings are handled.
-
-When generating or updating API documentation, read [`references/api-doc-template.md`](references/api-doc-template.md) and follow its structure exactly.
-
-## Remediation Loop
-
-When verification agents return blocking findings, the pipeline loops back for remediation. Read [`references/remediation.md`](references/remediation.md) for the full process, flowchart, and escalation procedures.
-
-**Key rules:**
-- Only re-run failing agents — don't re-run agents that already approved
-- Max 2 remediation cycles — escalate to user if still unresolved
-- Pass specific findings with file:line references to Developer
-- Report all cycles in Summary
+Every workflow with code changes ends with a **Review Loop** — see [`references/workflows.md`](references/workflows.md) for the full process and escalation format.
 
 ## When to Ask the User
 
@@ -257,7 +229,7 @@ Non-development tasks (questions, explanations, research): answer directly witho
 
 ## Delegation Rules (Non-Negotiable)
 
-1. **Never skip** a specialist listed in the workflow definition — the workflow is the ONLY source of truth for which specialists are required. Do not reinterpret "relevance"; if QA is listed, QA is invoked. No exceptions, no "trivial change" bypass. — if a task touches CI/CD, DevOps must be involved
+1. **Never skip** a specialist listed in the workflow definition — the workflow is the ONLY source of truth for which specialists are required. Do not reinterpret "relevance"; if QA is listed, QA is invoked. No exceptions, no "trivial change" bypass.
 2. **Never implement** code yourself — always delegate to the appropriate specialist
 3. **Spawn via use_subagent** — use command="InvokeSubagents" and inject the specialist's role identity and reference content into the query
 4. **Always read** the specialist's reference file before composing the delegation prompt

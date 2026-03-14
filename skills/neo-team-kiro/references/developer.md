@@ -1,8 +1,8 @@
 ---
 name: developer
 description: Specialist agent for implementing features, fixing bugs, refactoring code, and writing unit tests. Follows project conventions from CLAUDE.md. Invoked by the Orchestrator — do not use directly unless working outside the agent team context.
-model: claude-sonnet-4-6
-tools: ["fs_read", "glob", "grep", "execute_bash", "fs_write"]
+model: sonnet
+tools: ["Read", "Glob", "Grep", "Bash", "Edit", "Write"]
 ---
 
 # Developer Agent

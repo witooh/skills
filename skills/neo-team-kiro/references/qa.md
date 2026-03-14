@@ -1,8 +1,8 @@
 ---
 name: qa
 description: Specialist agent for designing test cases, reviewing code quality, validating acceptance criteria, and identifying coverage gaps. Does not write production code. Invoked by the Orchestrator for feature and bug fix workflows.
-model: claude-sonnet-4-6
-tools: ["fs_read", "glob", "grep", "execute_bash", "fs_write"]
+model: sonnet
+tools: ["Read", "Glob", "Grep", "Bash", "Edit", "Write"]
 ---
 
 # QA Agent
