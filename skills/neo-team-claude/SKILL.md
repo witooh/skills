@@ -5,9 +5,7 @@ description: >
   requests, classify task type, select the matching workflow, delegate each step to specialist
   agents via the Agent tool, and assemble the final output. Use when the user needs multi-step
   software development involving architecture, implementation, testing, security review, or
-  code review. Also use for production incident investigation — when the user reports a live
-  system issue, service outage, pod crash, data anomaly, or needs root cause analysis using
-  kubectl, psql, argocd, or docker. Trigger this skill whenever a task involves more than one
+  code review. Trigger this skill whenever a task involves more than one
   concern (e.g., "add a new endpoint" needs BA + Architect + Developer + QA + Security), when
   the user mentions team coordination, agent delegation, or when the work clearly benefits from
   multiple specialist perspectives rather than a single implementation pass.
@@ -75,8 +73,6 @@ All specialists are spawned via the `Agent` tool with `subagent_type: "general-p
 
 †**Architect model selection:** Use opus only for complex tasks — Refactoring (cross-module) or when the task involves multi-service design. For everything else (New Feature with clear scope, Bug Fix), sonnet is sufficient and faster.
 
-**API Documentation:** When a workflow step requires generating or updating `docs/api-doc.md`, delegate to the `api-doc-gen` skill instead of handling inline. The Developer agent should invoke `/api-doc-gen` (or the Orchestrator should spawn a general-purpose agent with the skill's instructions) after implementation is complete.
-
 ## Task Classification
 
 Classify the user's request before selecting a workflow. Use these heuristics:
@@ -89,8 +85,6 @@ Classify the user's request before selecting a workflow. Use these heuristics:
 | "refactor", "clean up", "restructure", "extract", "merge duplicates"            | Refactoring               |
 | "what should we build", "requirements", "scope"                                 | Requirement Clarification |
 | "ready to merge", "final check"                                                 | Review Loop               |
-
-**API doc update trigger:** Whenever a task adds, removes, or changes an endpoint (path, method, request fields, response fields, status codes, business logic), delegate to the `api-doc-gen` skill to update `docs/api-doc.md` after Review Loop passes.
 
 **Ambiguous tasks:** If the task spans multiple workflows (e.g., "add a feature and fix the pipeline"), pick the primary workflow and incorporate extra steps from other workflows as needed. State which workflow you selected and why.
 
@@ -107,9 +101,7 @@ After selecting a workflow, assess complexity to determine which steps to includ
 
 When simple, Architect receives the user's request directly and produces both acceptance criteria and technical design in a single output. Brainstorm, BA, and /plan are skipped because the scope is already clear — no need to confirm what's obvious.
 
-When complex, the workflow starts with `/brainstorm` (invoked via the `Skill` tool) to explore the idea interactively with the user. After Architect designs the solution, `/plan` presents the implementation plan for user confirmation before Developer starts — this prevents wasted effort on misaligned designs.
-
-When complex, the workflow starts with `/brainstorm` (invoked via the `Skill` tool) to explore the idea interactively with the user. The brainstorm output feeds into BA, who structures it into formal requirements and acceptance criteria before Architect designs the solution.
+When complex, the workflow starts with `/brainstorm` to explore the idea with the user. The brainstorm output feeds into BA for formal requirements, then Architect designs the solution, and `/plan` presents the implementation plan for user confirmation before Developer starts.
 
 ## Delegation Protocol
 
@@ -171,7 +163,6 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Architect        | QA            | API contracts (for E2E test design)                   |
 | Architect        | Security      | Design decisions flagged with security implications   |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |
-| System Analyzer  | DevOps        | Infrastructure findings, ArgoCD drift, config issues |
 | System Analyzer  | Security      | Security-related findings from logs/DB/infra |
 | Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found."** |
 | Developer        | Code Reviewer | Changed files list                                    |
@@ -191,15 +182,7 @@ After selecting a workflow from Task Classification, read [`references/workflows
 
 **Available workflows:** New Feature, Bug Fix, PR Review, Refactoring, Requirement Clarification, Review Loop
 
-Every workflow with code changes includes a **Review Loop** — all three verification agents (code-reviewer + security + qa) run in parallel, Developer fixes blocking findings, and the loop repeats until all three approve (max 3 cycles).
-
-**Brainstorm integration:** The New Feature workflow (complex tasks) starts with `/brainstorm` to explore the idea with the user before formal requirements analysis. Invoke via the `Skill` tool.
-
-When generating or updating API documentation, delegate to the `api-doc-gen` skill after Pre-Merge Review passes — not during implementation.
-
-## Review Loop
-
-All workflows with code changes use the **Review Loop** for verification. All three agents (code-reviewer + security + qa) run in parallel. If any has blocking findings, Developer fixes and **all three re-run** — not just the failing ones. This ensures no regression from fixes. Max 3 cycles, then escalate to user. See the Review Loop section in [`references/workflows.md`](references/workflows.md) for the full process and escalation format.
+Every workflow with code changes ends with a **Review Loop** — see [`references/workflows.md`](references/workflows.md) for the full process and escalation format.
 
 ## When to Ask the User
 
@@ -240,7 +223,7 @@ Non-development tasks (questions, explanations, research): answer directly witho
 
 ## Delegation Rules (Non-Negotiable)
 
-1. **Never skip** a specialist listed in the workflow definition — the workflow is the ONLY source of truth for which specialists are required. Do not reinterpret "relevance"; if QA is listed, QA is invoked. No exceptions, no "trivial change" bypass. — if a task touches CI/CD, DevOps must be involved
+1. **Never skip** a specialist listed in the workflow definition — the workflow is the ONLY source of truth for which specialists are required. Do not reinterpret "relevance"; if QA is listed, QA is invoked. No exceptions, no "trivial change" bypass.
 2. **Never implement** code yourself — always delegate to the appropriate specialist
 3. **Spawn via Agent tool** — always use `subagent_type: "general-purpose"` with the specialist's role identity and reference content injected into the prompt, and the correct `model` per roster table
 4. **Always read** the specialist's reference file before composing the delegation prompt

@@ -64,7 +64,7 @@ Use this when the issue can be diagnosed from source code alone (Bug Fix, Perfor
 
 ### For Live System Investigation
 
-Use this when the issue involves running systems (Incident Investigation workflow, or when the Orchestrator specifies a non-local environment).
+Use this when the issue involves running systems (when the Orchestrator specifies a non-local environment).
 
 **First**, read [`references/system-analyzer-cli-tools.md`](system-analyzer-cli-tools.md) for CLI tool usage patterns and safety constraints.
 
@@ -114,7 +114,6 @@ Using evidence from Phase 1-2, trace back to the source code:
 - **Evidence-based** — cite specific log lines, query results, and file:line numbers. Don't speculate without evidence
 - **Environment-aware** — always confirm which environment before investigating live systems
 - If the issue requires code changes, hand off to **Developer**
-- If the issue requires infrastructure changes, hand off to **DevOps**
 - If the issue reveals a security vulnerability, flag it for **Security**
 - If the issue requires architectural input, flag it for the **Architect**
 
@@ -138,7 +137,7 @@ Using evidence from Phase 1-2, trace back to the source code:
 - Severity: [Critical / High / Medium / Low]
 - Blast radius: [what else might be affected]
 
-**Recommended Fix:** [brief — implementation left to Developer/DevOps]
+**Recommended Fix:** [brief — implementation left to Developer]
 
-**Flags:** [anything Security, Architect, or DevOps should review]
+**Flags:** [anything Security or Architect should review]
 ```

@@ -41,9 +41,10 @@ Example: New Feature (Complex)
   [ ] Step 1: /brainstorm
   [ ] Step 2: business-analyst
   [ ] Step 3: architect
-  [ ] Step 4: developer
-  [ ] Step 5: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS
-  [ ] Step 6: api-doc-gen (if API impacted)
+  [ ] Step 4: /plan (confirm with user)
+  [ ] Step 5: developer
+  [ ] Step 6: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS
+  [ ] Step 7: api-doc-gen (if API impacted)
 
 Example: New Feature (Simple)
   [ ] Step 1: architect
