@@ -28,7 +28,7 @@ Complete documentation for all 27 Fastmail tools organized by category. Each too
 **Example Usage:**
 
 ```bash
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_mailboxes
+.venv/bin/python scripts/cli.pylist_mailboxes
 ```
 
 **Example Response:**
@@ -73,10 +73,10 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_mailboxes
 
 ```bash
 # List 10 emails from Inbox
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_emails '{"limit": 10}'
+.venv/bin/python scripts/cli.pylist_emails '{"limit": 10}'
 
 # List emails from specific mailbox
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_emails '{"mailbox_id": "u456", "limit": 15}'
+.venv/bin/python scripts/cli.pylist_emails '{"mailbox_id": "u456", "limit": 15}'
 ```
 
 **Example Response:**
@@ -114,7 +114,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_emails '{"mailbox
 **Example Usage:**
 
 ```bash
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_get_email '{"email_id": "msg001"}'
+.venv/bin/python scripts/cli.pyget_email '{"email_id": "msg001"}'
 ```
 
 **Example Response:**
@@ -160,10 +160,10 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_get_email '{"email_id"
 
 ```bash
 # Search for "invoice"
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_emails '{"query": "invoice"}'
+.venv/bin/python scripts/cli.pysearch_emails '{"query": "invoice"}'
 
 # Search with limit
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_emails '{"query": "john@example.com", "limit": 50}'
+.venv/bin/python scripts/cli.pysearch_emails '{"query": "john@example.com", "limit": 50}'
 ```
 
 **Example Response:**
@@ -207,14 +207,14 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_emails '{"query
 
 ```bash
 # Send simple email
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_send_email '{
+.venv/bin/python scripts/cli.pysend_email '{
   "to": [{"email": "user@example.com"}],
   "subject": "Hello",
   "body": "Message content here"
 }'
 
 # Send with CC and multiple recipients
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_send_email '{
+.venv/bin/python scripts/cli.pysend_email '{
   "to": [
     {"name": "John", "email": "john@example.com"},
     {"email": "jane@example.com"}
@@ -255,13 +255,13 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_send_email '{
 
 ```bash
 # Reply to sender only
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_reply_email '{
+.venv/bin/python scripts/cli.pyreply_email '{
   "email_id": "msg001",
   "body": "Thanks for the update!"
 }'
 
 # Reply to all recipients
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_reply_email '{
+.venv/bin/python scripts/cli.pyreply_email '{
   "email_id": "msg001",
   "body": "I agree with this proposal",
   "reply_all": true
@@ -297,7 +297,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_reply_email '{
 
 ```bash
 # Move email to Archive (mailbox_id: u789)
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_move_email '{
+.venv/bin/python scripts/cli.pymove_email '{
   "email_id": "msg001",
   "target_mailbox_id": "u789"
 }'
@@ -337,19 +337,19 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_move_email '{
 
 ```bash
 # Mark email as read
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_set_labels '{
+.venv/bin/python scripts/cli.pyset_labels '{
   "email_id": "msg001",
   "labels": {"$seen": true}
 }'
 
 # Flag email as important
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_set_labels '{
+.venv/bin/python scripts/cli.pyset_labels '{
   "email_id": "msg001",
   "labels": {"$flagged": true}
 }'
 
 # Add custom label
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_set_labels '{
+.venv/bin/python scripts/cli.pyset_labels '{
   "email_id": "msg001",
   "labels": {"Project-A": true, "$seen": true}
 }'
@@ -384,7 +384,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_set_labels '{
 **Example Usage:**
 
 ```bash
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_delete_email '{"email_id": "msg001"}'
+.venv/bin/python scripts/cli.pydelete_email '{"email_id": "msg001"}'
 ```
 
 **Example Response:**
@@ -413,7 +413,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_delete_email '{"email_
 **Example Usage:**
 
 ```bash
-bun scripts/cli.ts get_thread '{"email_id": "msg001"}'
+.venv/bin/python scripts/cli.py get_thread '{"email_id": "msg001"}'
 ```
 
 **Example Response:**
@@ -453,7 +453,7 @@ bun scripts/cli.ts get_thread '{"email_id": "msg001"}'
 **Example Usage:**
 
 ```bash
-bun scripts/cli.ts bulk_move_emails '{
+.venv/bin/python scripts/cli.py bulk_move_emails '{
   "email_ids": ["msg001", "msg002", "msg003"],
   "target_mailbox_id": "archive-folder-id"
 }'
@@ -482,7 +482,7 @@ bun scripts/cli.ts bulk_move_emails '{
 **Example Usage:**
 
 ```bash
-bun scripts/cli.ts bulk_set_labels '{
+.venv/bin/python scripts/cli.py bulk_set_labels '{
   "email_ids": ["msg001", "msg002"],
   "keywords": {"$seen": true, "$flagged": true}
 }'
@@ -510,7 +510,7 @@ bun scripts/cli.ts bulk_set_labels '{
 **Example Usage:**
 
 ```bash
-bun scripts/cli.ts bulk_delete_emails '{"email_ids": ["msg001", "msg002", "msg003"]}'
+.venv/bin/python scripts/cli.py bulk_delete_emails '{"email_ids": ["msg001", "msg002", "msg003"]}'
 ```
 
 **Example Response:**
@@ -539,7 +539,7 @@ bun scripts/cli.ts bulk_delete_emails '{"email_ids": ["msg001", "msg002", "msg00
 **Example Usage:**
 
 ```bash
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_calendars
+.venv/bin/python scripts/cli.pylist_calendars
 ```
 
 **Example Response:**
@@ -583,20 +583,20 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_calendars
 
 ```bash
 # List events for January 2024
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_events '{
+.venv/bin/python scripts/cli.pylist_events '{
   "start_date": "2024-01-01",
   "end_date": "2024-01-31"
 }'
 
 # List events from specific calendar
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_events '{
+.venv/bin/python scripts/cli.pylist_events '{
   "calendar_id": "cal002",
   "start_date": "2024-01-01",
   "end_date": "2024-01-31"
 }'
 
 # Using ISO 8601 format
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_events '{
+.venv/bin/python scripts/cli.pylist_events '{
   "start_date": "2024-01-15T00:00:00+07:00",
   "end_date": "2024-01-20T23:59:59+07:00"
 }'
@@ -647,7 +647,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_events '{
 **Example Usage:**
 
 ```bash
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_get_event '{"event_id": "evt001"}'
+.venv/bin/python scripts/cli.pyget_event '{"event_id": "evt001"}'
 ```
 
 **Example Response:**
@@ -696,14 +696,14 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_get_event '{"event_id"
 
 ```bash
 # Create simple event
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event '{
+.venv/bin/python scripts/cli.pycreate_event '{
   "title": "Doctor Appointment",
   "start": "2024-01-20T14:00:00+07:00",
   "end": "2024-01-20T15:00:00+07:00"
 }'
 
 # Create event with location and description
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event '{
+.venv/bin/python scripts/cli.pycreate_event '{
   "calendar_id": "cal001",
   "title": "Project Review",
   "start": "2024-01-25T10:00:00+07:00",
@@ -713,7 +713,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event '{
 }'
 
 # Create all-day event
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event '{
+.venv/bin/python scripts/cli.pycreate_event '{
   "title": "Company Holiday",
   "start": "2024-02-14",
   "end": "2024-02-15",
@@ -754,14 +754,14 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_event '{
 
 ```bash
 # Update event time
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_update_event '{
+.venv/bin/python scripts/cli.pyupdate_event '{
   "event_id": "evt001",
   "start": "2024-01-15T11:00:00+07:00",
   "end": "2024-01-15T12:00:00+07:00"
 }'
 
 # Update multiple fields
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_update_event '{
+.venv/bin/python scripts/cli.pyupdate_event '{
   "event_id": "evt001",
   "title": "Team Standup",
   "location": "Zoom: https://zoom.us/j/..."
@@ -795,7 +795,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_update_event '{
 **Example Usage:**
 
 ```bash
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_delete_event '{"event_id": "evt001"}'
+.venv/bin/python scripts/cli.pydelete_event '{"event_id": "evt001"}'
 ```
 
 **Example Response:**
@@ -827,10 +827,10 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_delete_event '{"event_
 
 ```bash
 # Search all events
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_events '{"query": "meeting"}'
+.venv/bin/python scripts/cli.pysearch_events '{"query": "meeting"}'
 
 # Search within date range
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_events '{
+.venv/bin/python scripts/cli.pysearch_events '{
   "query": "project",
   "start_date": "2024-01-01",
   "end_date": "2024-01-31"
@@ -882,7 +882,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_search_events '{
 
 ```bash
 # Create daily recurring event (5 times)
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_recurring_event '{
+.venv/bin/python scripts/cli.pycreate_recurring_event '{
   "title": "Daily Standup",
   "start": "2024-01-15T09:00:00+07:00",
   "end": "2024-01-15T09:30:00+07:00",
@@ -891,7 +891,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_recurring_event
 }'
 
 # Create weekly recurring event (until date)
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_recurring_event '{
+.venv/bin/python scripts/cli.pycreate_recurring_event '{
   "title": "Team Meeting",
   "start": "2024-01-15T10:00:00+07:00",
   "end": "2024-01-15T11:00:00+07:00",
@@ -901,7 +901,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_recurring_event
 }'
 
 # Create monthly recurring event
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_recurring_event '{
+.venv/bin/python scripts/cli.pycreate_recurring_event '{
   "title": "Budget Review",
   "start": "2024-01-01T14:00:00+07:00",
   "end": "2024-01-01T15:00:00+07:00",
@@ -936,7 +936,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_create_recurring_event
 **Example Usage:**
 
 ```bash
-bun scripts/cli.ts list_invitations
+.venv/bin/python scripts/cli.py list_invitations
 ```
 
 **Example Response:**
@@ -971,7 +971,7 @@ bun scripts/cli.ts list_invitations
 **Example Usage:**
 
 ```bash
-bun scripts/cli.ts respond_to_invitation '{
+.venv/bin/python scripts/cli.py respond_to_invitation '{
   "event_id": "evt001",
   "response": "accept"
 }'
@@ -1015,20 +1015,20 @@ bun scripts/cli.ts respond_to_invitation '{
 
 ```bash
 # Add 15-minute reminder
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_add_event_reminder '{
+.venv/bin/python scripts/cli.pyadd_event_reminder '{
   "event_id": "evt001",
   "minutes_before": 15
 }'
 
 # Add 1-hour reminder with audio
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_add_event_reminder '{
+.venv/bin/python scripts/cli.pyadd_event_reminder '{
   "event_id": "evt001",
   "hours_before": 1,
   "action": "audio"
 }'
 
 # Add 1-day reminder with email notification
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_add_event_reminder '{
+.venv/bin/python scripts/cli.pyadd_event_reminder '{
   "event_id": "evt002",
   "days_before": 1,
   "action": "email",
@@ -1065,13 +1065,13 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_add_event_reminder '{
 
 ```bash
 # Remove specific reminder
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_remove_event_reminder '{
+.venv/bin/python scripts/cli.pyremove_event_reminder '{
   "event_id": "evt001",
   "reminder_id": "rem001"
 }'
 
 # Remove all reminders from event
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_remove_event_reminder '{
+.venv/bin/python scripts/cli.pyremove_event_reminder '{
   "event_id": "evt001"
 }'
 ```
@@ -1102,7 +1102,7 @@ npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_remove_event_reminder 
 **Example Usage:**
 
 ```bash
-npx tsx .opencode/skills/fastmail/scripts/cli.ts fastmail_list_event_reminders '{"event_id": "evt001"}'
+.venv/bin/python scripts/cli.pylist_event_reminders '{"event_id": "evt001"}'
 ```
 
 **Example Response:**
@@ -1163,7 +1163,7 @@ Each reminder object supports the following fields:
 
 ```bash
 # Create event with single 15-minute reminder
-bun scripts/cli.ts create_event_with_reminder '{
+.venv/bin/python scripts/cli.py create_event_with_reminder '{
   "title": "Doctor Appointment",
   "start": "2026-02-10T14:00:00+07:00",
   "end": "2026-02-10T15:00:00+07:00",
@@ -1172,7 +1172,7 @@ bun scripts/cli.ts create_event_with_reminder '{
 }'
 
 # Create event with multiple reminders (15 min, 1 hour, 1 day)
-bun scripts/cli.ts create_event_with_reminder '{
+.venv/bin/python scripts/cli.py create_event_with_reminder '{
   "calendar_id": "cal002",
   "title": "Important Meeting",
   "start": "2026-02-15T10:00:00+07:00",
@@ -1187,7 +1187,7 @@ bun scripts/cli.ts create_event_with_reminder '{
 }'
 
 # Create with custom reminder actions
-bun scripts/cli.ts create_event_with_reminder '{
+.venv/bin/python scripts/cli.py create_event_with_reminder '{
   "title": "Team Sync",
   "start": "2026-02-20T09:00:00+07:00",
   "end": "2026-02-20T09:30:00+07:00",
