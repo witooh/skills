@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Symlink all skills from .agents/skills/ into .claude/skills/
+# Symlink all skills from skills/ into .claude/skills/
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SKILLS_SRC="$REPO_ROOT/.agents/skills"
+SKILLS_SRC="$REPO_ROOT/skills"
 SKILLS_DST="$REPO_ROOT/.claude/skills"
 
 mkdir -p "$SKILLS_DST"
@@ -11,8 +11,8 @@ mkdir -p "$SKILLS_DST"
 for skill_dir in "$SKILLS_SRC"/*/; do
   skill_name="$(basename "$skill_dir")"
   target="$SKILLS_DST/$skill_name"
-  # relative path from .claude/skills/ to .agents/skills/<name>
-  rel_path="../../../.agents/skills/$skill_name"
+  # relative path from .claude/skills/ to skills/<name>
+  rel_path="../../skills/$skill_name"
 
   if [ -L "$target" ]; then
     echo "skip  $skill_name (already linked)"

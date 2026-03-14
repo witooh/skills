@@ -8,7 +8,7 @@
 
 - Run `/skill-creator` before creating or modifying any skill
 - Follow the [Agent Skills Specification](https://agentskills.io/specification)
-- Place skills in `./.agents/skills/<skill-name>/`; test plans in `./tests/<skill-name>/`
+- Place skills in `./skills/<skill-name>/`; test plans in `./tests/<skill-name>/`
 - Include valid YAML frontmatter (`name`, `description`) in SKILL.md
 - Test all scripts before packaging; validate with `skills-ref validate`
 - Use environment variables for secrets — never hardcode keys, tokens, or passwords
