@@ -16,6 +16,9 @@ compatibility:
   tools:
     - Agent
     - Read
+    - Skill
+    - EnterPlanMode
+    - ExitPlanMode
 metadata:
   version: "1.0"
 ---
@@ -52,6 +55,9 @@ If no convention file exists:
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Agent` | Spawn specialist agents using `subagent_type: "general-purpose"` with specialist instructions injected into the prompt. Supports `model` override per agent.     |
 | `Read`  | Read specialist reference files and project CLAUDE.md / AGENTS.md before delegating.                                                                             |
+| `Skill` | Invoke other skills (e.g., `/brainstorm` for idea exploration, `/api-doc-gen` for API documentation generation/update).                                          |
+| `EnterPlanMode` | Enter plan mode to present a structured fix/implementation plan to the user for confirmation before proceeding (used in Bug Fix after diagnosis). |
+| `ExitPlanMode`  | Exit plan mode after the user confirms or adjusts the plan.                                                                                       |
 
 ## Team Roster
 
@@ -63,13 +69,11 @@ All specialists are spawned via the `Agent` tool with `subagent_type: "general-p
 | Business Analyst      | `business-analyst`      | haiku                                        | [references/business-analyst.md](references/business-analyst.md)           | Requirements, acceptance criteria, edge cases  |
 | Code Reviewer         | `code-reviewer`         | **opus**                                     | [references/code-reviewer.md](references/code-reviewer.md)                 | Convention compliance (read-only)              |
 | Developer             | `developer`             | sonnet                                       | [references/developer.md](references/developer.md)                         | Implement features, fix bugs, unit tests       |
-| DevOps                | `devops`                | sonnet                                       | [references/devops.md](references/devops.md)                               | Docker, GitLab CI/CD                           |
 | QA                    | `qa`                    | sonnet                                       | [references/qa.md](references/qa.md)                                       | Test design, quality review, E2E tests         |
 | Security              | `security`              | sonnet                                       | [references/security.md](references/security.md)                           | Security review, secrets detection             |
-| System Analyzer       | `system-analyzer`       | sonnet                                       | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues, trace root causes (read-only) |
-| Incident Investigator | `incident-investigator` | sonnet                                       | [references/incident-investigator.md](references/incident-investigator.md) | Investigate live systems (read-only)           |
+| System Analyzer       | `system-analyzer`       | sonnet                                       | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues across all envs — code analysis + live system investigation (read-only) |
 
-†**Architect model selection:** Use opus only for complex tasks — Performance Issue, Refactoring, Database Migration, or when the task involves multi-service design. For everything else (New Feature with clear scope, Bug Fix, Code Review, CI/CD), sonnet is sufficient and faster.
+†**Architect model selection:** Use opus only for complex tasks — Refactoring (cross-module) or when the task involves multi-service design. For everything else (New Feature with clear scope, Bug Fix), sonnet is sufficient and faster.
 
 **API Documentation:** When a workflow step requires generating or updating `docs/api-doc.md`, delegate to the `api-doc-gen` skill instead of handling inline. The Developer agent should invoke `/api-doc-gen` (or the Orchestrator should spawn a general-purpose agent with the skill's instructions) after implementation is complete.
 
@@ -81,18 +85,12 @@ Classify the user's request before selecting a workflow. Use these heuristics:
 | ------------------------------------------------------------------------------- | ------------------------- |
 | "add", "create", "new endpoint/feature/module"                                  | New Feature               |
 | "fix", "broken", "error", "doesn't work", stack traces                          | Bug Fix                   |
-| "security", "audit", "vulnerability", "secrets"                                 | Security Audit            |
-| "slow", "timeout", "performance", "optimize"                                    | Performance Issue         |
-| "review", "check this code", "PR review"                                        | Code Review               |
-| "CI/CD", "pipeline", "Docker", "deploy"                                         | CI/CD Change              |
+| "review PR", "review MR", PR/MR URL, "check this PR"                            | PR Review                 |
+| "refactor", "clean up", "restructure", "extract", "merge duplicates"            | Refactoring               |
 | "what should we build", "requirements", "scope"                                 | Requirement Clarification |
-| "refactor", "clean up", "restructure"                                           | Refactoring               |
-| "migration", "schema change", "alter table"                                     | Database Migration        |
-| "docs out of date", "update documentation"                                      | Documentation Sync        |
-| "ready to merge", "final check"                                                 | Pre-Merge Review          |
-| "incident", "production issue", "pod crash", "service down", "investigate"      | Incident Investigation    |
+| "ready to merge", "final check"                                                 | Review Loop               |
 
-**API doc update trigger:** Whenever a task adds, removes, or changes an endpoint (path, method, request fields, response fields, status codes, business logic), delegate to the `api-doc-gen` skill to update `docs/api-doc.md` after Developer completes implementation — no separate Documentation Sync trigger needed.
+**API doc update trigger:** Whenever a task adds, removes, or changes an endpoint (path, method, request fields, response fields, status codes, business logic), delegate to the `api-doc-gen` skill to update `docs/api-doc.md` after Review Loop passes.
 
 **Ambiguous tasks:** If the task spans multiple workflows (e.g., "add a feature and fix the pipeline"), pick the primary workflow and incorporate extra steps from other workflows as needed. State which workflow you selected and why.
 
@@ -100,14 +98,18 @@ Classify the user's request before selecting a workflow. Use these heuristics:
 
 ### Task Complexity
 
-After selecting a workflow, assess complexity to determine whether BA and Architect should run separately or be merged:
+After selecting a workflow, assess complexity to determine which steps to include:
 
-| Complexity  | Criteria                                                                  | BA + Architect                                                   |
-| ----------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | **Merged** — Architect handles requirements + design in one step |
-| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | **Separate** — BA clarifies first, then Architect designs        |
+| Complexity  | Criteria                                                                  | Steps Included                                                              |
+| ----------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | Architect → Developer → Review Loop (no brainstorm, no BA, no /plan)        |
+| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | /brainstorm → BA → Architect → /plan → Developer → Review Loop              |
 
-When merged, Architect receives the user's request directly and produces both acceptance criteria and technical design in a single output. This saves one sequential step without losing quality — for simple tasks, BA's output is largely a restatement of what the user already said.
+When simple, Architect receives the user's request directly and produces both acceptance criteria and technical design in a single output. Brainstorm, BA, and /plan are skipped because the scope is already clear — no need to confirm what's obvious.
+
+When complex, the workflow starts with `/brainstorm` (invoked via the `Skill` tool) to explore the idea interactively with the user. After Architect designs the solution, `/plan` presents the implementation plan for user confirmation before Developer starts — this prevents wasted effort on misaligned designs.
+
+When complex, the workflow starts with `/brainstorm` (invoked via the `Skill` tool) to explore the idea interactively with the user. The brainstorm output feeds into BA, who structures it into formal requirements and acceptance criteria before Architect designs the solution.
 
 ## Delegation Protocol
 
@@ -162,15 +164,15 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 
 | From             | To            | What to Pass                                          |
 | ---------------- | ------------- | ----------------------------------------------------- |
+| Brainstorm       | BA            | Key decisions, constraints, scope, explored directions |
 | Business Analyst | Architect     | User stories, acceptance criteria, business rules     |
 | Business Analyst | QA            | Acceptance criteria (for test case design)            |
 | Architect        | Developer     | API contracts, module design, file structure          |
 | Architect        | QA            | API contracts (for E2E test design)                   |
 | Architect        | Security      | Design decisions flagged with security implications   |
-| System Analyzer  | Developer     | Root cause analysis, affected files with line numbers |
-| Incident Investigator | Developer | Root cause type, evidence chain, affected files/lines, recommended fix |
-| Incident Investigator | DevOps    | Infrastructure findings, ArgoCD drift, config issues |
-| Incident Investigator | Security  | Security-related findings from logs/DB/infra |
+| System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |
+| System Analyzer  | DevOps        | Infrastructure findings, ArgoCD drift, config issues |
+| System Analyzer  | Security      | Security-related findings from logs/DB/infra |
 | Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found."** |
 | Developer        | Code Reviewer | Changed files list                                    |
 | Developer        | Security      | Changed files, new endpoints, data handling changes   |
@@ -187,21 +189,17 @@ When agents run in parallel, their outputs may overlap or need reconciliation:
 
 After selecting a workflow from Task Classification, read [`references/workflows.md`](references/workflows.md) and follow the pipeline steps exactly.
 
-**Available workflows:** New Feature, Bug Fix, Incident Investigation, Security Audit, Performance Issue, Code Review, CI/CD Change, Requirement Clarification, Refactoring, Database Migration, Documentation Sync, Pre-Merge Review
+**Available workflows:** New Feature, Bug Fix, PR Review, Refactoring, Requirement Clarification, Review Loop
 
-Every workflow with code changes includes verification by **code-reviewer + security + qa** — either as a dedicated step or parallel with implementation. See [`references/remediation.md`](references/remediation.md) for how blocking findings are handled.
+Every workflow with code changes includes a **Review Loop** — all three verification agents (code-reviewer + security + qa) run in parallel, Developer fixes blocking findings, and the loop repeats until all three approve (max 3 cycles).
 
-When generating or updating API documentation, delegate to the `api-doc-gen` skill rather than handling inline.
+**Brainstorm integration:** The New Feature workflow (complex tasks) starts with `/brainstorm` to explore the idea with the user before formal requirements analysis. Invoke via the `Skill` tool.
 
-## Remediation Loop
+When generating or updating API documentation, delegate to the `api-doc-gen` skill after Pre-Merge Review passes — not during implementation.
 
-When verification agents return blocking findings, the pipeline loops back for remediation. Read [`references/remediation.md`](references/remediation.md) for the full process, flowchart, and escalation procedures.
+## Review Loop
 
-**Key rules:**
-- Only re-run failing agents — don't re-run agents that already approved
-- Max 2 remediation cycles — escalate to user if still unresolved
-- Pass specific findings with file:line references to Developer
-- Report all cycles in Summary
+All workflows with code changes use the **Review Loop** for verification. All three agents (code-reviewer + security + qa) run in parallel. If any has blocking findings, Developer fixes and **all three re-run** — not just the failing ones. This ensures no regression from fixes. Max 3 cycles, then escalate to user. See the Review Loop section in [`references/workflows.md`](references/workflows.md) for the full process and escalation format.
 
 ## When to Ask the User
 
