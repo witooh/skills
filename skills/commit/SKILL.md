@@ -1,10 +1,11 @@
 ---
 name: commit
 description: >-
-  Smart git commit workflow with branch protection and conventional commits.
+  Smart git commit workflow with branch protection, rebase, and conventional commits.
   Detects protected branches (main, develop, release/*, staging) and auto-creates
-  a feature/* branch before committing. Analyzes changes, smart-stages files
-  (excluding secrets), writes conventional commit messages, and offers to push.
+  a feature/* branch before committing. Rebases onto base branch to keep history clean.
+  Analyzes changes, smart-stages files (excluding secrets), writes conventional commit
+  messages, and offers to push.
   Use whenever the user says "commit", "/commit", "commit changes", "save my work",
   "push this", "commit and push", or wants to commit code changes. Also trigger
   when the user finishes a task and says "done", "เสร็จแล้ว", "commit ให้หน่อย",
@@ -62,9 +63,28 @@ Check if the current branch matches any protected pattern:
 4. Ask the user to confirm or edit the branch name using AskUserQuestion
 5. Run `git checkout -b <branch-name>`
 
-**If NOT on a protected branch**, skip to Step 3.
+**If NOT on a protected branch**, proceed to Step 3.
 
-### Step 3: Smart Stage
+### Step 3: Rebase onto Base Branch
+
+Before committing, rebase the current feature branch onto the latest base branch to keep history linear and avoid merge conflicts later.
+
+1. Determine the base branch — check which of these exists (in order): `develop`, `main`, `master`. Use the first one found.
+2. Stash any uncommitted changes: `git stash`
+3. Fetch latest from origin (if remote exists): `git fetch origin <base-branch> 2>/dev/null`
+4. Rebase: `git rebase origin/<base-branch>` (or `git rebase <base-branch>` if no remote)
+5. Pop the stash: `git stash pop`
+
+**If rebase has conflicts:**
+- Do NOT auto-resolve. Run `git rebase --abort` to undo.
+- Tell the user there are conflicts and show which files conflict.
+- Let the user decide how to proceed — do not force through.
+
+**Skip rebase when:**
+- There is no remote configured (`git remote -v` is empty)
+- The branch was just created in Step 2 (it's already based on the latest)
+
+### Step 4: Smart Stage
 
 Analyze all changed files and stage them intelligently.
 
@@ -83,7 +103,7 @@ Analyze all changed files and stage them intelligently.
 2. If nothing is staged, analyze the unstaged changes and stage relevant files using `git add <file1> <file2> ...` (explicit file names, never `git add -A` or `git add .`)
 3. If any dangerous files are detected in the changes, warn the user and exclude them
 
-### Step 4: Write Commit Message
+### Step 5: Write Commit Message
 
 Use **Conventional Commits** format based on the changes:
 
@@ -128,7 +148,7 @@ EOF
 )"
 ```
 
-### Step 5: Verify and Offer Push
+### Step 6: Verify and Offer Push
 
 After the commit succeeds:
 
