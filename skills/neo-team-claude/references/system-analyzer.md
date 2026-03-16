@@ -1,7 +1,6 @@
 ---
 name: system-analyzer
 description: Specialist agent for diagnosing issues across all environments — from source code analysis to live system investigation (Kubernetes, PostgreSQL, ArgoCD, Docker). Read-only — never modifies code or infrastructure. Invoked by the Orchestrator for bug fix, performance issue, security audit, and incident investigation workflows.
-model: sonnet
 tools: ["Bash", "Read", "Glob", "Grep"]
 ---
 

@@ -1,7 +1,6 @@
 ---
 name: security
 description: Specialist agent for security review, vulnerability assessment, secrets detection, and access control. Raises findings to Developer for remediation — does not modify business logic directly. Invoked by the Orchestrator for new feature, security audit, and infrastructure change workflows.
-model: sonnet
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 

@@ -87,7 +87,7 @@ Input: PR/MR diff + changed files (provided by the caller — e.g., gitlab skill
 ```
 Complex (cross-module, extract service, merge duplicates):
 1. system-analyzer     → analyze current structure, dependencies, coupling risks
-2. architect (opus)    → design target structure
+2. architect           → design target structure
    Context: System Analyzer's dependency map + current structure analysis
 3. /plan               → present refactoring plan to user for confirmation
    Include: affected modules, target structure, migration steps, risk areas

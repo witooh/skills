@@ -51,7 +51,7 @@ If no convention file exists:
 
 | Tool    | Purpose                                                                                                                                                          |
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Agent` | Spawn specialist agents using `subagent_type: "general-purpose"` with specialist instructions injected into the prompt. Supports `model` override per agent.     |
+| `Agent` | Spawn specialist agents using `subagent_type: "general-purpose"` with specialist instructions injected into the prompt.                                             |
 | `Read`  | Read specialist reference files and project CLAUDE.md / AGENTS.md before delegating.                                                                             |
 | `Skill` | Invoke other skills (e.g., `/brainstorm` for idea exploration, `/api-doc-gen` for API documentation generation/update).                                          |
 | `EnterPlanMode` | Enter plan mode to present a structured fix/implementation plan to the user for confirmation before proceeding (used in Bug Fix after diagnosis). |
@@ -59,19 +59,17 @@ If no convention file exists:
 
 ## Team Roster
 
-All specialists are spawned via the `Agent` tool with `subagent_type: "general-purpose"`. The specialist's identity and instructions are injected directly into the prompt. The `model` parameter selects the optimal model per specialist.
+All specialists are spawned via the `Agent` tool with `subagent_type: "general-purpose"`. The specialist's identity and instructions are injected directly into the prompt. No explicit `model` is set — all agents inherit the model from the main session, ensuring consistent capability across the team.
 
-| Specialist            | Role ID                 | Model                                        | Reference                                                                  | Role                                           |
-| --------------------- | ----------------------- | -------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------- |
-| Architect             | `architect`             | sonnet (opus for complex†)                   | [references/architect.md](references/architect.md)                         | System design, API contracts, ADRs             |
-| Business Analyst      | `business-analyst`      | haiku                                        | [references/business-analyst.md](references/business-analyst.md)           | Requirements, acceptance criteria, edge cases  |
-| Code Reviewer         | `code-reviewer`         | **opus**                                     | [references/code-reviewer.md](references/code-reviewer.md)                 | Convention compliance (read-only)              |
-| Developer             | `developer`             | sonnet                                       | [references/developer.md](references/developer.md)                         | Implement features, fix bugs, unit tests       |
-| QA                    | `qa`                    | sonnet                                       | [references/qa.md](references/qa.md)                                       | Test design, quality review, E2E tests         |
-| Security              | `security`              | sonnet                                       | [references/security.md](references/security.md)                           | Security review, secrets detection             |
-| System Analyzer       | `system-analyzer`       | sonnet                                       | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues across all envs — code analysis + live system investigation (read-only) |
-
-†**Architect model selection:** Use opus only for complex tasks — Refactoring (cross-module) or when the task involves multi-service design. For everything else (New Feature with clear scope, Bug Fix), sonnet is sufficient and faster.
+| Specialist            | Role ID                 | Reference                                                                  | Role                                           |
+| --------------------- | ----------------------- | -------------------------------------------------------------------------- | ---------------------------------------------- |
+| Architect             | `architect`             | [references/architect.md](references/architect.md)                         | System design, API contracts, ADRs             |
+| Business Analyst      | `business-analyst`      | [references/business-analyst.md](references/business-analyst.md)           | Requirements, acceptance criteria, edge cases  |
+| Code Reviewer         | `code-reviewer`         | [references/code-reviewer.md](references/code-reviewer.md)                 | Convention compliance (read-only)              |
+| Developer             | `developer`             | [references/developer.md](references/developer.md)                         | Implement features, fix bugs, unit tests       |
+| QA                    | `qa`                    | [references/qa.md](references/qa.md)                                       | Test design, quality review, E2E tests         |
+| Security              | `security`              | [references/security.md](references/security.md)                           | Security review, secrets detection             |
+| System Analyzer       | `system-analyzer`       | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues across all envs — code analysis + live system investigation (read-only) |
 
 ## Task Classification
 
@@ -117,7 +115,7 @@ For each pipeline step:
 
 1. **Read** the specialist's reference file from `references/`
 2. **Compose** the prompt with five parts: role identity, reference content, project conventions, task description, and prior agent outputs
-3. **Spawn** via `Agent` tool — use `subagent_type: "general-purpose"` and set `model` per the roster table
+3. **Spawn** via `Agent` tool — use `subagent_type: "general-purpose"`
 4. **Parallel steps**: make multiple `Agent` calls in a single response when there are no dependencies between them
 5. **File conflict avoidance**: when parallel agents both modify files (e.g., Developer + QA), they typically work on different file sets (production code vs test files). If parallel agents may edit overlapping files, consider using `isolation: "worktree"` to give each agent an isolated copy of the repository
 
@@ -129,7 +127,6 @@ When spawning a specialist agent, compose the prompt in this structure:
 Agent(
   description: "<3-5 word task summary>",
   subagent_type: "general-purpose",
-  model: "<from roster table: sonnet, opus, or haiku>",
   prompt: """
 # Role: [Specialist Name]
 
@@ -234,7 +231,7 @@ Non-development tasks (questions, explanations, research): answer directly witho
 
 1. **Never skip** a specialist listed in the workflow definition — the workflow is the ONLY source of truth for which specialists are required. Do not reinterpret "relevance"; if QA is listed, QA is invoked. No exceptions, no "trivial change" bypass.
 2. **Never implement** code yourself — always delegate to the appropriate specialist
-3. **Spawn via Agent tool** — always use `subagent_type: "general-purpose"` with the specialist's role identity and reference content injected into the prompt, and the correct `model` per roster table
+3. **Spawn via Agent tool** — always use `subagent_type: "general-purpose"` with the specialist's role identity and reference content injected into the prompt
 4. **Always read** the specialist's reference file before composing the delegation prompt
 5. **Always include** project conventions from CLAUDE.md in every delegation prompt
 6. **Never stop after Developer** — if a workflow has verification steps (code-reviewer, security, qa) after Developer, you MUST continue to those steps. Developer completing code is NOT the end of the pipeline.
