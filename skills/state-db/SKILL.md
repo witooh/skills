@@ -1,33 +1,51 @@
 ---
 name: state-db
 description: >-
-  Centralized state management layer for all Claude Code skills using Supabase.
-  Provides persistent read/write access to a shared database via REST API.
-  Use this skill whenever another skill needs to persist data, retrieve stored
-  state, or manage records across sessions. Trigger on: "save state", "load state",
-  "persist data", "skill state", "state-db", "read from db", "write to db",
-  "supabase", "skill_state", or when any skill needs to store or retrieve
-  persistent data. Also use when building or modifying skills that require
-  cross-session memory or shared data storage.
+  Centralized state management layer for all Claude Code skills using
+  self-hosted PostgREST. Provides persistent read/write access to a shared
+  PostgreSQL database via REST API. Use this skill whenever another skill needs
+  to persist data, retrieve stored state, or manage records across sessions.
+  Trigger on: "save state", "load state", "persist data", "skill state",
+  "state-db", "read from db", "write to db", "postgrest", "skill_state",
+  or when any skill needs to store or retrieve persistent data. Also use when
+  building or modifying skills that require cross-session memory or shared
+  data storage.
 metadata:
   author: witooh
-  version: "2.0"
+  version: "3.0"
 ---
 
 # State DB
 
-Centralized state management for Claude Code skills via Supabase REST API.
+Centralized state management for Claude Code skills via PostgREST REST API.
 
 ## Setup
 
 All operations use these shell variables. Define them before executing any command:
 
 ```bash
-SB_URL="$STATE_DB_SUPABASE_URL/rest/v1/skill_state"
-SB_AUTH=(-H "apikey: $STATE_DB_SUPABASE_ANON_KEY" -H "Authorization: Bearer $STATE_DB_SUPABASE_ANON_KEY")
-SB_JSON=(-H "Content-Type: application/json")
-SB_RETURN=(-H "Prefer: return=representation")
+DB_URL="$STATE_DB_POSTGREST_URL/skill_state"
+DB_ROLE="${STATE_DB_POSTGREST_ROLE:-web_anon}"
+DB_TOKEN=$(python3 -c "
+import hmac,hashlib,base64,json
+def b64(s): return base64.urlsafe_b64encode(s).rstrip(b'=').decode()
+h=b64(json.dumps({'alg':'HS256','typ':'JWT'}).encode())
+p=b64(json.dumps({'role':'$DB_ROLE'}).encode())
+sig=b64(hmac.new('$STATE_DB_POSTGREST_JWT_SECRET'.encode(),f'{h}.{p}'.encode(),hashlib.sha256).digest())
+print(f'{h}.{p}.{sig}')
+")
+DB_AUTH=(-H "Authorization: Bearer $DB_TOKEN")
+DB_JSON=(-H "Content-Type: application/json")
+DB_RETURN=(-H "Prefer: return=representation")
 ```
+
+Required environment variables:
+
+| Variable | Purpose |
+|----------|---------|
+| `STATE_DB_POSTGREST_URL` | PostgREST endpoint (e.g. `http://host:3000`) |
+| `STATE_DB_POSTGREST_JWT_SECRET` | HMAC secret for signing JWT tokens |
+| `STATE_DB_POSTGREST_ROLE` | PostgreSQL role for JWT claim (default: `web_anon`) |
 
 ## Table Schema
 
@@ -55,7 +73,7 @@ Index: `idx_skill_state_keys` on `(skill_name, key1, key2, key3, key4, key5)`. P
 ### INSERT
 
 ```bash
-curl -s -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
+curl -s -X POST "$DB_URL" "${DB_AUTH[@]}" "${DB_JSON[@]}" "${DB_RETURN[@]}" \
   -d '{
     "skill_name": "food-tracker",
     "key1": "entry",
@@ -66,7 +84,7 @@ curl -s -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
 Multi-key insert:
 
 ```bash
-curl -s -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
+curl -s -X POST "$DB_URL" "${DB_AUTH[@]}" "${DB_JSON[@]}" "${DB_RETURN[@]}" \
   -d '{
     "skill_name": "expense-tracker",
     "key1": "entry",
@@ -78,7 +96,7 @@ curl -s -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
 
 ### QUERY
 
-Base form: `curl -s "$SB_URL?<filters>" "${SB_AUTH[@]}"`
+Base form: `curl -s "$DB_URL?<filters>" "${DB_AUTH[@]}"`
 
 **Common filter patterns:**
 
@@ -96,13 +114,13 @@ Base form: `curl -s "$SB_URL?<filters>" "${SB_AUTH[@]}"`
 Example:
 
 ```bash
-curl -s "$SB_URL?skill_name=eq.food-tracker&key1=eq.entry&order=created_at.desc&limit=10" \
-  "${SB_AUTH[@]}"
+curl -s "$DB_URL?skill_name=eq.food-tracker&key1=eq.entry&order=created_at.desc&limit=10" \
+  "${DB_AUTH[@]}"
 ```
 
 ### JSONB Filters
 
-Supabase uses PostgREST `data->>field` syntax for JSONB filtering. Append these to query strings:
+PostgREST `data->>field` syntax for JSONB filtering. Append these to query strings:
 
 | Filter type | Query string example |
 |-------------|---------------------|
@@ -114,14 +132,14 @@ Supabase uses PostgREST `data->>field` syntax for JSONB filtering. Append these 
 Example:
 
 ```bash
-curl -s "$SB_URL?skill_name=eq.dca&data->>asset=eq.BTC&order=created_at.desc" \
-  "${SB_AUTH[@]}"
+curl -s "$DB_URL?skill_name=eq.dca&data->>asset=eq.BTC&order=created_at.desc" \
+  "${DB_AUTH[@]}"
 ```
 
 ### UPDATE
 
 ```bash
-curl -s -X PATCH "$SB_URL?id=eq.42" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
+curl -s -X PATCH "$DB_URL?id=eq.42" "${DB_AUTH[@]}" "${DB_JSON[@]}" "${DB_RETURN[@]}" \
   -d '{
     "data": {"meal": "lunch", "items": ["rice", "chicken", "egg"], "phosphorus_mg": 350}
   }'
@@ -130,20 +148,20 @@ curl -s -X PATCH "$SB_URL?id=eq.42" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN
 ### DELETE
 
 ```bash
-curl -s -X DELETE "$SB_URL?id=eq.42" "${SB_AUTH[@]}" "${SB_RETURN[@]}"
+curl -s -X DELETE "$DB_URL?id=eq.42" "${DB_AUTH[@]}" "${DB_RETURN[@]}"
 ```
 
 Delete by skill_name + key1:
 
 ```bash
-curl -s -X DELETE "$SB_URL?skill_name=eq.dca&key1=eq.config" "${SB_AUTH[@]}" "${SB_RETURN[@]}"
+curl -s -X DELETE "$DB_URL?skill_name=eq.dca&key1=eq.config" "${DB_AUTH[@]}" "${DB_RETURN[@]}"
 ```
 
 Delete by multi-key:
 
 ```bash
-curl -s -X DELETE "$SB_URL?skill_name=eq.expense-tracker&key1=eq.entry&key2=eq.food&key3=eq.2026-03" \
-  "${SB_AUTH[@]}" "${SB_RETURN[@]}"
+curl -s -X DELETE "$DB_URL?skill_name=eq.expense-tracker&key1=eq.entry&key2=eq.food&key3=eq.2026-03" \
+  "${DB_AUTH[@]}" "${DB_RETURN[@]}"
 ```
 
 ---
@@ -227,7 +245,7 @@ key1: "entry"
 
 ```bash
 # Log a meal
-curl -s -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
+curl -s -X POST "$DB_URL" "${DB_AUTH[@]}" "${DB_JSON[@]}" "${DB_RETURN[@]}" \
   -d '{
     "skill_name": "food-tracker",
     "key1": "entry",
@@ -235,8 +253,8 @@ curl -s -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
   }'
 
 # Query today's entries
-curl -s "$SB_URL?skill_name=eq.food-tracker&key1=eq.entry&data->>date=eq.2026-03-14&order=created_at.asc" \
-  "${SB_AUTH[@]}"
+curl -s "$DB_URL?skill_name=eq.food-tracker&key1=eq.entry&data->>date=eq.2026-03-14&order=created_at.asc" \
+  "${DB_AUTH[@]}"
 ```
 
 ### Pattern 2: Singleton Config
@@ -250,10 +268,10 @@ key1: "config"
 
 ```bash
 # Read existing config
-EXISTING=$(curl -s "$SB_URL?skill_name=eq.my-skill&key1=eq.config&limit=1" "${SB_AUTH[@]}")
+EXISTING=$(curl -s "$DB_URL?skill_name=eq.my-skill&key1=eq.config&limit=1" "${DB_AUTH[@]}")
 
 # If empty [] -> INSERT new config
-curl -s -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
+curl -s -X POST "$DB_URL" "${DB_AUTH[@]}" "${DB_JSON[@]}" "${DB_RETURN[@]}" \
   -d '{
     "skill_name": "my-skill",
     "key1": "config",
@@ -262,7 +280,7 @@ curl -s -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
 
 # If exists -> UPDATE by id (extract id from EXISTING with jq)
 ID=$(echo "$EXISTING" | jq -r '.[0].id')
-curl -s -X PATCH "$SB_URL?id=eq.$ID" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
+curl -s -X PATCH "$DB_URL?id=eq.$ID" "${DB_AUTH[@]}" "${DB_JSON[@]}" "${DB_RETURN[@]}" \
   -d '{"data": {"currency": "USD", "timezone": "Asia/Bangkok"}}'
 ```
 
@@ -280,7 +298,7 @@ key1: "config"      key2: (null)    -> single row for settings
 
 ```bash
 # Add an asset to portfolio
-curl -s -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
+curl -s -X POST "$DB_URL" "${DB_AUTH[@]}" "${DB_JSON[@]}" "${DB_RETURN[@]}" \
   -d '{
     "skill_name": "dca",
     "key1": "portfolio",
@@ -288,12 +306,12 @@ curl -s -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
   }'
 
 # Find specific asset
-curl -s "$SB_URL?skill_name=eq.dca&key1=eq.portfolio&data->>asset=eq.BTC&limit=1" \
-  "${SB_AUTH[@]}"
+curl -s "$DB_URL?skill_name=eq.dca&key1=eq.portfolio&data->>asset=eq.BTC&limit=1" \
+  "${DB_AUTH[@]}"
 
 # List all BTC transactions (key2 filters by asset — uses index, no JSONB scan)
-curl -s "$SB_URL?skill_name=eq.dca&key1=eq.transaction&key2=eq.BTC&order=created_at.desc" \
-  "${SB_AUTH[@]}"
+curl -s "$DB_URL?skill_name=eq.dca&key1=eq.transaction&key2=eq.BTC&order=created_at.desc" \
+  "${DB_AUTH[@]}"
 ```
 
 ### Pattern 4: Time-Series with Aggregation
@@ -310,7 +328,7 @@ key1: "summary"  key2: "monthly"   key3: "2026-03" -> specific month
 
 ```bash
 # Insert daily summary
-curl -s -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
+curl -s -X POST "$DB_URL" "${DB_AUTH[@]}" "${DB_JSON[@]}" "${DB_RETURN[@]}" \
   -d '{
     "skill_name": "expense-tracker",
     "key1": "summary",
@@ -319,19 +337,19 @@ curl -s -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
   }'
 
 # Query all monthly summaries
-curl -s "$SB_URL?skill_name=eq.expense-tracker&key1=eq.summary&key2=eq.monthly&order=created_at.desc" \
-  "${SB_AUTH[@]}"
+curl -s "$DB_URL?skill_name=eq.expense-tracker&key1=eq.summary&key2=eq.monthly&order=created_at.desc" \
+  "${DB_AUTH[@]}"
 
 # Query specific month summary
-curl -s "$SB_URL?skill_name=eq.expense-tracker&key1=eq.summary&key2=eq.monthly&key3=eq.2026-03&limit=1" \
-  "${SB_AUTH[@]}"
+curl -s "$DB_URL?skill_name=eq.expense-tracker&key1=eq.summary&key2=eq.monthly&key3=eq.2026-03&limit=1" \
+  "${DB_AUTH[@]}"
 ```
 
 ---
 
 ## Response Format & Error Handling
 
-All Supabase REST responses return JSON arrays. A successful INSERT/UPDATE with `Prefer: return=representation` returns the created/updated rows. An empty result returns `[]`.
+All PostgREST responses return JSON arrays. A successful INSERT/UPDATE with `Prefer: return=representation` returns the created/updated rows. An empty result returns `[]`.
 
 Non-2xx responses return:
 
@@ -342,7 +360,7 @@ Non-2xx responses return:
 Error-checked curl pattern:
 
 ```bash
-RESULT=$(curl -s -w "\n%{http_code}" -X POST "$SB_URL" "${SB_AUTH[@]}" "${SB_JSON[@]}" "${SB_RETURN[@]}" \
+RESULT=$(curl -s -w "\n%{http_code}" -X POST "$DB_URL" "${DB_AUTH[@]}" "${DB_JSON[@]}" "${DB_RETURN[@]}" \
   -d '{"skill_name": "test", "data": {}}')
 HTTP_CODE=$(echo "$RESULT" | tail -1)
 BODY=$(echo "$RESULT" | sed '$d')
@@ -350,22 +368,49 @@ BODY=$(echo "$RESULT" | sed '$d')
 
 ---
 
-## Migration from v1 (key) to v2 (key1-key5)
+## Database Setup
 
-The `key` column was renamed to `key1` in v2. If your skill referenced `key` in queries:
-
-- Change all `key=eq.xxx` to `key1=eq.xxx` in PostgREST queries
-- Change all `"key": "xxx"` to `"key1": "xxx"` in INSERT/PATCH payloads
-- No data migration needed — existing rows retain their values in the renamed column
-
-SQL applied to Supabase:
+SQL to create the `skill_state` table, index, and auto-update trigger on a new PostgreSQL database:
 
 ```sql
-ALTER TABLE skill_state RENAME COLUMN key TO key1;
-ALTER TABLE skill_state ADD COLUMN key2 TEXT;
-ALTER TABLE skill_state ADD COLUMN key3 TEXT;
-ALTER TABLE skill_state ADD COLUMN key4 TEXT;
-ALTER TABLE skill_state ADD COLUMN key5 TEXT;
-CREATE INDEX idx_skill_state_keys
+CREATE TABLE IF NOT EXISTS skill_state (
+  id BIGSERIAL PRIMARY KEY,
+  skill_name TEXT NOT NULL,
+  key1 TEXT,
+  key2 TEXT,
+  key3 TEXT,
+  key4 TEXT,
+  key5 TEXT,
+  data JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_skill_state_keys
   ON skill_state (skill_name, key1, key2, key3, key4, key5);
+
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_skill_state_updated_at ON skill_state;
+CREATE TRIGGER trg_skill_state_updated_at
+  BEFORE UPDATE ON skill_state
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 ```
+
+---
+
+## Migration from v2 (Supabase) to v3 (PostgREST)
+
+If your skill previously used the Supabase-based state-db:
+
+1. **Environment variables:** Replace `STATE_DB_SUPABASE_URL` and `STATE_DB_SUPABASE_ANON_KEY` with `STATE_DB_POSTGREST_URL`, `STATE_DB_POSTGREST_JWT_SECRET`, and optionally `STATE_DB_POSTGREST_ROLE`
+2. **URL path:** Remove `/rest/v1/` prefix — PostgREST uses `$URL/skill_state` directly
+3. **Auth headers:** Remove `apikey` header. Use only `Authorization: Bearer <JWT>`
+4. **Shell variables:** Rename `SB_URL` → `DB_URL`, `SB_AUTH` → `DB_AUTH`, `SB_JSON` → `DB_JSON`, `SB_RETURN` → `DB_RETURN`
+5. **Query syntax:** No changes — all filters, operators, and JSONB syntax are identical
