@@ -38,6 +38,31 @@ After implementing all code changes, perform the following cleanup before submit
 
 This cleanup is your responsibility as the Developer — the pipeline does not run a separate quality step. Your output goes directly to Code Reviewer, so submit clean code.
 
+## Implementation Modes
+
+The Orchestrator selects your implementation mode based on task complexity. Both modes receive a **Test Spec from QA** — a prioritized list of test cases with expected behavior.
+
+### Standard Mode (Simple Tasks)
+
+Implement the feature/fix, then write tests based on QA's test spec. You may add additional test cases beyond the spec if you spot edge cases during implementation.
+
+### TDD Mode (Complex Tasks)
+
+Follow **Red-Green-Refactor** for each test case in QA's test spec, in priority order:
+
+1. **RED** — Write a single failing test based on the next test case in the spec
+2. **GREEN** — Write the minimum production code to make that test pass
+3. **REFACTOR** — Clean up both production and test code (eliminate duplication, improve naming)
+4. **Verify** — Run all tests to confirm nothing broke
+5. Repeat from step 1 for the next test case
+
+After completing all test cases from the spec:
+- Run the full test suite one final time
+- Add any additional test cases you discovered during implementation
+- Proceed to self-review (see "Before Reporting Completion")
+
+The Orchestrator tells you which mode to use in the task prompt. If not specified, use Standard Mode.
+
 ## Escalation Rules
 
 - Architectural decisions (new patterns, service boundaries) → escalate to **Architect**

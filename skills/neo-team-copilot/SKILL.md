@@ -90,8 +90,14 @@ After selecting a workflow, assess complexity to determine which steps to includ
 
 | Complexity  | Criteria                                                                  | Steps Included                                                                    |
 | ----------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | Architect → Developer → Review Loop (no BA, no plan confirmation)                 |
-| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | BA → Architect → present plan to user → Developer → Review Loop                   |
+| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | Architect → QA (test spec) → Developer → Review Loop                              |
+| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | BA → Architect → present plan to user → QA (test spec) → Developer (TDD) → Review Loop |
+
+Steps shown are for New Feature. Other workflows have different starting steps but follow the same complexity principle — see [`references/workflows.md`](references/workflows.md) for exact pipelines.
+
+**QA Test Spec (all tasks):** Before Developer starts, QA generates a test specification. See [`references/qa.md`](references/qa.md) for the Test Spec Generation format.
+
+**Developer mode:** Simple → Standard Mode. Complex → TDD Mode. Escalate to TDD even for "simple" tasks if business logic is particularly complex (calculations, state machines, multi-step validation) or high-impact. Mode details in [`references/developer.md`](references/developer.md).
 
 When simple, Architect receives the user's request directly and produces both acceptance criteria and technical design in a single output. BA and plan confirmation are skipped because the scope is already clear — no need to confirm what's obvious.
 
@@ -154,6 +160,7 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Architect        | Developer     | API contracts, module design, file structure          |
 | Architect        | QA            | API contracts (for E2E test design)                   |
 | Architect        | Security      | Design decisions flagged with security implications   |
+| QA (test spec)   | Developer     | Test spec (prioritized test cases + expected behavior)                |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |
 | System Analyzer  | Security      | Security-related findings from logs/DB/infra |
 | Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found."** |

@@ -30,6 +30,47 @@ If no `CLAUDE.md` exists, ask the Orchestrator to clarify the project's testing 
 - Identify regression risks
 - Sign off on changes before merge
 
+## Test Spec Generation (Pre-Implementation)
+
+When invoked **before Developer** in the pipeline (marked as "qa (test spec)" in workflows), your role is to produce a **Test Specification** — a prioritized list of test cases that Developer will use as a guide for implementation and testing. This is separate from your review role in the Review Loop.
+
+### What to Include
+
+Based on the acceptance criteria, API contracts, and/or root cause analysis provided:
+
+1. **Test cases** — prioritized by risk (P0 = critical path, P1 = edge cases, P2 = nice-to-have)
+2. **Expected behavior** — clear input → expected output for each case
+3. **Boundary conditions** — limits, empty inputs, max values, type edges
+4. **Error scenarios** — what should fail and how (error codes, messages)
+5. **Regression cases** (for bug fixes) — tests that would have caught the original bug
+6. **Behavior preservation cases** (for refactoring) — tests that verify existing behavior stays intact
+
+### What NOT to Include
+
+- Test code — Developer writes the actual test code
+- Implementation hints — that's Architect's job
+- E2E test details — those come later during Review Loop
+
+### Test Spec Output Format
+
+```
+## QA — Test Spec
+
+**Scope:** [what feature/fix/refactoring this spec covers]
+
+| Priority | ID | Test Case | Input | Expected Output | Type |
+|----------|----|-----------|-------|-----------------|------|
+| P0 | TS-001 | [description] | [input data] | [expected result] | Unit |
+| P0 | TS-002 | [description] | [input data] | [expected result] | Unit |
+| P1 | TS-003 | [description] | [input data] | [expected result] | Integration |
+
+**Edge Cases:**
+- [edge case 1]: [expected behavior]
+- [edge case 2]: [expected behavior]
+
+**Notes for Developer:** [any context that helps write better tests]
+```
+
 ## Test Coverage Checklist
 
 For every change, verify tests cover:
