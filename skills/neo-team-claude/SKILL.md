@@ -96,8 +96,16 @@ After selecting a workflow, assess complexity to determine which steps to includ
 
 | Complexity  | Criteria                                                                  | Steps Included                                                              |
 | ----------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | Architect → Developer → Review Loop (no brainstorm, no BA, no /plan)        |
-| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | /brainstorm → BA → Architect → /plan → Developer → Review Loop              |
+| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | Architect → QA (test spec) → Developer → Review Loop                        |
+| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | /brainstorm → BA → Architect → /plan → QA (test spec) → Developer (TDD) → Review Loop |
+
+**QA Test Spec (all tasks):** Before Developer starts, QA generates a test specification — a prioritized list of test cases with expected behavior. This follows the "doc first" principle: define what to test before writing code. See [`references/qa.md`](references/qa.md) for the Test Spec Generation format.
+
+**Developer implementation modes:**
+- **Simple → Standard Mode:** Developer implements the feature/fix, then writes tests using QA's test spec as reference.
+- **Complex → TDD Mode:** Developer follows Red-Green-Refactor per test case from QA's spec — write a failing test first, implement to pass, refactor, repeat.
+
+**Orchestrator discretion:** Even for "simple" tasks, escalate to TDD mode if the business logic is particularly complex (calculations, state machines, multi-step validation) or if errors would have high impact.
 
 When simple, Architect receives the user's request directly and produces both acceptance criteria and technical design in a single output. Brainstorm, BA, and /plan are skipped because the scope is already clear — no need to confirm what's obvious.
 
@@ -162,6 +170,7 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Architect        | Developer     | API contracts, module design, file structure          |
 | Architect        | QA            | API contracts (for E2E test design)                   |
 | Architect        | Security      | Design decisions flagged with security implications   |
+| QA (test spec)   | Developer     | Test specification — prioritized test cases with expected behavior. Complex tasks: Developer uses TDD mode. |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |
 | System Analyzer  | Security      | Security-related findings from logs/DB/infra |
 | Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found."** |

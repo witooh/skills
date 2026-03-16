@@ -6,6 +6,7 @@ Before declaring a task complete, verify ALL pipeline steps have been executed. 
 
 ```
 For every workflow that includes code changes:
+  ✅ QA test spec generated? (MANDATORY — QA generates test spec before Developer starts)
   ✅ Developer has completed implementation?
   ✅ Review Loop completed? (for New Feature, Bug Fix, and standalone Review Loop workflows)
      OR verification agents invoked? (for other workflows with inline verification)
@@ -42,15 +43,17 @@ Example: New Feature (Complex)
   [ ] Step 2: business-analyst
   [ ] Step 3: architect
   [ ] Step 4: /plan (confirm with user)
-  [ ] Step 5: developer
-  [ ] Step 6: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS
-  [ ] Step 7: api-doc-gen (if API impacted)
+  [ ] Step 5: qa (test spec)
+  [ ] Step 6: developer (TDD mode)
+  [ ] Step 7: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS
+  [ ] Step 8: api-doc-gen (if API impacted)
 
 Example: New Feature (Simple)
   [ ] Step 1: architect
-  [ ] Step 2: developer
-  [ ] Step 3: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS
-  [ ] Step 4: api-doc-gen (if API impacted)
+  [ ] Step 2: qa (test spec)
+  [ ] Step 3: developer
+  [ ] Step 4: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS
+  [ ] Step 5: api-doc-gen (if API impacted)
 ```
 
 Mark each step as you complete it. Only write the Summary when all steps are marked done.
