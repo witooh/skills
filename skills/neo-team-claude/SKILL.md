@@ -97,7 +97,7 @@ After selecting a workflow, assess complexity to determine which steps to includ
 | **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | Architect → QA (test spec) → Developer → Review Loop                        |
 | **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | /brainstorm → BA → Architect → /plan → QA (test spec) → Developer (TDD) → Review Loop |
 
-**QA Test Spec (all tasks):** Before Developer starts, QA generates a test specification — a prioritized list of test cases with expected behavior. This follows the "doc first" principle: define what to test before writing code. See [`references/qa.md`](references/qa.md) for the Test Spec Generation format.
+**QA Test Spec (all tasks):** Before Developer starts, QA generates a **test case document** following the [`test-case-document.md`](references/test-case-document.md) template — GIVEN/WHEN/THEN format with test steps, expected results, test data, and preconditions. This follows the "doc first" principle: define what to test before writing code. During the Review Loop, after running E2E tests, QA generates an **execution report** following the [`test-execution-report.md`](references/test-execution-report.md) template — mapping each test case to its actual result, status, and defect references. See [`references/qa.md`](references/qa.md) for details.
 
 **Developer implementation modes:**
 - **Simple → Standard Mode:** Developer implements the feature/fix, then writes tests using QA's test spec as reference.
@@ -167,10 +167,10 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Architect        | Developer     | API contracts, module design, file structure          |
 | Architect        | QA            | API contracts (for E2E test design)                   |
 | Architect        | Security      | Design decisions flagged with security implications   |
-| QA (test spec)   | Developer     | Test specification — prioritized test cases with expected behavior. Complex tasks: Developer uses TDD mode. |
+| QA (test spec)   | Developer     | Test case document (test-case-document.md template) — GIVEN/WHEN/THEN test cases with steps, expected results, test data, preconditions. Complex tasks: Developer uses TDD mode. |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |
 | System Analyzer  | Security      | Security-related findings from logs/DB/infra |
-| Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found."** |
+| Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found. After running tests, generate an execution report using the test-execution-report.md template."** |
 | Developer        | Code Reviewer | Changed files list                                    |
 | Developer        | Security      | Changed files, new endpoints, data handling changes   |
 

@@ -2,7 +2,9 @@
 
 Each workflow lists the pipeline steps with explicit context-passing notes. Follow the order strictly — parallel steps are marked.
 
-**Doc First principle:** Every workflow with code changes includes a **QA Test Spec** step before Developer. QA generates a prioritized test specification that Developer uses to implement and write tests. For complex tasks, Developer uses TDD mode (Red-Green-Refactor per test case). For simple tasks, Developer implements normally and uses the spec as reference.
+**Doc First principle:** Every workflow with code changes includes a **QA Test Spec** step before Developer. QA generates a test case document following the [`test-case-document.md`](test-case-document.md) template (GIVEN/WHEN/THEN format with test steps, expected results, test data, and preconditions). Developer uses this document to implement and write tests. For complex tasks, Developer uses TDD mode (Red-Green-Refactor per test case). For simple tasks, Developer implements normally and uses the spec as reference.
+
+**Execution Report:** During the Review Loop, after QA runs E2E tests, QA generates an execution report following the [`test-execution-report.md`](test-execution-report.md) template — mapping each test case to its actual result, status, and defect references.
 
 ## New Feature
 
@@ -16,11 +18,11 @@ Complex task (Brainstorm + BA + Architect + Plan):
 4. /plan               → synthesize Architect's design into an implementation plan, present to user for confirmation
    Include: component breakdown, file changes, API contracts, implementation order
    Wait for user approval before proceeding
-5. qa (test spec)      → generate test specification for Developer
+5. qa (test spec)      → generate test case document (test-case-document.md template)
    Context: Architect's API contracts + BA's acceptance criteria
-   Mode: Test spec only — no test code, no review
+   Mode: Test case document only — no test code, no review
 6. developer           → implement code and unit tests (TDD mode)
-   Context: Architect's design + confirmed plan + BA's acceptance criteria + QA's test spec
+   Context: Architect's design + confirmed plan + BA's acceptance criteria + QA's test case document
    [If multiple independent components: spawn parallel developer agents]
 7. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions
@@ -28,11 +30,11 @@ Complex task (Brainstorm + BA + Architect + Plan):
 
 Simple task (skip Brainstorm + BA):
 1. architect           → clarify requirements AND design contract in one step
-2. qa (test spec)      → generate test specification for Developer
+2. qa (test spec)      → generate test case document (test-case-document.md template)
    Context: Architect's acceptance criteria + API contracts
-   Mode: Test spec only — no test code, no review
+   Mode: Test case document only — no test code, no review
 3. developer           → implement code and unit tests
-   Context: Architect's design + acceptance criteria + QA's test spec
+   Context: Architect's design + acceptance criteria + QA's test case document
    [If multiple independent components: spawn parallel developer agents]
 4. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions
@@ -47,11 +49,11 @@ Complex bug (multi-file, ambiguous root cause, multiple fix strategies):
 2. /plan               → synthesize root cause into a fix plan, present to user for confirmation
    Include: root cause summary, affected files/lines, proposed fix approach, risk assessment
    Wait for user approval before proceeding — bugs can have multiple valid fixes with different trade-offs
-3. qa (test spec)      → generate test specification for Developer
+3. qa (test spec)      → generate test case document (test-case-document.md template)
    Context: System Analyzer's root cause + confirmed fix plan
-   Mode: Test spec only — no test code, no review. Focus on regression test cases.
+   Mode: Test case document only — no test code, no review. Focus on regression test cases.
 4. developer           → implement fix and unit/regression tests (TDD mode)
-   Context: System Analyzer's root cause + confirmed fix plan + QA's test spec
+   Context: System Analyzer's root cause + confirmed fix plan + QA's test case document
    [If multiple independent fixes: spawn parallel developer agents]
 5. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions + System Analyzer's root cause (for QA regression test design)
@@ -59,11 +61,11 @@ Complex bug (multi-file, ambiguous root cause, multiple fix strategies):
 
 Simple bug (single file, obvious root cause, straightforward fix):
 1. system-analyzer     → diagnose root cause
-2. qa (test spec)      → generate test specification for Developer
+2. qa (test spec)      → generate test case document (test-case-document.md template)
    Context: System Analyzer's root cause + affected files/lines
-   Mode: Test spec only — no test code, no review. Focus on regression test cases.
+   Mode: Test case document only — no test code, no review. Focus on regression test cases.
 3. developer           → implement fix and unit/regression tests
-   Context: System Analyzer's root cause + affected files/lines + QA's test spec
+   Context: System Analyzer's root cause + affected files/lines + QA's test case document
 4. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions + System Analyzer's root cause (for QA regression test design)
 5. [If fix changes API endpoints: delegate to `api-doc-gen` skill to update docs/api-doc.md]
@@ -92,11 +94,11 @@ Complex (cross-module, extract service, merge duplicates):
 3. /plan               → present refactoring plan to user for confirmation
    Include: affected modules, target structure, migration steps, risk areas
    Wait for user approval before proceeding
-4. qa (test spec)      → generate test specification for Developer
+4. qa (test spec)      → generate test case document (test-case-document.md template)
    Context: Architect's target structure + System Analyzer's dependency map
-   Mode: Test spec only — no test code, no review. Focus on behavior preservation tests.
+   Mode: Test case document only — no test code, no review. Focus on behavior preservation tests.
 5. developer           → implement refactoring (TDD mode)
-   Context: Architect's target structure + confirmed plan + QA's test spec
+   Context: Architect's target structure + confirmed plan + QA's test case document
    [If multiple independent modules: spawn parallel developer agents]
 6. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions
@@ -106,11 +108,11 @@ Simple (single module, extract function, simplify logic):
 1. system-analyzer     → analyze current code + identify dependencies
 2. architect           → design target structure
    Context: System Analyzer's analysis
-3. qa (test spec)      → generate test specification for Developer
+3. qa (test spec)      → generate test case document (test-case-document.md template)
    Context: Architect's target structure + System Analyzer's analysis
-   Mode: Test spec only — no test code, no review. Focus on behavior preservation tests.
+   Mode: Test case document only — no test code, no review. Focus on behavior preservation tests.
 4. developer           → implement refactoring
-   Context: Architect's target structure + QA's test spec
+   Context: Architect's target structure + QA's test case document
 5. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions
 6. [If refactoring changes API contracts: delegate to `api-doc-gen` skill to update docs/api-doc.md]
@@ -133,6 +135,7 @@ Review Loop:
 
 ┌─→ 1. code-reviewer + security + qa → review conventions, security, and test coverage (ALL PARALLEL)
 │      To all: Developer's changed files + project conventions
+│      QA additionally: run E2E tests → generate execution report (test-execution-report.md template)
 │
 │   2. Evaluate results:
 │      ├── ALL three agents approve → DONE (proceed to next workflow step or Summary)

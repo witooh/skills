@@ -52,23 +52,53 @@ Based on the acceptance criteria, API contracts, and/or root cause analysis prov
 
 ### Test Spec Output Format
 
+Generate test cases following the structure defined in [`test-case-document.md`](test-case-document.md). Each test case uses the GIVEN/WHEN/THEN format with explicit test steps, expected results, test data, and preconditions.
+
 ```
 ## QA — Test Spec
 
-**Scope:** [what feature/fix/refactoring this spec covers]
+**Module:** [module or feature name]
+**Version:** [version]
+**Created Date:** [date]
 
-| Priority | ID | Test Case | Input | Expected Output | Type |
-|----------|----|-----------|-------|-----------------|------|
-| P0 | TS-001 | [description] | [input data] | [expected result] | Unit |
-| P0 | TS-002 | [description] | [input data] | [expected result] | Unit |
-| P1 | TS-003 | [description] | [input data] | [expected result] | Integration |
+---
 
-**Edge Cases:**
-- [edge case 1]: [expected behavior]
-- [edge case 2]: [expected behavior]
+## Test Suite 1: [Feature Area]
 
-**Notes for Developer:** [any context that helps write better tests]
+---
+
+#### TC-001: [Test case title]
+
+**GIVEN** [precondition or initial state]
+**WHEN** [action or trigger]
+**THEN** [expected outcome]
+
+**Test Steps:**
+1. [step 1]
+2. [step 2]
+3. [step 3]
+
+**Expected Result:** [specific expected outcome]
+**Test Data:** `[key: "value"]`
+**Precondition:** None | TC-XXX must pass
+
+---
+
+## Test Case Summary
+
+| ID | Suite | Description | Precondition |
+|----|-------|-------------|--------------|
+| TC-001 | [suite name] | [description] | None |
+
+**Total Test Cases:** N
+
+---
+
+## Notes
+- [dependency notes, environment requirements, etc.]
 ```
+
+Prioritize test cases by risk: P0 cases (critical path) first in the suite order, then P1 (edge cases), then P2 (nice-to-have). Use the Test Suite grouping to organize by feature area, not by priority level — priority is implicit in the ordering within each suite.
 
 ## Test Coverage Checklist
 
@@ -106,47 +136,52 @@ A change is ready for merge when:
 
 ## Test Documentation Generation
 
-Use the `/qa-test-planner` skill (if available) to generate structured test documentation:
-- **Test Plans** — strategy, scope, schedule, risks, entry/exit criteria
-- **Manual Test Cases** — step-by-step instructions with expected results
-- **Regression Test Suites** — smoke, targeted, and full regression organized by module
-- **Bug Reports** — structured reports with reproduction steps and severity
+QA generates two types of test documents using the reference templates in this skill:
 
-### Regression Test Suite Format
+1. **Test Case Document** — structured test cases following [`test-case-document.md`](test-case-document.md) template. Generated during Test Spec (pre-implementation) and updated during Review Loop if new cases are needed.
+2. **Test Execution Report** — test results following [`test-execution-report.md`](test-execution-report.md) template. Generated after QA runs E2E tests during the Review Loop.
 
-```markdown
-# [Service Name] — Regression Test Suite
+### Workflow: Doc First, Then E2E Code, Then Report (CRITICAL)
 
-## Suite Structure
-| Suite | Duration | Frequency | # Cases | Coverage |
-|-------|----------|-----------|---------|----------|
-| Smoke | 10-15 min | Every merge | N | Critical paths |
-| Targeted | 30-60 min | Per feature | varies | Affected module |
-| Full | 2-4 hours | Weekly/Release | N | Comprehensive |
-
-## 1. SMOKE TESTS (P0)
-| ID | Test Case | Method | Path | Expected | Priority |
-|----|-----------|--------|------|----------|----------|
-| SM-001 | [description] | GET | /path | 200 OK | P0 |
-
-## 2. TARGETED REGRESSION — [Module Name]
-### 2.1 [Scenario Group] — Happy Paths
-| ID | Test Case | Preconditions | Steps | Expected | Priority |
-|----|-----------|---------------|-------|----------|----------|
-```
-
-### Workflow: Doc First, Then E2E Code (CRITICAL)
-
-**Regression docs MUST be created BEFORE writing E2E test code.**
+**Test case documents MUST be created BEFORE writing E2E test code. Execution reports MUST be created AFTER running tests.**
 
 ```
-1. Generate/update regression doc (path per project convention from CLAUDE.md)
-   → defines test case IDs, preconditions, expected results
+1. Generate/update test case document (path per project convention from CLAUDE.md)
+   → follows test-case-document.md template: GIVEN/WHEN/THEN, test steps, expected results, test data, preconditions
+   → defines test case IDs (TC-001, TC-002, ...) and suite structure
+
 2. Write E2E spec files (path per project convention from CLAUDE.md)
-   → implements test cases using IDs from the doc
+   → implements test cases using IDs from the test case document
+
+3. Run E2E tests and generate execution report
+   → follows test-execution-report.md template: actual result, status, executed by, defect ref
+   → maps each TC-ID from step 1 to its execution result
+   → includes Execution Summary table (pass/fail/blocked/not-run counts)
+   → includes Defect Summary table if any test failed
 ```
 
-**Never write E2E specs without a corresponding regression doc entry.**
+**Never write E2E specs without a corresponding test case document entry.**
+**Never complete QA review without generating an execution report after running tests.**
+
+### Execution Report Generation (During Review Loop)
+
+After running E2E tests during the Review Loop, QA generates an execution report using the [`test-execution-report.md`](test-execution-report.md) template. The report maps each test case from the test case document to its execution result:
+
+```
+#### TC-001: [Same title from test case document]
+
+**Expected Result:** [copied from test case document]
+**Actual Result:** [observed during execution]
+**Status:** ✅ Pass | ❌ Fail | ⚠️ Blocked | ⬜ Not Run
+**Executed By:** [QA agent ID]
+**Executed Date:** [date]
+**Defect Ref:** N/A | BUG-XXX
+**Notes:** [context, observations, screenshots if relevant]
+```
+
+The report ends with:
+- **Execution Summary** — table with ID, Description, Status, Defect Ref, plus totals
+- **Defect Summary** — table with Defect Ref, TC-ID, Severity, Description, Status (only if failures exist)
 
 ## Output Consistency Rule
 
