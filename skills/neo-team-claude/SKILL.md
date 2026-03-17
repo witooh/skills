@@ -67,7 +67,7 @@ All specialists are spawned via the `Agent` tool with `subagent_type: "general-p
 | Business Analyst      | `business-analyst`      | [references/business-analyst.md](references/business-analyst.md)           | Requirements, acceptance criteria, edge cases  |
 | Code Reviewer         | `code-reviewer`         | [references/code-reviewer.md](references/code-reviewer.md)                 | Convention compliance (read-only)              |
 | Developer             | `developer`             | [references/developer.md](references/developer.md)                         | Implement features, fix bugs, unit tests       |
-| QA                    | `qa`                    | [references/qa.md](references/qa.md)                                       | Test design, quality review, E2E tests         |
+| QA                    | `qa`                    | [references/qa.md](references/qa.md)                                       | Black-box testing via API, test case docs, execution reports |
 | Security              | `security`              | [references/security.md](references/security.md)                           | Security review, secrets detection             |
 | System Analyzer       | `system-analyzer`       | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues across all envs — code analysis + live system investigation (read-only) |
 
