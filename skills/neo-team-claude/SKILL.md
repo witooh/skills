@@ -165,7 +165,7 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Business Analyst | Architect     | User stories, acceptance criteria, business rules     |
 | Business Analyst | QA            | Acceptance criteria (for test case design)            |
 | Architect        | Developer     | API contracts, module design, file structure          |
-| Architect        | QA            | API contracts (for E2E test design)                   |
+| Architect        | QA            | API contracts (for E2E test design). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
 | Architect        | Security      | Design decisions flagged with security implications   |
 | QA (test spec)   | Developer     | Test case document (test-case-document.md template) — GIVEN/WHEN/THEN test cases with steps, expected results, test data, preconditions. Complex tasks: Developer uses TDD mode. |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |

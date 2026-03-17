@@ -53,7 +53,7 @@ Based on the acceptance criteria, API contracts, and/or root cause analysis prov
 
 ### Test Spec Output Format
 
-Generate test cases following the structure defined in [`test-case-document.md`](test-case-document.md). Each test case uses the GIVEN/WHEN/THEN format with explicit test steps, expected results, test data, and preconditions.
+**Before generating test cases, you MUST `Read` the [`test-case-document.md`](test-case-document.md) reference file.** This file contains a complete example with the exact structure your output must follow. Study the example, then generate your test cases matching the same format — including Endpoint, Request Body, Expected Response, GIVEN/WHEN/THEN, Test Steps, Expected Result, Test Data, and Precondition fields.
 
 ```
 ## QA — Test Spec
@@ -177,7 +177,9 @@ QA generates two types of test documents using the reference templates in this s
 
 ### Execution Report Generation (During Review Loop)
 
-After running E2E tests during the Review Loop, QA generates an execution report using the [`test-execution-report.md`](test-execution-report.md) template. The report maps each test case from the test case document to its execution result:
+**Before generating an execution report, you MUST `Read` the [`test-execution-report.md`](test-execution-report.md) reference file.** This file contains a complete example with the exact structure your output must follow.
+
+After running E2E tests, generate the execution report mapping each test case from the test case document to its execution result:
 
 ```
 #### TC-001: [Same title from test case document]
