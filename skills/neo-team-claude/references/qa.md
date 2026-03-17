@@ -74,10 +74,20 @@ Generate test cases following the structure defined in [`test-case-document.md`]
 **WHEN** [action or trigger]
 **THEN** [expected outcome]
 
+**Endpoint:** `[METHOD] /path/to/resource`
+**Request Body:**
+\`\`\`json
+{ "field": "value" }
+\`\`\`
+**Expected Response:**
+\`\`\`json
+HTTP [status]
+{ "field": "value" }
+\`\`\`
+
 **Test Steps:**
-1. [step 1]
-2. [step 2]
-3. [step 3]
+1. [step 1 — include endpoint call]
+2. [step 2 — verify response]
 
 **Expected Result:** [specific expected outcome]
 **Test Data:** `[key: "value"]`

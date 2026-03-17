@@ -14,12 +14,31 @@
 **WHEN** configuring the product
 **THEN** the bank can specify the primary denomination in which the account will transact
 
+**Endpoint:** `POST /v1/products`
+**Request Body:**
+```json
+{
+  "name": "Savings Account",
+  "denomination": "THB"
+}
+```
+**Expected Response:**
+```json
+HTTP 201
+{
+  "id": "PROD-001",
+  "name": "Savings Account",
+  "denomination": "THB",
+  "status": "ACTIVE"
+}
+```
+
 **Test Steps:**
 
 1. Log in as Bank Admin
-2. Create a new savings product
+2. Create a new savings product via `POST /v1/products`
 3. Set primary denomination = THB
-4. Save the configuration
+4. Verify the response status and body
 
 **Expected Result:** Product is saved with denomination = THB
 **Test Data:** `denomination: "THB"`
@@ -34,11 +53,30 @@
 **WHEN** an account is opened with denomination = THB
 **THEN** the account should be opened successfully in Vault
 
+**Endpoint:** `POST /v1/accounts`
+**Request Body:**
+```json
+{
+  "product_id": "PROD-001",
+  "denomination": "THB",
+  "customer_id": "CUST-001"
+}
+```
+**Expected Response:**
+```json
+HTTP 200
+{
+  "account_id": "ACC-001",
+  "status": "OPEN",
+  "denomination": "THB"
+}
+```
+
 **Test Steps:**
 
-1. Call the account opening API with denomination = THB
-2. Verify the response status
-3. Verify the account record in Vault
+1. Call the account opening API via `POST /v1/accounts` with denomination = THB
+2. Verify the response status = 200
+3. Verify the account record: status = OPEN, denomination = THB
 
 **Expected Result:** HTTP 200, account status = OPEN, denomination = THB
 **Test Data:** `account_id: "ACC-001"`, `denomination: "THB"`
@@ -56,10 +94,30 @@
 **WHEN** a credit or debit is attempted in THB
 **THEN** the transaction is accepted
 
+**Endpoint:** `POST /v1/accounts/{account_id}/transactions`
+**Request Body:**
+```json
+{
+  "type": "CREDIT",
+  "amount": 1000,
+  "denomination": "THB"
+}
+```
+**Expected Response:**
+```json
+HTTP 200
+{
+  "transaction_id": "TXN-001",
+  "status": "ACCEPTED",
+  "amount": 1000,
+  "denomination": "THB"
+}
+```
+
 **Test Steps:**
 
-1. Call the deposit API with denomination = THB, amount = 1000
-2. Verify the transaction status in the response
+1. Call `POST /v1/accounts/ACC-001/transactions` with denomination = THB, amount = 1000
+2. Verify the response status = 200 and transaction status = ACCEPTED
 
 **Expected Result:** HTTP 200, transaction status = ACCEPTED
 **Test Data:** `amount: 1000`, `denomination: "THB"`
@@ -73,10 +131,28 @@
 **WHEN** a credit or debit is attempted in USD
 **THEN** the transaction is rejected
 
+**Endpoint:** `POST /v1/accounts/{account_id}/transactions`
+**Request Body:**
+```json
+{
+  "type": "CREDIT",
+  "amount": 100,
+  "denomination": "USD"
+}
+```
+**Expected Response:**
+```json
+HTTP 400
+{
+  "error": "Invalid denomination",
+  "message": "Account ACC-001 only accepts THB"
+}
+```
+
 **Test Steps:**
 
-1. Call the deposit API with denomination = USD, amount = 100
-2. Verify the error response
+1. Call `POST /v1/accounts/ACC-001/transactions` with denomination = USD, amount = 100
+2. Verify the response status = 400 and error = "Invalid denomination"
 
 **Expected Result:** HTTP 400, error = "Invalid denomination"
 **Test Data:** `amount: 100`, `denomination: "USD"`
