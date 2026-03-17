@@ -65,7 +65,7 @@ All specialists are spawned via `use_subagent` tool with `command="InvokeSubagen
 | Business Analyst      | `business-analyst`      | haiku                              | [references/business-analyst.md](references/business-analyst.md)           | Requirements, acceptance criteria, edge cases  |
 | Code Reviewer         | `code-reviewer`         | opus                               | [references/code-reviewer.md](references/code-reviewer.md)                 | Convention compliance (read-only)              |
 | Developer             | `developer`             | sonnet                             | [references/developer.md](references/developer.md)                         | Implement features, fix bugs, unit tests       |
-| QA                    | `qa`                    | sonnet                             | [references/qa.md](references/qa.md)                                       | Test design, quality review, E2E tests         |
+| QA                    | `qa`                    | sonnet                             | [references/qa.md](references/qa.md)                                       | Black-box testing via API, test case docs, execution reports |
 | Security              | `security`              | sonnet                             | [references/security.md](references/security.md)                           | Security review, secrets detection             |
 | System Analyzer       | `system-analyzer`       | sonnet                             | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues across all envs — code analysis + live system investigation (read-only) |
 
@@ -99,7 +99,7 @@ After selecting a workflow, assess complexity to determine which steps to includ
 
 Steps shown are for New Feature. Other workflows have different starting steps but follow the same complexity principle — see [`references/workflows.md`](references/workflows.md) for exact pipelines.
 
-**QA Test Spec (all tasks):** Before Developer starts, QA generates a test specification. See [`references/qa.md`](references/qa.md) for the Test Spec Generation format.
+**QA Test Spec (all tasks):** Before Developer starts, QA generates a **test case document** following the [`test-case-document.md`](references/test-case-document.md) template — GIVEN/WHEN/THEN format with test steps, expected results, test data, and preconditions. This follows the "doc first" principle: define what to test before writing code. During the Review Loop, after running E2E tests, QA generates an **execution report** following the [`test-execution-report.md`](references/test-execution-report.md) template — mapping each test case to its actual result, status, and defect references. See [`references/qa.md`](references/qa.md) for details.
 
 **Developer mode:** Simple → Standard Mode. Complex → TDD Mode. Escalate to TDD even for "simple" tasks if business logic is particularly complex (calculations, state machines, multi-step validation) or high-impact. Mode details in [`references/developer.md`](references/developer.md).
 
@@ -172,12 +172,12 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Business Analyst | Architect     | User stories, acceptance criteria, business rules     |
 | Business Analyst | QA            | Acceptance criteria (for test case design)            |
 | Architect        | Developer     | API contracts, module design, file structure          |
-| Architect        | QA            | API contracts (for E2E test design)                   |
+| Architect        | QA            | API contracts (for E2E test design) + existing API doc path if available (e.g., `docs/api-doc.md`, OpenAPI spec). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
 | Architect        | Security      | Design decisions flagged with security implications   |
-| QA (test spec)   | Developer     | Test spec (prioritized test cases + expected behavior)                |
+| QA (test spec)   | Developer     | Test case document (test-case-document.md template) — GIVEN/WHEN/THEN test cases with steps, expected results, test data, preconditions. Complex tasks: Developer uses TDD mode. |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |
 | System Analyzer  | Security      | Security-related findings from logs/DB/infra |
-| Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found."** |
+| Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found. After running tests, generate an execution report using the test-execution-report.md template."** |
 | Developer        | Code Reviewer | Changed files list                                    |
 | Developer        | Security      | Changed files, new endpoints, data handling changes   |
 
@@ -202,7 +202,7 @@ Every workflow with code changes ends with a **Review Loop** — see [`reference
 Proceed autonomously for standard workflow steps. Pause and ask the user when:
 
 - **Ambiguous scope**: the task could reasonably be interpreted multiple ways
-- **Missing information**: a specialist can't proceed without business context you don't have
+- **Missing information**: a specialist can't proceed without context — first try delegating to another team member to generate the missing docs (e.g., QA needs API docs → delegate to Architect to produce them). Only ask the user if no team member can provide the information
 - **Large scope**: the task would require 8+ agent delegations — propose a breakdown first
 - **Conflicting requirements**: BA or Architect flags contradictions that need a business decision
 - **Risky changes**: architectural changes that affect multiple services or introduce breaking API changes
