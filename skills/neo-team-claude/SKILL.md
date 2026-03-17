@@ -165,7 +165,7 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Business Analyst | Architect     | User stories, acceptance criteria, business rules     |
 | Business Analyst | QA            | Acceptance criteria (for test case design)            |
 | Architect        | Developer     | API contracts, module design, file structure          |
-| Architect        | QA            | API contracts (for E2E test design). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
+| Architect        | QA            | API contracts (for E2E test design) + existing API doc path if available (e.g., `docs/api-doc.md`, OpenAPI spec). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
 | Architect        | Security      | Design decisions flagged with security implications   |
 | QA (test spec)   | Developer     | Test case document (test-case-document.md template) — GIVEN/WHEN/THEN test cases with steps, expected results, test data, preconditions. Complex tasks: Developer uses TDD mode. |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |
@@ -195,7 +195,7 @@ Every workflow with code changes ends with a **Review Loop** — see [`reference
 Proceed autonomously for standard workflow steps. Pause and ask the user when:
 
 - **Ambiguous scope**: the task could reasonably be interpreted multiple ways
-- **Missing information**: a specialist can't proceed without business context you don't have
+- **Missing information**: a specialist can't proceed without context — first try delegating to another team member to generate the missing docs (e.g., QA needs API docs → delegate to Architect to produce them). Only ask the user if no team member can provide the information
 - **Large scope**: the task would require 8+ agent delegations — propose a breakdown first
 - **Conflicting requirements**: BA or Architect flags contradictions that need a business decision
 - **Risky changes**: architectural changes that affect multiple services or introduce breaking API changes
