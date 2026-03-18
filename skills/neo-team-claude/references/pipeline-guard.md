@@ -7,8 +7,13 @@ Before declaring a task complete, verify ALL pipeline steps have been executed. 
 ```
 For every workflow that includes code changes:
   --- Acceptance Criteria Gate ---
-  ✅ BA generated acceptance criteria document? (MANDATORY — BA writes AC doc before QA starts)
+  ✅ BA generated acceptance criteria document? (MANDATORY — BA writes AC doc before Architect starts)
   ✅ AC document has AC-IDs, explicit business rules, and GIVEN/WHEN/THEN format?
+  ✅ BA has zero Open Questions remaining? (all clarifications resolved with user)
+
+  --- System Design Gate ---
+  ✅ Architect generated system design document? (MANDATORY — Architect writes design doc before QA starts)
+  ✅ System design document covers every AC-ID? (AC Traceability table is complete)
 
   --- Test Case Review Loop Gate ---
   ✅ QA test spec generated? (MANDATORY — QA generates test spec before Developer starts)
@@ -47,17 +52,17 @@ When starting a workflow, mentally track which steps remain:
 ```
 Example: New Feature (Complex)
   [ ] Step 1: /brainstorm
-  [ ] Step 2: business-analyst (generate AC document)  ← NEW: AC doc is QA's hard prerequisite
-  [ ] Step 3: architect
+  [ ] Step 2: business-analyst (generate AC document — loop until zero Open Questions)
+  [ ] Step 3: architect (generate system design document — must cover every AC-ID)
   [ ] Step 4: /plan (confirm with user)
-  [ ] Step 5: TEST CASE REVIEW LOOP (QA writes test cases → BA reviews → loop)  ← REPLACES old "qa (test spec)"
+  [ ] Step 5: TEST CASE REVIEW LOOP (QA writes test cases → BA reviews → loop)
   [ ] Step 6: developer (TDD mode)
   [ ] Step 7: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS
   [ ] Step 8: api-doc-gen (if API impacted)
 
 Example: New Feature (Simple)
-  [ ] Step 1: architect
-  [ ] Step 2: business-analyst (generate AC document)  ← NEW: never skip — QA needs this
+  [ ] Step 1: business-analyst (generate AC document — loop until zero Open Questions)
+  [ ] Step 2: architect (generate system design document — must cover every AC-ID)
   [ ] Step 3: TEST CASE REVIEW LOOP (QA writes test cases → BA reviews → loop)
   [ ] Step 4: developer
   [ ] Step 5: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS

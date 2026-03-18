@@ -69,11 +69,14 @@ When generating acceptance criteria, you will encounter gaps — ambiguous busin
 When you encounter unclear points:
 
 1. Identify every unclear point
-2. List them as **Open Questions** in your output — these are **blocking**, not optional
-3. For each question, explain *what* is unclear and *why* the answer matters for testable AC
-4. Do NOT write the AC document yet — return Open Questions only
+2. For each question, include a **Reference** (the specific requirement, user story element, or domain term it relates to) so the user knows which context the question is about
+3. If questions are few (3 or fewer): list them as **Open Questions** in your output
+4. If questions are many (4+): write them to a file (e.g., `docs/open-questions-acceptance-criteria.md`) so the user can answer inline in the file
+5. Do NOT write the AC document yet — return Open Questions only
 
-The Orchestrator will relay your questions to the user and pass back the answers. Only after receiving answers should you write the AC document.
+Every question must have: *what* is unclear, *why* the answer matters for testable AC, and *reference* to the specific requirement.
+
+The Orchestrator will relay your questions to the user (or point the user to the file). Only after receiving answers should you write the AC document.
 
 Common areas that require clarification:
 - Business rules that could be interpreted multiple ways

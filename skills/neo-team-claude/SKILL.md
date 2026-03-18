@@ -138,7 +138,7 @@ You are the **[Specialist Name]** on a software development team.
 Your Role ID is `[role-id]`. Stay strictly within your defined scope — do not perform tasks belonging to other specialists.
 
 ## Universal Rule — Never Guess
-If you encounter anything unclear, ambiguous, or missing — STOP. Do not guess, infer, assume defaults, or write "assumed X." List every unclear point as **Open Questions** in your output with what is unclear and why the answer matters. The Orchestrator will ask the user and come back with answers. Only then should you proceed. Guessing produces output that looks complete but silently carries wrong assumptions downstream.
+If you encounter anything unclear, ambiguous, or missing — STOP. Do not guess, infer, assume defaults, or write "assumed X." List every unclear point as **Open Questions** in your output. Every question must include: what is unclear, why the answer matters, and a **Reference** (AC-ID, requirement, or specific context) so the user knows which topic the question is about. If questions are many (4+), write them to a file (e.g., `docs/open-questions-<your-role>.md`) so the user can answer inline. The Orchestrator will ask the user and come back with answers. Only then should you proceed.
 
 <content from specialist's reference file>
 
@@ -169,12 +169,12 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | From             | To            | What to Pass                                          |
 | ---------------- | ------------- | ----------------------------------------------------- |
 | Brainstorm       | BA            | Key decisions, constraints, scope, explored directions |
-| Business Analyst | Architect     | User stories, acceptance criteria, business rules     |
+| Business Analyst | Architect     | **AC document path** (hard prerequisite — Architect cannot start without this). Include: "Read `references/system-design.md` template before generating the system design document." |
 | Business Analyst | QA            | **AC document path + AC-IDs** (hard prerequisite — QA cannot start without this). Include: "Read `references/acceptance-criteria.md` template if you need to understand the AC format." |
 | Business Analyst | BA (review)   | AC document (for reviewing QA's test cases in the Test Case Review Loop) |
-| Architect        | Developer     | API contracts, module design, file structure          |
-| Architect        | QA            | **API contracts** (hard prerequisite — QA cannot start without this) + existing API doc path if available (e.g., `docs/api-doc.md`, OpenAPI spec). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
-| Architect        | Security      | Design decisions flagged with security implications   |
+| Architect        | Developer     | **System design document path** (hard prerequisite — Developer reads this for API contracts, module design, file structure) |
+| Architect        | QA            | **System design document path** (hard prerequisite — QA reads API contracts from this) + existing API doc path if available (e.g., `docs/api-doc.md`, OpenAPI spec). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
+| Architect        | Security      | **System design document path** + security flags from Architect's output |
 | QA (test spec)   | BA (review)   | Test case document for BA to review AC coverage (part of Test Case Review Loop) |
 | QA (test spec)   | Developer     | **BA-approved** test case document (test-case-document.md template) — GIVEN/WHEN/THEN test cases with steps, expected results, test data, preconditions, and Traces To AC-IDs. Complex tasks: Developer uses TDD mode. |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |

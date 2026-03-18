@@ -18,8 +18,9 @@ Complex task (Brainstorm + BA + Architect + Plan):
       b. Orchestrator re-delegates to BA with user's answers
       c. Repeat until BA has no Open Questions
    Output: AC document written to project docs folder (no Open Questions remaining)
-3. architect           → design endpoint/module contract and data flow
-   Context: BA's user stories + acceptance criteria + business rules
+3. architect           → generate system design document (system-design.md template)
+   Context: BA's AC document path (hard prerequisite — must read AC before designing)
+   Output: System design document written to project docs folder (e.g., docs/system-design.md)
 4. /plan               → synthesize Architect's design into an implementation plan, present to user for confirmation
    Include: component breakdown, file changes, API contracts, implementation order
    Wait for user approval before proceeding
@@ -41,8 +42,9 @@ Simple task (BA first → Architect):
       b. Orchestrator re-delegates to BA with user's answers
       c. Repeat until BA has no Open Questions
    Output: AC document written to project docs folder (no Open Questions remaining)
-2. architect           → design contract and module structure, ensuring design covers every AC-ID
-   Context: BA's AC document + user stories + business rules
+2. architect           → generate system design document (system-design.md template), ensuring design covers every AC-ID
+   Context: BA's AC document path (hard prerequisite — must read AC before designing)
+   Output: System design document written to project docs folder (e.g., docs/system-design.md)
 3. TEST CASE REVIEW LOOP → QA generates test cases, BA reviews for AC coverage (see Test Case Review Loop section)
    Context to QA: Architect's API contracts + BA's AC document (BOTH required — hard gate)
    Context to BA (reviewer): AC document + QA's test cases
