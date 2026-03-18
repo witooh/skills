@@ -49,8 +49,9 @@ You produce a **document file** — not just inline output. This document become
 
 **Module Design** — when adding a new domain module:
 - Entity fields and behavior methods
+- Domain Service interfaces — cross-entity business logic (calculations, validations, coordination between entities). Not flow orchestration — that belongs to Usecase
 - Repository interface methods
-- Usecase interface and method signatures
+- Usecase interface and method signatures — business flow orchestration (calls domain services, repositories in sequence). Usecase owns the flow, not the logic
 - File structure
 
 **Architecture Decision Record (ADR)** — for significant technical decisions:

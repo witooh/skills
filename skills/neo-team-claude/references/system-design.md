@@ -58,6 +58,14 @@
 |-------|------|-------------|---------------|
 | [field] | [type] | [description] | [from AC] |
 
+### Domain Service: [ServiceName]
+
+Cross-entity business logic — calculations, validations, or coordination between entities. Not flow orchestration (that belongs to Usecase).
+
+| Method | Signature | Description | Covers AC |
+|--------|-----------|-------------|-----------|
+| [method] | [input → output] | [business logic it performs] | AC-XXX |
+
 ### Repository: [RepositoryName]
 
 | Method | Signature | Description |
@@ -65,6 +73,8 @@
 | [method] | [input → output] | [what it does] |
 
 ### Usecase: [UsecaseName]
+
+Business flow orchestration — calls domain services and repositories in sequence. Usecase owns the flow, not the logic.
 
 | Method | Signature | Description | Covers AC |
 |--------|-----------|-------------|-----------|
