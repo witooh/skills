@@ -171,6 +171,10 @@ The role identity block at the top of each query is critical — it tells the su
 
 **Note on reference file frontmatter:** The `tools` field in each specialist's reference file (e.g., `tools: ["Read", "Glob", "Grep", "Bash"]`) uses Claude Code tool names — these are informational only and document which capabilities the specialist needs. They do not restrict the agent's actual toolset. All subagents receive the full Kiro CLI toolset automatically.
 
+### Document Verification Requirement
+
+When delegating to **Business Analyst** or **Architect**, always include this instruction in the prompt: "After writing (or editing) the document, you MUST verify it — re-read from disk, check against the template and quality criteria, and fix any issues before returning." Both specialists have a **Document Verification & Fix** section in their reference files with the full checklist. This applies to all document outputs — new documents, edited documents, and documents updated after Open Questions are resolved.
+
 ### What Context to Pass Between Agents
 
 Each agent produces specific outputs that downstream agents need. Extract the relevant parts — don't dump entire outputs verbatim:

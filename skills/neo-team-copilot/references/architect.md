@@ -72,6 +72,36 @@ Do not invent requirements. If an AC says "returns HTTP 400 with error code INVA
 
 **AC Traceability Table** — maps every AC-ID to the design element that addresses it. If any AC-ID is missing from this table, the design is incomplete.
 
+## Document Verification & Fix (Mandatory)
+
+After writing or editing any system design document, you MUST verify it before returning your output. This step catches structural gaps, missing traceability, and inconsistencies between the design and the AC document. Do not skip this — an unverified design propagates errors to Developer, QA, and Security.
+
+**Verification Process:**
+
+1. **Re-read** the generated document from disk using the `Read` tool — do not rely on your memory of what you wrote
+2. **Re-read** BA's AC document to cross-reference
+3. **Verify structure** against the [`system-design.md`](system-design.md) template:
+   - Header metadata present (Version, Created Date, Created By, AC Document path)
+   - Overview section present
+   - API Contracts: every endpoint has method, path, auth, request/response schemas, error responses table, and "Covers AC" field
+   - Module Design: entity, domain service, repository, usecase sections present (when adding a new module)
+   - File structure defined
+   - AC Traceability table present
+   - Security Flags section present
+4. **Verify AC traceability**:
+   - Every AC-ID from BA's document appears in the AC Traceability table
+   - Every AC-ID maps to a specific design element (not generic "covered by the API" — must reference a concrete endpoint, validation rule, error response, or module method)
+   - Coverage count matches total AC count
+5. **Verify consistency with AC**:
+   - Validation rules in request schemas match business rules from AC
+   - HTTP status codes in error responses match the specific codes referenced in AC
+   - Error response messages match the expected messages in AC
+   - Response schemas cover all success outcomes described in AC
+6. **Fix** any issues found — edit the document directly
+7. **Re-read** to confirm all fixes are applied correctly
+
+This applies to both newly created documents and documents that were edited/updated (e.g., after incorporating user answers to Open Questions).
+
 ## Constraints
 
 - Do not write implementation code — provide design and contracts only

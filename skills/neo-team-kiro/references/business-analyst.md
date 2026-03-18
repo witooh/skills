@@ -106,6 +106,36 @@ Your AC document is the foundation for QA's work. If it's vague, QA will produce
 - **No missing failure paths**: For every happy path, define what happens when it fails (KYC rejects, DB down, invalid input, etc.)
 - **State transitions are complete**: If the domain has a state machine, list all valid transitions and what triggers each one
 
+### Document Verification & Fix (Mandatory)
+
+After writing or editing any AC document, you MUST verify it before returning your output. This step catches formatting errors, missing sections, and quality issues that slip through during initial writing. Do not skip this — an unverified document propagates silent errors to QA and Developer.
+
+**Verification Process:**
+
+1. **Re-read** the generated document from disk using the `Read` tool — do not rely on your memory of what you wrote
+2. **Verify structure** against the [`acceptance-criteria.md`](acceptance-criteria.md) template:
+   - Header metadata present (Version, Created Date, Created By)
+   - User Story present with actor, action, business value
+   - Every AC has unique sequential ID (AC-001, AC-002, ...)
+   - Every AC uses **GIVEN/WHEN/THEN** format
+   - Every AC has explicit **Business Rule**
+   - Every AC has **Priority** (P0/P1/P2)
+   - Business Rules section lists all rules referenced by ACs
+   - Edge Cases section present with expected behavior for each
+   - Out of Scope section present
+   - AC Summary table matches the AC list (correct IDs, features, scenarios, priorities, count)
+3. **Verify quality** against the Quality Gates above:
+   - No vague outcomes — every error specifies HTTP status code and error message
+   - No implicit rules — all validation ranges, accepted formats, limits are explicit
+   - No missing failure paths — every happy path has corresponding error scenarios
+   - State transitions complete (if applicable)
+   - Every business rule maps to at least one AC
+   - Every AC has a clear, testable Business Rule
+4. **Fix** any issues found — edit the document directly
+5. **Re-read** to confirm all fixes are applied correctly
+
+This applies to both newly created documents and documents that were edited/updated (e.g., after incorporating user answers to Open Questions).
+
 ## Test Case Review (During Test Case Review Loop)
 
 When invoked to review QA's test cases, evaluate against these criteria:

@@ -10,10 +10,12 @@ For every workflow that includes code changes:
   ✅ BA generated acceptance criteria document? (MANDATORY — BA writes AC doc before Architect starts)
   ✅ AC document has AC-IDs, explicit business rules, and GIVEN/WHEN/THEN format?
   ✅ BA has zero Open Questions remaining? (all clarifications resolved with user)
+  ✅ BA verified document? (re-read from disk, checked against template + quality gates, fixed issues)
 
   --- System Design Gate ---
   ✅ Architect generated system design document? (MANDATORY — Architect writes design doc before QA starts)
   ✅ System design document covers every AC-ID? (AC Traceability table is complete)
+  ✅ Architect verified document? (re-read from disk, checked structure + AC traceability + consistency with AC, fixed issues)
 
   --- Test Case Review Loop Gate ---
   ✅ QA test spec generated? (MANDATORY — QA generates test spec before Developer starts)
