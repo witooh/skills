@@ -18,9 +18,11 @@ Complex task (Brainstorm + BA + Architect + Plan):
       b. Orchestrator re-delegates to BA with user's answers
       c. Repeat until BA has no Open Questions
    Output: AC document written to project docs folder (no Open Questions remaining)
+   Verification: BA re-reads generated document, verifies against template + quality gates, fixes issues (mandatory before handoff)
 3. architect           → generate system design document (system-design.md template)
    Context: BA's AC document path (hard prerequisite — must read AC before designing)
    Output: System design document written to project docs folder (e.g., docs/system-design.md)
+   Verification: Architect re-reads generated document, verifies structure + AC traceability + consistency with AC, fixes issues (mandatory before handoff)
 4. /plan               → synthesize Architect's design into an implementation plan, present to user for confirmation
    Include: component breakdown, file changes, API contracts, implementation order
    Wait for user approval before proceeding
@@ -42,9 +44,11 @@ Simple task (BA first → Architect):
       b. Orchestrator re-delegates to BA with user's answers
       c. Repeat until BA has no Open Questions
    Output: AC document written to project docs folder (no Open Questions remaining)
+   Verification: BA re-reads generated document, verifies against template + quality gates, fixes issues (mandatory before handoff)
 2. architect           → generate system design document (system-design.md template), ensuring design covers every AC-ID
    Context: BA's AC document path (hard prerequisite — must read AC before designing)
    Output: System design document written to project docs folder (e.g., docs/system-design.md)
+   Verification: Architect re-reads generated document, verifies structure + AC traceability + consistency with AC, fixes issues (mandatory before handoff)
 3. TEST CASE REVIEW LOOP → QA generates test cases, BA reviews for AC coverage (see Test Case Review Loop section)
    Context to QA: Architect's API contracts + BA's AC document (BOTH required — hard gate)
    Context to BA (reviewer): AC document + QA's test cases
@@ -106,6 +110,7 @@ Complex (cross-module, extract service, merge duplicates):
 1. system-analyzer     → analyze current structure, dependencies, coupling risks
 2. architect           → design target structure
    Context: System Analyzer's dependency map + current structure analysis
+   Verification: Architect re-reads generated document, verifies structure + consistency with analysis, fixes issues (mandatory before handoff)
 3. /plan               → present refactoring plan to user for confirmation
    Include: affected modules, target structure, migration steps, risk areas
    Wait for user approval before proceeding
@@ -123,6 +128,7 @@ Simple (single module, extract function, simplify logic):
 1. system-analyzer     → analyze current code + identify dependencies
 2. architect           → design target structure
    Context: System Analyzer's analysis
+   Verification: Architect re-reads generated document, verifies structure + consistency with analysis, fixes issues (mandatory before handoff)
 3. qa (test spec)      → generate test case document (test-case-document.md template)
    Context: Architect's target structure + System Analyzer's analysis
    Mode: Test case document only — no test code, no review. Focus on behavior preservation tests.
@@ -142,8 +148,10 @@ Simple (single module, extract function, simplify logic):
       b. Orchestrator re-delegates to BA with user's answers
       c. Repeat until BA has no Open Questions
    Output: Structured requirements with all ambiguities resolved
+   Verification: BA re-reads generated document, verifies against template + quality gates, fixes issues (mandatory before handoff)
 2. architect           → validate technical feasibility
    Context: BA's structured requirements (fully clarified)
+   Verification: Architect re-reads generated document, verifies structure + AC traceability + consistency with AC, fixes issues (mandatory before handoff)
 ```
 
 ## Test Case Review Loop
