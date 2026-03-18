@@ -53,22 +53,22 @@ Some skills have platform-specific variants that must be kept in sync.
 
 ### Platform Tool Mapping
 
-| Capability | Claude Code | Copilot CLI | Kiro CLI |
-|------------|-------------|-------------|----------|
-| Shell exec | `Bash` | `bash` | `execute_bash` |
-| Read file | `Read` | `view` | `fs_read` |
-| Write file | `Write` | `edit`/`create` | `fs_write` |
-| Ask user | `AskUserQuestion` | `ask_user` | plain text |
-| Sub-agent | `Agent` | `task` | `use_subagent` |
-| Invoke skill | user `/skill` | auto-load or user `/skill` | user `/skill` |
-| Model select | sonnet/opus/haiku | full model names | default only |
+| Capability | Claude Code | Copilot CLI | Kiro CLI | OpenCode |
+|------------|-------------|-------------|----------|----------|
+| Shell exec | `Bash` | `bash` | `execute_bash` | `bash` |
+| Read file | `Read` | `view` | `fs_read` | `read` |
+| Write file | `Write` | `edit`/`create` | `fs_write` | `write`/`edit` |
+| Ask user | `AskUserQuestion` | `ask_user` | plain text | `question` |
+| Sub-agent | `Agent` | `task` | `use_subagent` | `task` |
+| Invoke skill | user `/skill` | auto-load or user `/skill` | user `/skill` | `skill` tool |
+| Model select | sonnet/opus/haiku | full model names | default only | per-agent config |
 
 ### Skills Requiring Sync
 
-| Skill Family | Claude Code | Copilot CLI | Kiro CLI |
-|--------------|-------------|-------------|----------|
-| **neo-team** | `neo-team-claude` | `neo-team-copilot` | `neo-team-kiro` |
-| **gitlab** | `gitlab-claude` | `gitlab-copilot` | `gitlab-kiro` |
+| Skill Family | Claude Code | Copilot CLI | Kiro CLI | OpenCode |
+|--------------|-------------|-------------|----------|----------|
+| **neo-team** | `neo-team-claude` | `neo-team-copilot` | `neo-team-kiro` | `neo-team-opencode` |
+| **gitlab** | `gitlab-claude` | `gitlab-copilot` | `gitlab-kiro` | — |
 
 **Sync:** workflow logic, specialist references, review templates, task classification rules.
 
