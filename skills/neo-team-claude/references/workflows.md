@@ -11,34 +11,38 @@ Each workflow lists the pipeline steps with explicit context-passing notes. Foll
 ```
 Complex task (Brainstorm + BA + Architect + Plan):
 1. /brainstorm         → invoke brainstorm skill to explore the idea and clarify direction with the user
-2. business-analyst    → structure requirements and acceptance criteria
+2. business-analyst    → structure requirements, generate AC document (acceptance-criteria.md template)
    Context: Brainstorm output (key decisions, constraints, scope)
+   Output: AC document written to project docs folder (e.g., docs/acceptance-criteria.md)
 3. architect           → design endpoint/module contract and data flow
    Context: BA's user stories + acceptance criteria + business rules
 4. /plan               → synthesize Architect's design into an implementation plan, present to user for confirmation
    Include: component breakdown, file changes, API contracts, implementation order
    Wait for user approval before proceeding
-5. qa (test spec)      → generate test case document (test-case-document.md template)
-   Context: Architect's API contracts + BA's acceptance criteria
-   Mode: Test case document only — no test code, no review
+5. TEST CASE REVIEW LOOP → QA generates test cases, BA reviews for AC coverage (see Test Case Review Loop section)
+   Context to QA: Architect's API contracts + BA's AC document (BOTH required — hard gate)
+   Context to BA (reviewer): AC document + QA's test cases
 6. developer           → implement code and unit tests (TDD mode)
-   Context: Architect's design + confirmed plan + BA's acceptance criteria + QA's test case document
+   Context: Architect's design + confirmed plan + BA's acceptance criteria + QA's test case document (BA-approved)
    [If multiple independent components: spawn parallel developer agents]
 7. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions
 8. [If task adds/changes API endpoints: delegate to `api-doc-gen` skill to update docs/api-doc.md]
 
-Simple task (skip Brainstorm + BA):
+Simple task (Architect + BA for AC):
 1. architect           → clarify requirements AND design contract in one step
-2. qa (test spec)      → generate test case document (test-case-document.md template)
+2. business-analyst    → generate AC document from Architect's output (acceptance-criteria.md template)
    Context: Architect's acceptance criteria + API contracts
-   Mode: Test case document only — no test code, no review
-3. developer           → implement code and unit tests
-   Context: Architect's design + acceptance criteria + QA's test case document
+   Output: AC document written to project docs folder
+3. TEST CASE REVIEW LOOP → QA generates test cases, BA reviews for AC coverage (see Test Case Review Loop section)
+   Context to QA: Architect's API contracts + BA's AC document (BOTH required — hard gate)
+   Context to BA (reviewer): AC document + QA's test cases
+4. developer           → implement code and unit tests
+   Context: Architect's design + acceptance criteria + QA's test case document (BA-approved)
    [If multiple independent components: spawn parallel developer agents]
-4. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
+5. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions
-5. [If task adds/changes API endpoints: delegate to `api-doc-gen` skill to update docs/api-doc.md]
+6. [If task adds/changes API endpoints: delegate to `api-doc-gen` skill to update docs/api-doc.md]
 ```
 
 ## Bug Fix
@@ -125,6 +129,41 @@ Simple (single module, extract function, simplify logic):
 2. architect           → validate technical feasibility
    Context: BA's structured requirements
 ```
+
+## Test Case Review Loop
+
+Quality gate for test case documents — ensures test cases fully cover acceptance criteria before Developer starts implementation. This loop catches vague assertions, missing business scenarios, and duplicate test cases early, when they're cheap to fix.
+
+```
+Test Case Review Loop:
+
+┌─→ 1. qa (test spec) → generate test case document (test-case-document.md template)
+│      Context: Architect's API contracts + BA's AC document (BOTH required — hard gate)
+│      Mode: Test case document only — no test code, no review
+│      Every test case MUST include "Traces To: AC-XXX" field
+│
+│   2. business-analyst (review) → review test cases against AC document
+│      Check:
+│      - Every AC-ID has at least one test case covering it
+│      - Test cases use specific HTTP status codes from API contract (not >= 400)
+│      - Error test cases assert error body structure (error.code + error.message)
+│      - Business rules from AC are fully tested
+│      - No duplicate/overlapping test cases
+│      Output: Coverage assessment with Approved / Revise verdict
+│
+│   3. Evaluate:
+│      ├── BA approves → DONE (proceed to Developer)
+│      └── BA has findings:
+│            a. Pass BA's findings to QA
+│            b. QA regenerates/fixes test cases based on feedback
+└────── c. Loop back to step 2 (BA re-reviews)
+
+Max 3 review cycles. If still unresolved → deliver to user with gaps noted.
+```
+
+**Important:** The Test Case Review Loop replaces the old standalone `qa (test spec)` step in all workflows. Wherever you see `TEST CASE REVIEW LOOP` in a workflow, run this sub-workflow.
+
+---
 
 ## Review Loop
 

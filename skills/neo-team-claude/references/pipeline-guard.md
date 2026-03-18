@@ -6,7 +6,14 @@ Before declaring a task complete, verify ALL pipeline steps have been executed. 
 
 ```
 For every workflow that includes code changes:
+  --- Acceptance Criteria Gate ---
+  ✅ BA generated acceptance criteria document? (MANDATORY — BA writes AC doc before QA starts)
+  ✅ AC document has AC-IDs, explicit business rules, and GIVEN/WHEN/THEN format?
+
+  --- Test Case Review Loop Gate ---
   ✅ QA test spec generated? (MANDATORY — QA generates test spec before Developer starts)
+  ✅ QA test cases trace to AC-IDs? (every TC has "Traces To: AC-XXX")
+  ✅ Test Case Review Loop passed? (BA reviewed and approved test cases)
   ✅ Developer has completed implementation?
   ✅ Review Loop completed? (for New Feature, Bug Fix, and standalone Review Loop workflows)
      OR verification agents invoked? (for other workflows with inline verification)
@@ -40,20 +47,21 @@ When starting a workflow, mentally track which steps remain:
 ```
 Example: New Feature (Complex)
   [ ] Step 1: /brainstorm
-  [ ] Step 2: business-analyst
+  [ ] Step 2: business-analyst (generate AC document)  ← NEW: AC doc is QA's hard prerequisite
   [ ] Step 3: architect
   [ ] Step 4: /plan (confirm with user)
-  [ ] Step 5: qa (test spec)
+  [ ] Step 5: TEST CASE REVIEW LOOP (QA writes test cases → BA reviews → loop)  ← REPLACES old "qa (test spec)"
   [ ] Step 6: developer (TDD mode)
   [ ] Step 7: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS
   [ ] Step 8: api-doc-gen (if API impacted)
 
 Example: New Feature (Simple)
   [ ] Step 1: architect
-  [ ] Step 2: qa (test spec)
-  [ ] Step 3: developer
-  [ ] Step 4: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS
-  [ ] Step 5: api-doc-gen (if API impacted)
+  [ ] Step 2: business-analyst (generate AC document)  ← NEW: never skip — QA needs this
+  [ ] Step 3: TEST CASE REVIEW LOOP (QA writes test cases → BA reviews → loop)
+  [ ] Step 4: developer
+  [ ] Step 5: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS
+  [ ] Step 6: api-doc-gen (if API impacted)
 ```
 
 Mark each step as you complete it. Only write the Summary when all steps are marked done.
