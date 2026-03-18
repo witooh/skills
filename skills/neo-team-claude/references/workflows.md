@@ -33,20 +33,21 @@ Complex task (Brainstorm + BA + Architect + Plan):
    Input: Developer's changed files + project conventions
 8. [If task adds/changes API endpoints: delegate to `api-doc-gen` skill to update docs/api-doc.md]
 
-Simple task (Architect + BA for AC):
-1. architect           → clarify requirements AND design contract in one step
-2. business-analyst    → generate AC document from Architect's output (acceptance-criteria.md template)
-   Context: Architect's acceptance criteria + API contracts
+Simple task (BA first → Architect):
+1. business-analyst    → clarify requirements, generate AC document (acceptance-criteria.md template)
+   Context: User's request
    IF BA returns Open Questions:
       a. Orchestrator asks user for clarification (relay BA's questions)
       b. Orchestrator re-delegates to BA with user's answers
       c. Repeat until BA has no Open Questions
    Output: AC document written to project docs folder (no Open Questions remaining)
+2. architect           → design contract and module structure, ensuring design covers every AC-ID
+   Context: BA's AC document + user stories + business rules
 3. TEST CASE REVIEW LOOP → QA generates test cases, BA reviews for AC coverage (see Test Case Review Loop section)
    Context to QA: Architect's API contracts + BA's AC document (BOTH required — hard gate)
    Context to BA (reviewer): AC document + QA's test cases
 4. developer           → implement code and unit tests
-   Context: Architect's design + acceptance criteria + QA's test case document (BA-approved)
+   Context: Architect's design + BA's AC document + QA's test case document (BA-approved)
    [If multiple independent components: spawn parallel developer agents]
 5. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions

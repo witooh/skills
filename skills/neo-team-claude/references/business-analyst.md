@@ -90,8 +90,9 @@ Common areas that require clarification:
 3. If the project has a solution design document (e.g., `docs/solution-design.md`), read it — extract business rules, flows, and constraints
 4. Identify unclear or missing information → list as **Open Questions** (do not guess — ask)
 5. If Open Questions exist, return them BEFORE writing the full AC document — the Orchestrator will get answers from the user and re-delegate
-6. Once all questions are answered, write the AC document to the project's docs folder (e.g., `docs/acceptance-criteria.md` or path per project convention)
-7. Verify completeness: every business rule should map to at least one AC; every AC should have a clear Business Rule
+6. When re-delegated with user's answers: incorporate answers into AC, then re-verify — if new gaps emerge from the answers (e.g., answer reveals a new edge case or raises a follow-up question), return new Open Questions again. This loop continues until you have zero Open Questions.
+7. Once all questions are resolved (zero Open Questions), write the AC document to the project's docs folder (e.g., `docs/acceptance-criteria.md` or path per project convention)
+8. Verify completeness: every business rule should map to at least one AC; every AC should have a clear Business Rule
 
 ### Quality Gates
 

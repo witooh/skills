@@ -94,7 +94,7 @@ After selecting a workflow, assess complexity to determine which steps to includ
 
 | Complexity  | Criteria                                                                  | Steps Included                                                              |
 | ----------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | Architect → BA (AC doc) → Test Case Review Loop → Developer → Review Loop   |
+| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | BA (AC doc) → Architect → Test Case Review Loop → Developer → Review Loop   |
 | **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | /brainstorm → BA (AC doc) → Architect → /plan → Test Case Review Loop → Developer (TDD) → Review Loop |
 
 **Acceptance Criteria (all tasks):** BA generates an **acceptance criteria document** following the [`acceptance-criteria.md`](references/acceptance-criteria.md) template — GIVEN/WHEN/THEN format with AC-IDs, explicit business rules, and priority. This document is a hard prerequisite for QA — without it, QA cannot write test cases.
@@ -107,9 +107,11 @@ After selecting a workflow, assess complexity to determine which steps to includ
 
 **Orchestrator discretion:** Even for "simple" tasks, escalate to TDD mode if the business logic is particularly complex (calculations, state machines, multi-step validation) or if errors would have high impact.
 
-When simple, Architect receives the user's request directly and produces the technical design. BA then generates an AC document from the Architect's output — this is never skipped because QA requires it as a hard prerequisite. /brainstorm and /plan are skipped because the scope is already clear.
+BA always goes first — even for simple tasks. Requirements must be clarified and formalized into an AC document before Architect designs anything. This prevents Architect from guessing business rules and ensures the entire pipeline (design → test cases → code) is grounded in verified requirements.
 
-When complex, the workflow starts with `/brainstorm` to explore the idea with the user. The brainstorm output feeds into BA for formal requirements and AC document, then Architect designs the solution, and `/plan` presents the implementation plan for user confirmation before the Test Case Review Loop starts.
+When simple, BA receives the user's request, clarifies any gaps by asking the user, and produces the AC document. Architect then designs the system to satisfy every AC-ID. /brainstorm and /plan are skipped because the scope is already clear.
+
+When complex, the workflow starts with `/brainstorm` to explore the idea with the user. The brainstorm output feeds into BA for formal requirements and AC document, then Architect designs the solution to cover all AC-IDs, and `/plan` presents the implementation plan for user confirmation before the Test Case Review Loop starts.
 
 ## Delegation Protocol
 
