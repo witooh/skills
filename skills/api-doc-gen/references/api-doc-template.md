@@ -108,6 +108,12 @@ Each endpoint follows this exact structure. Do not skip sections — use `_(not 
 }
 ```
 
+#### Business Logic
+
+1. step 1
+2. step 2
+3. step 3
+
 #### Error Responses
 
 | Status | Error Message         | Description                    |
