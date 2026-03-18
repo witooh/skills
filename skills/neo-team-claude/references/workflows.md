@@ -13,7 +13,11 @@ Complex task (Brainstorm + BA + Architect + Plan):
 1. /brainstorm         → invoke brainstorm skill to explore the idea and clarify direction with the user
 2. business-analyst    → structure requirements, generate AC document (acceptance-criteria.md template)
    Context: Brainstorm output (key decisions, constraints, scope)
-   Output: AC document written to project docs folder (e.g., docs/acceptance-criteria.md)
+   IF BA returns Open Questions:
+      a. Orchestrator asks user for clarification (relay BA's questions)
+      b. Orchestrator re-delegates to BA with user's answers
+      c. Repeat until BA has no Open Questions
+   Output: AC document written to project docs folder (no Open Questions remaining)
 3. architect           → design endpoint/module contract and data flow
    Context: BA's user stories + acceptance criteria + business rules
 4. /plan               → synthesize Architect's design into an implementation plan, present to user for confirmation
@@ -33,7 +37,11 @@ Simple task (Architect + BA for AC):
 1. architect           → clarify requirements AND design contract in one step
 2. business-analyst    → generate AC document from Architect's output (acceptance-criteria.md template)
    Context: Architect's acceptance criteria + API contracts
-   Output: AC document written to project docs folder
+   IF BA returns Open Questions:
+      a. Orchestrator asks user for clarification (relay BA's questions)
+      b. Orchestrator re-delegates to BA with user's answers
+      c. Repeat until BA has no Open Questions
+   Output: AC document written to project docs folder (no Open Questions remaining)
 3. TEST CASE REVIEW LOOP → QA generates test cases, BA reviews for AC coverage (see Test Case Review Loop section)
    Context to QA: Architect's API contracts + BA's AC document (BOTH required — hard gate)
    Context to BA (reviewer): AC document + QA's test cases
@@ -126,8 +134,13 @@ Simple (single module, extract function, simplify logic):
 
 ```
 1. business-analyst    → clarify and structure requirements
+   IF BA returns Open Questions:
+      a. Orchestrator asks user for clarification (relay BA's questions)
+      b. Orchestrator re-delegates to BA with user's answers
+      c. Repeat until BA has no Open Questions
+   Output: Structured requirements with all ambiguities resolved
 2. architect           → validate technical feasibility
-   Context: BA's structured requirements
+   Context: BA's structured requirements (fully clarified)
 ```
 
 ## Test Case Review Loop
