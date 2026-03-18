@@ -68,7 +68,7 @@ Some skills have platform-specific variants that must be kept in sync.
 | Skill Family | Claude Code | Copilot CLI | Kiro CLI | OpenCode |
 |--------------|-------------|-------------|----------|----------|
 | **neo-team** | `neo-team-claude` | `neo-team-copilot` | `neo-team-kiro` | `neo-team-opencode` |
-| **gitlab** | `gitlab-claude` | `gitlab-copilot` | `gitlab-kiro` | — |
+| **gitlab** | `gitlab-claude` | `gitlab-copilot` | `gitlab-kiro` | `gitlab-opencode` |
 
 **Sync:** workflow logic, specialist references, review templates, task classification rules.
 

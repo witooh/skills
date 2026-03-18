@@ -126,13 +126,29 @@ Compare existing `docs/api-doc.md` against discovered routes and produce a repor
 | Field mismatches | N |
 ```
 
-### Step 4: Verify
+### Step 4: Verify (mandatory after every Generate/Update)
 
-After generating or updating:
-1. Check that Table of Contents links match actual heading anchors
-2. Verify all field tables use `M`/`O` for Mandatory column
-3. Count endpoints in doc matches endpoints discovered in code
-4. Report what was done
+Every time you create or modify `docs/api-doc.md`, run a full verification pass before reporting completion. This catches drift between the doc you just wrote and the actual code — missed endpoints, wrong fields, broken links. Skipping this step means silent errors ship.
+
+**4a. Format checks:**
+1. Table of Contents links match actual heading anchors
+2. All field tables use `M`/`O` for Mandatory column
+3. JSON examples are valid (no trailing commas, correct types)
+
+**4b. Re-scan and cross-check (the critical part):**
+
+Re-read the `docs/api-doc.md` you just wrote, then re-scan the codebase routes (same as Step 1) and compare:
+
+1. **Endpoint coverage** — every route in code appears in doc, and vice versa. List any mismatches.
+2. **Field accuracy** — for each endpoint, compare request/response structs in code vs what the doc describes. Flag missing fields, wrong types, or wrong mandatory/optional markers.
+3. **Status code accuracy** — verify documented error codes match the handler's actual error-to-status mapping.
+4. **Path param consistency** — route params (`:id`, `:citizen_id`) match what the doc shows.
+
+**4c. Fix or report:**
+
+- If mismatches are found → fix the doc immediately, then re-run 4b to confirm the fix.
+- If all checks pass → proceed to output.
+- Maximum 2 fix-and-recheck cycles. If issues persist after 2 rounds, report the remaining discrepancies in the output as warnings.
 
 ## Expanding to Other Languages
 
@@ -155,5 +171,10 @@ After completion, report:
 **Changes:**
 - [list of endpoints added/updated/removed]
 
-**Warnings:** [any issues found — missing structs, unresolvable types, etc.]
+**Verification:** [✅ Passed — doc matches code / ⚠️ Passed with warnings / ❌ Issues remain]
+- Endpoints in code: X | In doc: Y | Match: ✅/❌
+- Field accuracy: [X/Y endpoints fully match]
+- Fix cycles used: [0/1/2]
+
+**Warnings:** [any issues found — missing structs, unresolvable types, remaining discrepancies, etc.]
 ```
