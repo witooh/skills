@@ -90,18 +90,22 @@ After selecting a workflow, assess complexity to determine which steps to includ
 
 | Complexity  | Criteria                                                                  | Steps Included                                                                    |
 | ----------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | Architect → QA (test spec) → Developer → Review Loop                              |
-| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | BA → Architect → present plan to user → QA (test spec) → Developer (TDD) → Review Loop |
+| **Simple**  | Single endpoint/method, clear requirements from user prompt, no ambiguity | BA (AC doc) → Architect → Test Case Review Loop → Developer → Review Loop   |
+| **Complex** | Multi-endpoint, vague scope, cross-service impact, new domain concepts    | /brainstorm → BA (AC doc) → Architect → /plan → Test Case Review Loop → Developer (TDD) → Review Loop |
 
 Steps shown are for New Feature. Other workflows have different starting steps but follow the same complexity principle — see [`references/workflows.md`](references/workflows.md) for exact pipelines.
 
-**QA Test Spec (all tasks):** Before Developer starts, QA generates a **test case document** following the [`test-case-document.md`](references/test-case-document.md) template — GIVEN/WHEN/THEN format with test steps, expected results, test data, and preconditions. This follows the "doc first" principle: define what to test before writing code. During the Review Loop, after running E2E tests, QA generates an **execution report** following the [`test-execution-report.md`](references/test-execution-report.md) template — mapping each test case to its actual result, status, and defect references. See [`references/qa.md`](references/qa.md) for details.
+**Acceptance Criteria (all tasks):** BA generates an **acceptance criteria document** following the [`acceptance-criteria.md`](references/acceptance-criteria.md) template — GIVEN/WHEN/THEN format with AC-IDs, explicit business rules, and priority. This document is a hard prerequisite for QA — without it, QA cannot write test cases.
+
+**Test Case Review Loop (all tasks):** Before Developer starts, QA generates a test case document and BA reviews it for AC coverage. This loop ensures test cases fully cover business requirements before any code is written. See [`references/workflows.md`](references/workflows.md) for the full process. During the Review Loop (post-implementation), QA generates an **execution report** following the [`test-execution-report.md`](references/test-execution-report.md) template. See [`references/qa.md`](references/qa.md) for details.
 
 **Developer mode:** Simple → Standard Mode. Complex → TDD Mode. Escalate to TDD even for "simple" tasks if business logic is particularly complex (calculations, state machines, multi-step validation) or high-impact. Mode details in [`references/developer.md`](references/developer.md).
 
-When simple, Architect receives the user's request directly and produces both acceptance criteria and technical design in a single output. BA and plan confirmation are skipped because the scope is already clear — no need to confirm what's obvious.
+BA always goes first — even for simple tasks. Requirements must be clarified and formalized into an AC document before Architect designs anything. This prevents Architect from guessing business rules and ensures the entire pipeline (design → test cases → code) is grounded in verified requirements.
 
-When complex, the workflow starts with BA for formal requirements, then Architect designs the solution, and the Orchestrator presents the implementation plan to the user for confirmation before Developer starts.
+When simple, BA receives the user's request, clarifies any gaps by asking the user, and produces the AC document. Architect then designs the system to satisfy every AC-ID. /brainstorm and /plan are skipped because the scope is already clear.
+
+When complex, the workflow starts with `/brainstorm` to explore the idea with the user. The brainstorm output feeds into BA for formal requirements and AC document, then Architect designs the solution to cover all AC-IDs, and `/plan` presents the implementation plan for user confirmation before the Test Case Review Loop starts.
 
 ## Delegation Protocol
 
@@ -126,6 +130,9 @@ task(
 
 You are the **[Specialist Name]** on a software development team.
 Your Role ID is `[role-id]`. Stay strictly within your defined scope — do not perform tasks belonging to other specialists.
+
+## Universal Rule — Never Guess
+If you encounter anything unclear, ambiguous, or missing — STOP. Do not guess, infer, assume defaults, or write "assumed X." List every unclear point as **Open Questions** in your output. Write all questions in Thai (ภาษาไทย) so the user can read and answer naturally. Every question must include: what is unclear, why the answer matters, and a **Reference** (AC-ID, requirement, or specific context) so the user knows which topic the question is about. If questions are many (4+), write them to a file (e.g., `docs/open-questions-<your-role>.md`) so the user can answer inline. The Orchestrator will ask the user and come back with answers. Only then should you proceed.
 
 <content from specialist's reference file>
 
@@ -155,12 +162,15 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 
 | From             | To            | What to Pass                                          |
 | ---------------- | ------------- | ----------------------------------------------------- |
-| Business Analyst | Architect     | User stories, acceptance criteria, business rules     |
-| Business Analyst | QA            | Acceptance criteria (for test case design)            |
-| Architect        | Developer     | API contracts, module design, file structure          |
-| Architect        | QA            | API contracts (for E2E test design) + existing API doc path if available (e.g., `docs/api-doc.md`, OpenAPI spec). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
-| Architect        | Security      | Design decisions flagged with security implications   |
-| QA (test spec)   | Developer     | Test case document (test-case-document.md template) — GIVEN/WHEN/THEN test cases with steps, expected results, test data, preconditions. Complex tasks: Developer uses TDD mode. |
+| Brainstorm       | BA            | Key decisions, constraints, scope, explored directions |
+| Business Analyst | Architect     | **AC document path** (hard prerequisite — Architect cannot start without this). Include: "Read `references/system-design.md` template before generating the system design document." |
+| Business Analyst | QA            | **AC document path + AC-IDs** (hard prerequisite — QA cannot start without this). Include: "Read `references/acceptance-criteria.md` template if you need to understand the AC format." |
+| Business Analyst | BA (review)   | AC document (for reviewing QA's test cases in the Test Case Review Loop) |
+| Architect        | Developer     | **System design document path** (hard prerequisite — Developer reads this for API contracts, module design, file structure) |
+| Architect        | QA            | **System design document path** (hard prerequisite — QA reads API contracts from this) + existing API doc path if available (e.g., `docs/api-doc.md`, OpenAPI spec). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
+| Architect        | Security      | **System design document path** + security flags from Architect's output |
+| QA (test spec)   | BA (review)   | Test case document for BA to review AC coverage (part of Test Case Review Loop) |
+| QA (test spec)   | Developer     | **BA-approved** test case document (test-case-document.md template) — GIVEN/WHEN/THEN test cases with steps, expected results, test data, preconditions, and Traces To AC-IDs. Complex tasks: Developer uses TDD mode. |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |
 | System Analyzer  | Security      | Security-related findings from logs/DB/infra |
 | Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found. After running tests, generate an execution report using the test-execution-report.md template."** |
@@ -187,6 +197,7 @@ Every workflow with code changes ends with a **Review Loop** — see [`reference
 
 Proceed autonomously for standard workflow steps. Pause and ask the user when:
 
+- **Any agent returns Open Questions**: Every specialist is instructed to stop and return Open Questions when they encounter anything unclear instead of guessing. When ANY agent's output contains Open Questions, the Orchestrator MUST relay them to the user, wait for answers, and re-delegate to that agent with the answers. This applies to all specialists — BA, Architect, Developer, QA, Security, Code Reviewer, System Analyzer. Never let an agent proceed with assumptions.
 - **Ambiguous scope**: the task could reasonably be interpreted multiple ways
 - **Missing information**: a specialist can't proceed without context — first try delegating to another team member to generate the missing docs (e.g., QA needs API docs → delegate to Architect to produce them). Only ask the user if no team member can provide the information
 - **Large scope**: the task would require 8+ agent delegations — propose a breakdown first

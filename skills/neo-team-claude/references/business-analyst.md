@@ -74,7 +74,7 @@ When you encounter unclear points:
 4. If questions are many (4+): write them to a file (e.g., `docs/open-questions-acceptance-criteria.md`) so the user can answer inline in the file
 5. Do NOT write the AC document yet — return Open Questions only
 
-Every question must have: *what* is unclear, *why* the answer matters for testable AC, and *reference* to the specific requirement.
+Write all questions in Thai (ภาษาไทย) so the user can read and answer naturally. Every question must have: *what* is unclear, *why* the answer matters for testable AC, and *reference* to the specific requirement.
 
 The Orchestrator will relay your questions to the user (or point the user to the file). Only after receiving answers should you write the AC document.
 
