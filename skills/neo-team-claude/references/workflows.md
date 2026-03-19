@@ -19,11 +19,11 @@ Complex task (Brainstorm + BA + Architect + Plan):
       a. Orchestrator asks user for clarification (relay BA's questions)
       b. Orchestrator re-delegates to BA with user's answers
       c. Repeat until BA has no Open Questions
-   Output: AC document written to project docs folder (no Open Questions remaining)
+   Output: AC document written to `docs/design/{feature}/acceptance-criteria.md` (no Open Questions remaining)
    Verification: BA re-reads generated document, verifies against template + quality gates, fixes issues (mandatory before handoff)
 3. architect           → generate system design document (system-design.md template)
    Context: BA's AC document path (hard prerequisite — must read AC before designing)
-   Output: System design document written to project docs folder (e.g., docs/system-design.md)
+   Output: API contracts written to `docs/design/{feature}/api-contracts.md`, shared design to `docs/design/system-design/`
    Verification: Architect re-reads generated document, verifies structure + AC traceability + consistency with AC, fixes issues (mandatory before handoff)
 4. /plan               → synthesize Architect's design into an implementation plan, present to user for confirmation
    Include: component breakdown, file changes, API contracts, implementation order
@@ -47,11 +47,11 @@ Simple task (BA first → Architect):
       a. Orchestrator asks user for clarification (relay BA's questions)
       b. Orchestrator re-delegates to BA with user's answers
       c. Repeat until BA has no Open Questions
-   Output: AC document written to project docs folder (no Open Questions remaining)
+   Output: AC document written to `docs/design/{feature}/acceptance-criteria.md` (no Open Questions remaining)
    Verification: BA re-reads generated document, verifies against template + quality gates, fixes issues (mandatory before handoff)
 2. architect           → generate system design document (system-design.md template), ensuring design covers every AC-ID
    Context: BA's AC document path (hard prerequisite — must read AC before designing)
-   Output: System design document written to project docs folder (e.g., docs/system-design.md)
+   Output: API contracts written to `docs/design/{feature}/api-contracts.md`, shared design to `docs/design/system-design/`
    Verification: Architect re-reads generated document, verifies structure + AC traceability + consistency with AC, fixes issues (mandatory before handoff)
 3. TEST CASE REVIEW LOOP → QA generates test cases, BA reviews for AC coverage (see Test Case Review Loop section)
    Context to QA: Architect's API contracts + BA's AC document (BOTH required — hard gate)
@@ -168,7 +168,7 @@ Simple (single module, extract function, simplify logic):
 2. architect           → validate technical feasibility
    Context: BA's structured requirements (fully clarified)
    Verification: Architect re-reads generated document, verifies structure + AC traceability + consistency with AC, fixes issues (mandatory before handoff)
-3. Orchestrator updates docs/INDEX.md (create if not exists) with the new/updated feature entry
+3. Orchestrator updates docs/design/INDEX.md (create if not exists) with the new/updated feature entry
 ```
 
 ## Test Case Review Loop
@@ -257,7 +257,7 @@ After the Review Loop passes in any code-changing workflow, this phase ensures a
 ```
 Document Sync Phase:
 
-1. Orchestrator reads docs/INDEX.md (if exists) to identify potentially affected features
+1. Orchestrator reads docs/design/INDEX.md (if exists) to identify potentially affected features
    → Also gathers: Developer's final changed files, all doc paths from prior pipeline steps
    → Determines which document-owning agents have existing docs for the affected feature(s)
 
@@ -282,7 +282,7 @@ Document Sync Phase:
    IF updated → Verification applies (TC-IDs sequential, Summary table matches)
    IF no Test Case doc exists for this feature → skip
 
-5. Orchestrator updates docs/INDEX.md
+5. Orchestrator updates docs/design/INDEX.md
    → Create INDEX.md if it does not exist
    → Add or update the feature entry: feature name, description, status, AC-IDs, last updated date
    → Follow the INDEX.md format defined in SKILL.md (Document Folder Structure Convention)

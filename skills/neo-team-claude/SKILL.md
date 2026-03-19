@@ -41,9 +41,9 @@ You are the **Orchestrator** of a specialized software development agent team. Y
 
 Before delegating anything, read the project's `CLAUDE.md` (or `AGENTS.md`, `CONTRIBUTING.md`). This file defines architecture conventions, coding patterns, and project-specific rules that every specialist needs. Extract the relevant sections and include them in each agent's prompt — this prevents every agent from independently searching for conventions and ensures consistency.
 
-Also read `docs/INDEX.md` if it exists. This is the central document registry that lists all feature documentation with their status, AC-IDs, and last-updated dates. Use it to:
+Also read `docs/design/INDEX.md` if it exists. This is the central document registry that lists all system design files and feature documentation with their status and descriptions. Use it to:
 - Identify existing docs that may be affected by the current task
-- Pass relevant doc paths to specialists (e.g., if modifying login feature, pass `docs/auth/login/ac.md` path to BA)
+- Pass relevant doc paths to specialists (e.g., if modifying accept consent, pass `docs/design/accept-consent/acceptance-criteria.md` path to BA)
 - Avoid creating duplicate docs for features that already have documentation
 
 If no convention file exists:
@@ -78,44 +78,71 @@ All specialists are spawned via the `Agent` tool with `subagent_type: "general-p
 
 ## Document Folder Structure Convention
 
-All project documentation follows a feature-centric structure. Agents producing documents (BA, Architect, QA) write to this structure. The Orchestrator ensures paths are consistent across the pipeline.
+Documentation is organized into three levels: project-level standalone docs, shared system design, and per-feature docs. Use full names — no abbreviations.
 
 ```
 docs/
-├── INDEX.md                     ← Central registry (Orchestrator reads first)
-├── {module}/                    ← Optional grouping for large projects
-│   └── {feature}/               ← All docs for one feature
-│       ├── ac.md                # Acceptance Criteria (BA)
-│       ├── sd.md                # System Design (Architect)
-│       ├── tc.md                # Test Cases (QA)
-│       └── tr.md                # Test Execution Report (QA)
-└── api/
-    └── api-doc.md
+├── gap-analysis.md                       # Project-level
+├── open-questions.md                     # Project-level
+├── developer-guide.md                    # Project-level
+├── migration-strategy.md                 # Project-level
+├── api-doc.md                            # Generated from code (api-doc-gen skill)
+│
+└── design/                               # All design-related docs
+    ├── INDEX.md                          # Central registry (Orchestrator reads first)
+    │
+    ├── system-design/                    # Shared across features
+    │   ├── overview.md                   # Architecture overview
+    │   ├── module-design.md              # Entity, repository, service, usecase
+    │   ├── database-schema.md            # DDL, constraints, indexes
+    │   ├── architecture.md               # ER diagram, flows, data flow
+    │   ├── adrs.md                       # Architectural Decision Records
+    │   └── security-flags.md             # Auth, PII, rate limiting
+    │
+    ├── {feature}/                        # Per-feature docs
+    │   ├── acceptance-criteria.md        # AC document (BA)
+    │   ├── api-contracts.md              # API endpoints for this feature (Architect)
+    │   ├── traceability.md               # AC → design element mapping (references system-design/, no duplication)
+    │   ├── test-cases.md                 # Test case document (QA)
+    │   └── test-report.md               # Test execution report (QA, after running tests)
+    │
+    └── {feature-2}/
+        └── ...
 ```
 
-For small projects (no module grouping needed):
-```
-docs/
-├── INDEX.md
-├── {feature}/
-│   ├── ac.md, sd.md, tc.md, tr.md
-└── api/
-    └── api-doc.md
-```
+**Project-level docs** (`docs/*.md`): standalone documents not tied to any feature — gap analysis, open questions, developer guide, migration strategy. `api-doc.md` is generated from code by the `api-doc-gen` skill, not from design.
 
-**INDEX.md format:**
+**Shared system design** (`docs/design/system-design/`): components shared across features — entity definitions, repositories, database schema, ADRs, architecture flows. Features reference these files instead of duplicating content.
+
+**Per-feature docs** (`docs/design/{feature}/`): each feature folder contains all documents specific to that business operation.
+
+**INDEX.md format** — Description must be written in natural language so the Orchestrator can match user requests to the right feature without users needing to know AC-IDs or file paths:
 ```markdown
-# Project Documentation Index
+# Design Index
 
-## {module}
-| Feature | Description | Status | AC-IDs | Last Updated |
-|---------|-------------|--------|--------|--------------|
-| login   | Email/password auth | implemented | AC-001~003 | 2026-03-15 |
+## System Design
+| File | Content |
+|------|---------|
+| system-design/overview.md | Architecture overview, modules, key requirements |
+| system-design/module-design.md | Entity, repository, service, usecase definitions |
+| system-design/database-schema.md | DDL, constraints, indexes |
+| system-design/architecture.md | ER diagram, flows |
+| system-design/adrs.md | ADR-001~007 |
+| system-design/security-flags.md | Auth, PII, rate limiting |
+
+## Features
+| Feature | Description | AC Count | Status | Last Updated |
+|---------|-------------|----------|--------|--------------|
+| accept-consent | รับ consent จาก citizen, single/bulk, customer/account scope | 22 | implemented | 2026-03-15 |
+| revoke-consent | ถอน consent, validate status, audit log | 12 | implemented | 2026-03-18 |
 ```
 
-**When to use module grouping:** If the project has 5+ features or clear domain boundaries (e.g., `auth/`, `payments/`, `notifications/`). For smaller projects, skip the module layer.
+**Feature grouping:** BA decides how to group ACs into features based on business operations — each feature should represent a cohesive operation where working on it requires knowing all ACs in the group (e.g., "accept consent" = one feature with all accept-related ACs, "CRUD purpose" = one feature with all purpose management ACs).
 
-**Orchestrator responsibility:** When delegating to BA/Architect/QA, include the target doc path in the prompt (e.g., "Write AC document to `docs/auth/login/ac.md`"). If the project already has docs in a different structure, respect the existing convention.
+**Orchestrator responsibility:** Users will describe what they want in natural language (e.g., "แก้ consent ให้ revoke ต้อง check status ก่อน") — they do NOT know AC-IDs or file paths. The Orchestrator must:
+1. Read `docs/design/INDEX.md` → match the user's request to the right feature by Description
+2. Pass the correct doc paths to specialists (e.g., "Read and update `docs/design/revoke-consent/acceptance-criteria.md`")
+3. If the project already has docs in a different structure, respect the existing convention
 
 ## Task Classification
 
@@ -214,7 +241,7 @@ When delegating to **Business Analyst** or **Architect**, always include this in
 
 ### Document Sync Phase
 
-After every Review Loop that passes (in all code-changing workflows), run the **Document Sync Phase**. This ensures BA's AC, Architect's System Design, and QA's Test Cases still match the final code. See [`references/workflows.md`](references/workflows.md) for the full process. The sync follows sequential order: BA → Architect → QA (traceability chain). Each agent has a "Doc Review & Update Mode" in their reference file. After all agents complete, update `docs/INDEX.md`.
+After every Review Loop that passes (in all code-changing workflows), run the **Document Sync Phase**. This ensures BA's AC, Architect's System Design, and QA's Test Cases still match the final code. See [`references/workflows.md`](references/workflows.md) for the full process. The sync follows sequential order: BA → Architect → QA (traceability chain). Each agent has a "Doc Review & Update Mode" in their reference file. After all agents complete, update `docs/design/INDEX.md`.
 
 ### What Context to Pass Between Agents
 

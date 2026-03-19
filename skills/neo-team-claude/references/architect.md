@@ -34,7 +34,10 @@ You produce a **document file** — not just inline output. This document become
 4. Design the system to cover every AC-ID — each AC must be traceable to a specific design element (API endpoint, validation rule, error response, module behavior)
 5. If any AC is technically infeasible or unclear, flag it as an Open Question — do not guess
 6. If Open Questions exist (3 or fewer): list them in your output. If Open Questions are many (4+): write them to a file (e.g., `docs/open-questions-system-design.md`) so the user can answer inline in the file. Write all questions in Thai (ภาษาไทย). Every question must include a **Reference** (AC-ID, business rule, or specific requirement it relates to) so the user knows which context the question is about
-7. Write the system design document to the project's docs folder (e.g., `docs/system-design.md` or path per project convention)
+7. Write outputs to the project's docs folder following the Document Folder Structure Convention:
+   - Shared design (entity, repo, service, DB schema, ADRs) → `docs/design/system-design/`
+   - Per-feature API contracts → `docs/design/{feature}/api-contracts.md`
+   - AC traceability → `docs/design/{feature}/traceability.md`
 7. Verify AC traceability: every AC-ID must appear in the AC Traceability table
 
 ### Design Sections
@@ -146,7 +149,7 @@ OR
 
 **Task:** [what was designed]
 
-**System Design Document:** [path to generated document, e.g., docs/system-design.md]
+**System Design Files:** [paths to generated documents, e.g., docs/design/system-design/module-design.md, docs/design/accept-consent/api-contracts.md]
 
 **AC Traceability Summary:**
 - AC-001: ✅ Covered by [design element]
