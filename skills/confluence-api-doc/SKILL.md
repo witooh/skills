@@ -79,17 +79,17 @@ Scan the `docs/api/` directory to build the page list. No heading-based parsing 
 1. **Read `index.md`** — extract service name (from H1), overview paragraph, and Common Error Responses section
 2. **List subdirectories** — each subdirectory = one domain group (e.g., `consent/` → "Consent"). Skip `health/` — health check endpoints are infrastructure-only and not synced to Confluence.
 3. **List `.md` files per subdirectory** — each file = one API endpoint page
-4. **Extract page title per endpoint** — read the H1 heading (`# <Endpoint Name>`) from each file
+4. **Extract page title per endpoint** — read the **Method** and **Path** fields from the file, then format as `METHOD: /path` (e.g., `POST: /api/v1/consents`). This is the Confluence page title — not the H1 heading.
 5. **Extract page content per endpoint** — use the full file content, but:
    - Strip the breadcrumb line (first line starting with `>`)
-   - Strip the H1 heading (used as page title, not body content)
+   - Strip the H1 heading (used as in-page heading, not page title)
 
 ### Page Types
 
 | Source | Page Type | Title | Content |
 |--------|-----------|-------|---------|
 | Group directory | Domain group | Directory name → Title Case (e.g., `consent` → "Consent") | Brief intro or empty |
-| Endpoint `.md` file | API page | H1 heading from the file | File content (minus breadcrumb + H1) |
+| Endpoint `.md` file | API page | `METHOD: /path` from Method + Path fields (e.g., `POST: /api/v1/consents`) | File content (minus breadcrumb) |
 | `index.md` overview | Parent page content | Service name from H1 | Overview + Common Errors (appended to parent page) |
 
 ### Summary Output
@@ -99,18 +99,18 @@ After scanning, show the user a structured summary:
 Found N domain groups, M individual API endpoints:
 
   Consent (5 APIs)
-     Accept Consent
-     Get Consent
-     Get Consents by Citizen
-     Get Consent History
-     Revoke Consent
+     POST: /api/v1/consents
+     GET: /api/v1/consents/:citizen_id
+     GET: /api/v1/consents/:id
+     GET: /api/v1/consents/:id/history
+     DELETE: /api/v1/consents/:id/revoke
   Channel (5 APIs)
-     Create Channel
-     Get All Channels
+     POST: /api/v1/channels
+     GET: /api/v1/channels
      ...
   Purpose (11 APIs)
-     Create Purpose
-     Get All Purposes
+     POST: /api/v1/purposes
+     GET: /api/v1/purposes
      ...
 
 Total pages to create/update: N (domain groups) + M (APIs) = T pages
@@ -152,19 +152,19 @@ curl -s "${CONFLUENCE_URL}/wiki/rest/api/content/${DOMAIN_GROUP_PAGE_ID}/child/p
 
 Match existing page titles against scanned sections to build the mapping:
 
-| Source | Type | Matched Page ID | Action |
-|---|---|---|---|
-| consent/ | Domain group | 456789 | Update |
-| consent/accept-consent.md | API page | 567890 | Update |
-| consent/revoke-consent.md | API page | — | Create (under 456789) |
-| purpose/ | Domain group | — | Create (under parent) |
-| purpose/create-purpose.md | API page | — | Create (under new domain group page) |
+| Source | Page Title | Type | Matched Page ID | Action |
+|---|---|---|---|---|
+| consent/ | Consent | Domain group | 456789 | Update |
+| consent/accept-consent.md | POST: /api/v1/consents | API page | 567890 | Update |
+| consent/revoke-consent.md | DELETE: /api/v1/consents/:id/revoke | API page | — | Create (under 456789) |
+| purpose/ | Purpose | Domain group | — | Create (under parent) |
+| purpose/create-purpose.md | POST: /api/v1/purposes | API page | — | Create (under new domain group page) |
 
 **Important ordering**: When creating new pages, domain group pages must be created before their child API pages (because child pages need the parent's page ID as ancestor).
 
 ### Matching Strategy
 
-- Match by title similarity (case-insensitive, ignore leading numbers)
+- Match by exact page title (e.g., `POST: /api/v1/consents` matches existing page with same title)
 - If ambiguous, show the user and ask them to confirm the mapping
 - For unmatched sections → mark as "Create new"
 
@@ -275,14 +275,14 @@ Check HTTP status — 200 means success.
 Print a summary table after all operations:
 
 ```
-| Section                    | Type           | Page ID    | Status                  |
-|----------------------------|----------------|------------|-------------------------|
-| Consent                    | Domain group   | 456789     | Updated (v3 → v4)       |
-| Accept Consent             | API page       | 567890     | Updated (v2 → v3)       |
-| Revoke Consent             | API page       | 678901     | Created                 |
-| Get Consents               | API page       | 567890     | Skipped (no changes)    |
-| Purpose                    | Domain group   | 789012     | Created                 |
-| Create Purpose             | API page       | 890123     | Created                 |
+| Page Title                              | Type           | Page ID    | Status                  |
+|-----------------------------------------|----------------|------------|-------------------------|
+| Consent                                 | Domain group   | 456789     | Updated (v3 → v4)       |
+| POST: /api/v1/consents                  | API page       | 567890     | Updated (v2 → v3)       |
+| DELETE: /api/v1/consents/:id/revoke     | API page       | 678901     | Created                 |
+| GET: /api/v1/consents/:citizen_id       | API page       | 567890     | Skipped (no changes)    |
+| Purpose                                 | Domain group   | 789012     | Created                 |
+| POST: /api/v1/purposes                  | API page       | 890123     | Created                 |
 ```
 
 Total: N domain groups, M API pages updated, K created, J skipped, F failed.
