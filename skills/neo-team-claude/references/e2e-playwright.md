@@ -16,10 +16,10 @@ This reference tells you **how** to generate E2E test code for API-only testing.
 
 ## E2E Project Structure
 
-The E2E project lives at `e2e/` in the project root as a **standalone project** with its own `package.json`. Feature test folders mirror `docs/design/{feature}/` names exactly.
+The E2E project lives at `tests/e2e/` in the project root as a **standalone project** with its own `package.json`. Feature test folders mirror `docs/design/{feature}/` names exactly.
 
 ```
-e2e/
+tests/e2e/
 ├── package.json                    ← standalone dependencies
 ├── tsconfig.json                   ← strict mode, ES2020+
 ├── jest.config.ts                  ← Jest configuration
@@ -49,7 +49,7 @@ e2e/
 
 ## Bootstrapping (First-time Setup)
 
-If `e2e/` does not exist in the project root, create the entire skeleton before writing any test code. Run `cd e2e && npm install` after creating all files.
+If `tests/e2e/` does not exist in the project root, create the entire skeleton before writing any test code. Run `cd tests/e2e && npm install` after creating all files.
 
 ### package.json
 
@@ -227,7 +227,7 @@ import * as path from 'path';
 
 /**
  * Load a JSON fixture file relative to the calling feature's __fixtures__/ folder.
- * @param fixturePath - path relative to e2e/ root (e.g., 'loan-approval/__fixtures__/data.json')
+ * @param fixturePath - path relative to tests/e2e/ root (e.g., 'loan-approval/__fixtures__/data.json')
  */
 export function loadJson<T = any>(fixturePath: string): T {
   const fullPath = path.resolve(__dirname, '..', fixturePath);
@@ -238,7 +238,7 @@ export function loadJson<T = any>(fixturePath: string): T {
 /**
  * Read a SQL seed file and return its content as a string.
  * The caller is responsible for executing it against the database.
- * @param fixturePath - path relative to e2e/ root (e.g., 'loan-approval/__fixtures__/seed.sql')
+ * @param fixturePath - path relative to tests/e2e/ root (e.g., 'loan-approval/__fixtures__/seed.sql')
  */
 export function readSqlSeed(fixturePath: string): string {
   const fullPath = path.resolve(__dirname, '..', fixturePath);
@@ -369,13 +369,13 @@ describe('Savings Account', () => {
 
 ```bash
 # Run all E2E tests
-cd e2e && npm test
+cd tests/e2e && npm test
 
 # Run tests for a specific feature
-cd e2e && npm test -- --testPathPattern=savings-account
+cd tests/e2e && npm test -- --testPathPattern=savings-account
 
 # With custom API URL
-cd e2e && API_BASE_URL=https://staging.example.com npm test
+cd tests/e2e && API_BASE_URL=https://staging.example.com npm test
 ```
 
 **Environment variables:**
@@ -393,7 +393,7 @@ Before reporting E2E test results, verify:
 - [ ] Every TC-ID from the test case document has a corresponding `it()` block in the `.e2e.ts` file
 - [ ] Precondition `setup()` covers every step from the Workflow Chain table in the test case document
 - [ ] Precondition `teardown()` cleans up in reverse order
-- [ ] `cd e2e && npm test` runs successfully (or failures are documented in the execution report)
+- [ ] `cd tests/e2e && npm test` runs successfully (or failures are documented in the execution report)
 - [ ] No hardcoded URLs or tokens — all use environment variables
 - [ ] Feature folder name matches `docs/design/{feature}/` exactly
 - [ ] Test assertions use exact HTTP status codes from the API contract
