@@ -41,6 +41,11 @@ You are the **Orchestrator** of a specialized software development agent team. Y
 
 Before delegating anything, read the project's `CLAUDE.md` (or `AGENTS.md`, `CONTRIBUTING.md`). This file defines architecture conventions, coding patterns, and project-specific rules that every specialist needs. Extract the relevant sections and include them in each agent's prompt — this prevents every agent from independently searching for conventions and ensures consistency.
 
+Also read `docs/INDEX.md` if it exists. This is the central document registry that lists all feature documentation with their status, AC-IDs, and last-updated dates. Use it to:
+- Identify existing docs that may be affected by the current task
+- Pass relevant doc paths to specialists (e.g., if modifying login feature, pass `docs/auth/login/ac.md` path to BA)
+- Avoid creating duplicate docs for features that already have documentation
+
 If no convention file exists:
 
 1. Check for `AGENTS.md`, `CONTRIBUTING.md`, or `docs/conventions.md`
@@ -70,6 +75,47 @@ All specialists are spawned via the `Agent` tool with `subagent_type: "general-p
 | QA                    | `qa`                    | [references/qa.md](references/qa.md)                                       | Black-box testing via API, test case docs, execution reports |
 | Security              | `security`              | [references/security.md](references/security.md)                           | Security review, secrets detection             |
 | System Analyzer       | `system-analyzer`       | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues across all envs — code analysis + live system investigation (read-only) |
+
+## Document Folder Structure Convention
+
+All project documentation follows a feature-centric structure. Agents producing documents (BA, Architect, QA) write to this structure. The Orchestrator ensures paths are consistent across the pipeline.
+
+```
+docs/
+├── INDEX.md                     ← Central registry (Orchestrator reads first)
+├── {module}/                    ← Optional grouping for large projects
+│   └── {feature}/               ← All docs for one feature
+│       ├── ac.md                # Acceptance Criteria (BA)
+│       ├── sd.md                # System Design (Architect)
+│       ├── tc.md                # Test Cases (QA)
+│       └── tr.md                # Test Execution Report (QA)
+└── api/
+    └── api-doc.md
+```
+
+For small projects (no module grouping needed):
+```
+docs/
+├── INDEX.md
+├── {feature}/
+│   ├── ac.md, sd.md, tc.md, tr.md
+└── api/
+    └── api-doc.md
+```
+
+**INDEX.md format:**
+```markdown
+# Project Documentation Index
+
+## {module}
+| Feature | Description | Status | AC-IDs | Last Updated |
+|---------|-------------|--------|--------|--------------|
+| login   | Email/password auth | implemented | AC-001~003 | 2026-03-15 |
+```
+
+**When to use module grouping:** If the project has 5+ features or clear domain boundaries (e.g., `auth/`, `payments/`, `notifications/`). For smaller projects, skip the module layer.
+
+**Orchestrator responsibility:** When delegating to BA/Architect/QA, include the target doc path in the prompt (e.g., "Write AC document to `docs/auth/login/ac.md`"). If the project already has docs in a different structure, respect the existing convention.
 
 ## Task Classification
 
@@ -166,6 +212,10 @@ The role identity block at the top is critical — it tells the general-purpose 
 
 When delegating to **Business Analyst** or **Architect**, always include this instruction in the prompt: "After writing (or editing) the document, you MUST verify it — re-read from disk, check against the template and quality criteria, and fix any issues before returning." Both specialists have a **Document Verification & Fix** section in their reference files with the full checklist. This applies to all document outputs — new documents, edited documents, and documents updated after Open Questions are resolved.
 
+### Document Sync Phase
+
+After every Review Loop that passes (in all code-changing workflows), run the **Document Sync Phase**. This ensures BA's AC, Architect's System Design, and QA's Test Cases still match the final code. See [`references/workflows.md`](references/workflows.md) for the full process. The sync follows sequential order: BA → Architect → QA (traceability chain). Each agent has a "Doc Review & Update Mode" in their reference file. After all agents complete, update `docs/INDEX.md`.
+
 ### What Context to Pass Between Agents
 
 Each agent produces specific outputs that downstream agents need. Extract the relevant parts — don't dump entire outputs verbatim:
@@ -186,6 +236,8 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found. After running tests, generate an execution report using the test-execution-report.md template."** |
 | Developer        | Code Reviewer | Changed files list                                    |
 | Developer        | Security      | Changed files, new endpoints, data handling changes   |
+| BA (doc sync)    | Architect (doc sync) | Latest AC document path (updated or confirmed unchanged) |
+| Architect (doc sync) | QA (doc sync) | Latest system design document path (updated or confirmed unchanged) |
 
 ### Merging Parallel Agent Outputs
 
@@ -214,6 +266,7 @@ Proceed autonomously for standard workflow steps. Pause and ask the user when:
 - **Conflicting requirements**: BA or Architect flags contradictions that need a business decision
 - **Risky changes**: architectural changes that affect multiple services or introduce breaking API changes
 - **Workflow selection uncertainty**: if the task doesn't clearly match any workflow, confirm your classification before proceeding
+- **Document consistency conflict**: during Document Sync, if an agent reports that the AC/Design/Test Cases fundamentally conflict with the implemented code (not just minor drift but a real mismatch), escalate to the user to decide whether to update the doc or change the code
 
 A quick confirmation costs far less than rework from a misunderstood task.
 
@@ -249,10 +302,11 @@ Non-development tasks (questions, explanations, research): answer directly witho
 4. **Always read** the specialist's reference file before composing the delegation prompt
 5. **Always include** project conventions from CLAUDE.md in every delegation prompt
 6. **Never stop after Developer** — if a workflow has verification steps (code-reviewer, security, qa) after Developer, you MUST continue to those steps. Developer completing code is NOT the end of the pipeline.
+7. **Never skip Document Sync phase** — after the Review Loop passes in any code-changing workflow, always run the Document Sync Phase. Even if the task seems small, docs can drift during review-fix cycles.
 
 ## Pipeline Completion Guard
 
-Before writing the Summary, read [`references/pipeline-guard.md`](references/pipeline-guard.md) and run the full checklist. Do NOT write the Summary until all workflow steps are complete.
+Before writing the Summary, read [`references/pipeline-guard.md`](references/pipeline-guard.md) and run the full checklist — including the Document Sync Gate. Do NOT write the Summary until all workflow steps are complete.
 
 **Critical:** The most common mistake is stopping after Developer returns. After Developer completes, ALWAYS check what verification steps remain in the workflow and delegate to them immediately.
 
@@ -277,6 +331,8 @@ Each agent's output under its own heading.]
 **Issues Found:** [any blocker/critical findings from Code Reviewer or Security — empty if none]
 
 **Gaps:** [any agents that were skipped or failed — empty if none]
+
+**Document Sync:** [Completed — BA: updated/no change, Architect: updated/no change, QA: updated/no change, INDEX.md: updated/created | Skipped (reason) | N/A (no docs exist)]
 
 **Next Steps:** [recommended actions if any]
 ```
