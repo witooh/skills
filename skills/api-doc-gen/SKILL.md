@@ -2,13 +2,13 @@
 name: api-doc-gen
 description: >
   Generate and validate API documentation from source code. Scans handler/router
-  files to produce a standardized Markdown API doc (docs/api-doc.md) — or validates
-  an existing doc against the current codebase. Use this skill whenever the user
-  wants to generate API docs, update API documentation, check if API docs are
-  out of date, create endpoint documentation from code, or says things like
-  "gen api doc", "สร้าง api doc", "อัปเดต api doc", "เช็ค api doc ตรงกับ code ไหม",
-  "document these endpoints", "api doc outdated". Also trigger when neo-team
-  delegates API documentation tasks to this skill.
+  files to produce structured Markdown API docs in docs/api/ — one file per endpoint,
+  grouped by handler domain. Or validates existing docs against the current codebase.
+  Use this skill whenever the user wants to generate API docs, update API documentation,
+  check if API docs are out of date, create endpoint documentation from code, or says
+  things like "gen api doc", "สร้าง api doc", "อัปเดต api doc",
+  "เช็ค api doc ตรงกับ code ไหม", "document these endpoints", "api doc outdated".
+  Also trigger when neo-team delegates API documentation tasks to this skill.
 compatibility:
   environment: claude-code
   tools:
@@ -22,20 +22,37 @@ compatibility:
 
 # API Doc Generator
 
-Generate or validate API documentation by scanning source code. Currently optimized for Go (with Fiber, Echo, Chi, Gin support). The output follows a standardized Markdown template so all API docs look consistent across services.
+Generate or validate API documentation by scanning source code. Currently optimized for Go (with Fiber, Echo, Chi, Gin support). The output is a multi-file directory structure — one Markdown file per endpoint, grouped by handler domain — so each API is easy to find, review, and maintain independently.
+
+## Output Structure
+
+```
+docs/api/
+├── index.md              ← service header, overview, endpoints table, common errors
+├── <group>/
+│   ├── <endpoint>.md     ← one endpoint per file
+│   └── ...
+└── ...
+```
+
+- **Grouping:** each subdirectory under the handler base directory = one group
+- **File naming:** handler function name converted to kebab-case (e.g., `AcceptConsent` → `accept-consent.md`)
+- **Index:** `docs/api/index.md` links to every endpoint file
 
 ## Modes
 
 | Mode | When to use | What it does |
 |------|-------------|--------------|
-| **Generate** | No `docs/api-doc.md` exists, or user wants to regenerate from scratch | Scan code → produce full API doc |
-| **Update** | `docs/api-doc.md` exists, code has changed | Scan code → diff against existing doc → update only changed parts |
-| **Validate** | User wants to check consistency | Compare existing doc vs code → report discrepancies without modifying |
+| **Generate** | No `docs/api/` directory exists, or user wants to regenerate from scratch | Scan code → create `docs/api/` with `index.md` + group folders + per-endpoint files |
+| **Update** | `docs/api/index.md` exists, code has changed | Scan code → diff against existing files → add/update/remove individual endpoint files + regenerate `index.md` |
+| **Validate** | User wants to check consistency | Compare all files in `docs/api/` vs code → report per-file discrepancies without modifying |
 
 Detect the mode automatically:
-1. If `docs/api-doc.md` doesn't exist → **Generate**
+1. If `docs/api/index.md` doesn't exist → **Generate**
 2. If user says "validate", "check", "เช็ค" → **Validate**
 3. Otherwise → **Update**
+
+If a legacy `docs/api-doc.md` exists but no `docs/api/` directory, treat as **Generate** (migration from old single-file format).
 
 The user can override by specifying the mode explicitly.
 
@@ -66,6 +83,18 @@ Scan the codebase for route registration patterns. Read [`references/go-scan-pat
 2. Route group files — `internal/<domain>/routes.go`
 3. Handler files — `internal/<domain>/handler/*.go`
 
+### Step 1b: Discover Handler Groups
+
+After finding routes, scan the handler directory structure to determine grouping. Read [`references/go-scan-patterns.md`](references/go-scan-patterns.md) § Handler Directory Scanning for detailed patterns.
+
+1. **Locate handler base directory** — typically `internal/delivery/http/handler/` or `internal/handler/`
+2. **List subdirectories** — each subdirectory = one group (e.g., `handler/consent/` → group "consent")
+3. **Map handler files to endpoints** — each Go file (excluding `handler.go`, `request.go`, `response.go`, `dto.go`, `*_test.go`) maps to one endpoint doc file
+4. **Extract function name** — find the exported receiver method in each file, convert PascalCase to kebab-case for the filename
+5. **Build group map** — `{ group: "consent", endpoints: [{ function: "AcceptConsent", file: "accept-consent.md", method: "POST", path: "/api/v1/consents" }, ...] }`
+
+If the handler directory has no subdirectories (flat structure), fall back to grouping by route prefix.
+
 ### Step 2: Extract Endpoint Details
 
 For each discovered route, trace from handler → usecase → repository to extract:
@@ -75,80 +104,114 @@ For each discovered route, trace from handler → usecase → repository to extr
 3. **Business rules** — validation in usecase layer, error conditions
 4. **Error responses** — mapped HTTP status codes from error handling
 
+Track which group each endpoint belongs to — this determines its file placement in Step 3.
+
 **Where to find these:**
 - Request/Response structs: `handler/request.go`, `handler/response.go`, or inline in handler files
 - Domain entities: `entity.go` in the domain package
 - Error mapping: handler's error-to-status-code logic
-- Validation rules: request struct tags (`validate:"required"`), usecase validation
+- Validation rules: request struct tags (`validate:"required"`, `binding:"required"`), usecase validation
 
-### Step 3: Generate or Validate
+### Step 3: Generate, Update, or Validate
 
-Read [`references/api-doc-template.md`](references/api-doc-template.md) for the exact output format.
+Read [`references/api-doc-template.md`](references/api-doc-template.md) for the exact output format (Index Template + Per-Endpoint Template).
 
-#### Generate / Update Mode
+#### Generate Mode
 
-Produce `docs/api-doc.md` following the template exactly:
-- Document header with service name, version, base URL
-- Table of contents with anchor links
-- Each endpoint in template format (method, path, auth, params, request/response, errors)
-- Common error responses section at the end
+Create the `docs/api/` directory structure:
 
-For **Update** mode: read the existing doc first, identify which endpoints changed or are new, and update only those sections. Preserve any manually-added notes or descriptions that aren't auto-generated.
+1. **Create `docs/api/index.md`** using the Index Template:
+   - Service name, version, base URL
+   - Overview paragraph
+   - Endpoints table per group — each row links to the per-endpoint file
+   - Common error responses section
+
+2. **Create group directories** — `docs/api/<group>/` for each handler group
+
+3. **Create per-endpoint files** — `docs/api/<group>/<endpoint-name>.md` using the Per-Endpoint Template:
+   - Breadcrumb navigation back to index
+   - One endpoint only: method, path, auth, params, request/response, business logic, errors
+   - Use `H1` for the endpoint name (it's the top-level heading in its own file)
+   - Use `H2` for sub-sections (Path Parameters, Request Body, etc.)
+
+#### Update Mode
+
+1. Read existing `docs/api/index.md` and all group directories
+2. Build a map of existing documented endpoints (file path → endpoint)
+3. Scan code to get current endpoints (same as Generate)
+4. Diff and apply changes:
+   - **New endpoints** → create new `.md` file in the appropriate group directory
+   - **Removed endpoints** → delete the orphaned `.md` file; if group directory is empty, remove it
+   - **Changed endpoints** → update only the changed file
+   - **Group changes** → if a handler moved to a different group directory, move the doc file
+5. Regenerate `docs/api/index.md` to reflect current state
+6. Preserve any manually-added notes in endpoint files that aren't auto-generated
 
 #### Validate Mode
 
-Compare existing `docs/api-doc.md` against discovered routes and produce a report:
+Compare all files in `docs/api/` against discovered routes and produce a report:
 
 ```
 ## API Doc Validation Report
 
 **Status:** [In Sync / Out of Sync]
 **Checked:** [timestamp]
+**Structure:** docs/api/ with [N] groups, [M] endpoint files
 
-### Missing from Doc (endpoints in code but not documented)
-- POST /api/v1/consents — handler: CreateConsent (internal/consent/handler/consent_handler.go:45)
+### Missing Files (endpoints in code but no doc file)
+- POST /api/v1/consents → expected at docs/api/consent/accept-consent.md
+  handler: AcceptConsent (internal/delivery/http/handler/consent/accept_consent.go:12)
 
-### Missing from Code (documented but no matching route)
-- DELETE /api/v1/consents/:id — documented but no route registration found
+### Orphan Files (doc files with no matching endpoint in code)
+- docs/api/consent/delete-consent.md → no matching route found
 
-### Field Mismatches
-- GET /api/v1/consents/:citizen_id
+### Field Mismatches (per file)
+- docs/api/consent/get-consent.md
   - Response field `revoked_at` exists in code but not in doc
   - Doc shows `status` as String, code uses custom type `ConsentStatus`
+
+### Index Integrity
+- TOC link to `consent/revoke-consent.md` → file exists: ✅/❌
+- Group "purpose" listed in index but directory is empty
 
 ### Summary
 | Category | Count |
 |----------|-------|
+| Groups in code | X |
+| Groups in docs | Y |
 | Endpoints in code | X |
-| Endpoints in doc | Y |
-| Missing from doc | Z |
-| Missing from code | W |
+| Endpoint files in docs | Y |
+| Missing files | Z |
+| Orphan files | W |
 | Field mismatches | N |
+| Broken index links | P |
 ```
 
 ### Step 4: Verify (mandatory after every Generate/Update)
 
-Every time you create or modify `docs/api-doc.md`, run a full verification pass before reporting completion. This catches drift between the doc you just wrote and the actual code — missed endpoints, wrong fields, broken links. Skipping this step means silent errors ship.
+Every time you create or modify files in `docs/api/`, run a full verification pass before reporting completion. This catches drift between the docs you just wrote and the actual code. Skipping this step means silent errors ship.
 
-**4a. Format checks:**
-1. Table of Contents links match actual heading anchors
+**4a. Format checks** — run across ALL files in `docs/api/`:
+1. `index.md` endpoint table links resolve to actual files
 2. All field tables use `M`/`O` for Mandatory column
 3. JSON examples are valid (no trailing commas, correct types)
+4. Breadcrumb navigation in each endpoint file uses correct relative paths
 
 **4b. Re-scan and cross-check (the critical part):**
 
-Re-read the `docs/api-doc.md` you just wrote, then re-scan the codebase routes (same as Step 1) and compare:
+Re-read all files in `docs/api/`, then re-scan the codebase routes (same as Step 1) and compare:
 
-1. **Endpoint coverage** — every route in code appears in doc, and vice versa. List any mismatches.
-2. **Field accuracy** — for each endpoint, compare request/response structs in code vs what the doc describes. Flag missing fields, wrong types, or wrong mandatory/optional markers.
-3. **Status code accuracy** — verify documented error codes match the handler's actual error-to-status mapping.
-4. **Path param consistency** — route params (`:id`, `:citizen_id`) match what the doc shows.
+1. **File coverage** — every route in code has a corresponding `.md` file, and vice versa
+2. **Index integrity** — every endpoint file is listed in `index.md`, and every index entry points to an existing file
+3. **Field accuracy** — for each endpoint, compare request/response structs in code vs what the doc describes. Flag missing fields, wrong types, or wrong mandatory/optional markers
+4. **Group consistency** — handler directory structure matches `docs/api/` directory structure
+5. **Status code accuracy** — verify documented error codes match the handler's actual error-to-status mapping
 
 **4c. Fix or report:**
 
-- If mismatches are found → fix the doc immediately, then re-run 4b to confirm the fix.
-- If all checks pass → proceed to output.
-- Maximum 2 fix-and-recheck cycles. If issues persist after 2 rounds, report the remaining discrepancies in the output as warnings.
+- If mismatches are found → fix the doc immediately, then re-run 4b to confirm the fix
+- If all checks pass → proceed to output
+- Maximum 2 fix-and-recheck cycles. If issues persist after 2 rounds, report the remaining discrepancies in the output as warnings
 
 ## Expanding to Other Languages
 
@@ -165,15 +228,22 @@ After completion, report:
 ## API Doc Generator
 
 **Mode:** [Generate / Update / Validate]
-**File:** docs/api-doc.md
-**Endpoints:** [N endpoints documented]
+**Output:** docs/api/ ([N] groups, [M] endpoint files)
+**Structure:**
+  - docs/api/index.md
+  - docs/api/consent/ (5 files)
+  - docs/api/channel/ (6 files)
+  - docs/api/purpose/ (12 files)
 
 **Changes:**
-- [list of endpoints added/updated/removed]
+- Created: consent/accept-consent.md, consent/get-consent.md, ...
+- Updated: channel/create-channel.md (added new query param)
+- Removed: legacy/old-endpoint.md (route removed from code)
 
-**Verification:** [✅ Passed — doc matches code / ⚠️ Passed with warnings / ❌ Issues remain]
-- Endpoints in code: X | In doc: Y | Match: ✅/❌
-- Field accuracy: [X/Y endpoints fully match]
+**Verification:** [✅ Passed — docs match code / ⚠️ Passed with warnings / ❌ Issues remain]
+- File coverage: X endpoints in code, Y files in docs — Match: ✅/❌
+- Index integrity: all links resolve — ✅/❌
+- Field accuracy: [X/Y endpoint files fully match]
 - Fix cycles used: [0/1/2]
 
 **Warnings:** [any issues found — missing structs, unresolvable types, remaining discrepancies, etc.]

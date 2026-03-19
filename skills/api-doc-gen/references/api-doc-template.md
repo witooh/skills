@@ -1,10 +1,21 @@
-# API Documentation Template
+# API Documentation Templates
 
-Use this template whenever generating or updating API documentation (e.g., `docs/api-doc.md`). Follow the structure exactly so all docs look consistent across services.
+Templates for multi-file API documentation. The output is a directory structure with an index file and individual endpoint files grouped by domain.
+
+```
+docs/api/
+├── index.md                      ← Index Template
+├── <group>/
+│   ├── <endpoint-name>.md        ← Per-Endpoint Template
+│   └── ...
+└── ...
+```
 
 ---
 
-## Document Header
+## Index Template (`docs/api/index.md`)
+
+Use this template for the index file that serves as the entry point for all API docs.
 
 ```markdown
 # <Service Name> API Documentation
@@ -17,32 +28,50 @@ Use this template whenever generating or updating API documentation (e.g., `docs
 <One paragraph describing what this service does and its primary purpose.>
 
 ---
+
+## Endpoints
+
+### <Group Name> (e.g., Consent)
+
+| Method | Path | Endpoint | File |
+|--------|------|----------|------|
+| `POST` | `/api/v1/consents` | Accept Consent | [accept-consent](consent/accept-consent.md) |
+| `GET` | `/api/v1/consents/:citizen_id` | Get Consents by Citizen | [get-consents-by-citizen](consent/get-consents-by-citizen.md) |
+| `GET` | `/api/v1/consents/:id` | Get Consent | [get-consent](consent/get-consent.md) |
+| `DELETE` | `/api/v1/consents/:id/revoke` | Revoke Consent | [revoke-consent](consent/revoke-consent.md) |
+
+### <Group Name> (e.g., Channel)
+
+| Method | Path | Endpoint | File |
+|--------|------|----------|------|
+| `POST` | `/api/v1/channels` | Create Channel | [create-channel](channel/create-channel.md) |
+| `GET` | `/api/v1/channels` | Get All Channels | [get-all-channels](channel/get-all-channels.md) |
+
+---
+
+## Common Error Responses
+
+All endpoints may return the following common errors:
+
+| Status | Error Message         | Description                         |
+| ------ | --------------------- | ----------------------------------- |
+| 400    | invalid request       | Request body or query param invalid |
+| 401    | unauthorized          | Missing or invalid authentication   |
+| 403    | forbidden             | Insufficient permissions            |
+| 404    | not found             | Resource does not exist             |
+| 500    | internal server error | Unexpected server-side failure      |
 ```
 
 ---
 
-## Table of Contents
+## Per-Endpoint Template (individual file)
 
-List every section and sub-section as anchor links. Group related endpoints under a numbered top-level section.
-
-```markdown
-## Table of Contents
-
-1. [Authentication](#1-authentication)
-2. [<Resource> APIs](#2-resource-apis)
-   - [2.1 <Endpoint Name>](#21-endpoint-name)
-   - [2.2 <Endpoint Name>](#22-endpoint-name)
-3. [Error Responses](#3-error-responses)
-```
-
----
-
-## Endpoint Template
-
-Each endpoint follows this exact structure. Do not skip sections — use `_(not applicable)_` if a section genuinely has no content.
+Each file contains exactly ONE endpoint. Do not include document headers or TOC — those live in `index.md`.
 
 ````markdown
-### <N.M> <Endpoint Name>
+> [API Documentation](../index.md) > [<Group Name>](./) > <Endpoint Name>
+
+# <Endpoint Name>
 
 <One sentence describing what this endpoint does.>
 
@@ -50,20 +79,20 @@ Each endpoint follows this exact structure. Do not skip sections — use `_(not 
 - **Path:** `/api/v1/<resource>/<path-param>`
 - **Auth:** `Bearer token` | `API Key` | `None`
 
-#### Path Parameters (if any)
+## Path Parameters (if any)
 
 | Field Name | Description | Type   | Mandatory | Example    | Remark |
 | ---------- | ----------- | ------ | --------- | ---------- | ------ |
 | `id`       | Resource ID | String | M         | `"uuid-1"` |        |
 
-#### Query Parameters (if any)
+## Query Parameters (if any)
 
 | Field Name | Description           | Type   | Mandatory | Example | Remark        |
 | ---------- | --------------------- | ------ | --------- | ------- | ------------- |
 | `page`     | Page number (1-based) | Number | O         | `1`     | Default: `1`  |
 | `limit`    | Items per page        | Number | O         | `20`    | Default: `20` |
 
-#### Request Body (if any)
+## Request Body (if any)
 
 | Field Name   | Description          | Type    | Mandatory | Example           | Remark                |
 | ------------ | -------------------- | ------- | --------- | ----------------- | --------------------- |
@@ -78,7 +107,7 @@ Each endpoint follows this exact structure. Do not skip sections — use `_(not 
 | `code`     | Item code       | String | M         | `"CODE1"` |        |
 | `value`    | Optional detail | String | O         | `"abc"`   |        |
 
-#### Request Example
+## Request Example
 
 ```json
 {
@@ -88,7 +117,7 @@ Each endpoint follows this exact structure. Do not skip sections — use `_(not 
 }
 ```
 
-#### Response (<HTTP Status> <Status Text>)
+## Response (<HTTP Status> <Status Text>)
 
 | Field Name   | Description            | Type   | Mandatory | Example                  | Remark               |
 | ------------ | ---------------------- | ------ | --------- | ------------------------ | -------------------- |
@@ -97,7 +126,7 @@ Each endpoint follows this exact structure. Do not skip sections — use `_(not 
 | `created_at` | ISO 8601 timestamp     | String | M         | `"2024-01-01T10:00:00Z"` |                      |
 | `updated_at` | ISO 8601 timestamp     | String | M         | `"2024-01-01T10:00:00Z"` |                      |
 
-#### Response Example
+## Response Example
 
 ```json
 {
@@ -108,13 +137,13 @@ Each endpoint follows this exact structure. Do not skip sections — use `_(not 
 }
 ```
 
-#### Business Logic
+## Business Logic
 
 1. step 1
 2. step 2
 3. step 3
 
-#### Error Responses
+## Error Responses
 
 | Status | Error Message         | Description                    |
 | ------ | --------------------- | ------------------------------ |
@@ -140,31 +169,14 @@ Each endpoint follows this exact structure. Do not skip sections — use `_(not 
 
 ---
 
-## Common Error Responses Section
-
-Include this at the end of the document to avoid repeating across every endpoint:
-
-```markdown
-## <N>. Error Responses
-
-All endpoints may return the following common errors:
-
-| Status | Error Message         | Description                         |
-| ------ | --------------------- | ----------------------------------- |
-| 400    | invalid request       | Request body or query param invalid |
-| 401    | unauthorized          | Missing or invalid authentication   |
-| 403    | forbidden             | Insufficient permissions            |
-| 404    | not found             | Resource does not exist             |
-| 500    | internal server error | Unexpected server-side failure      |
-```
-
----
-
 ## Checklist Before Finalizing
 
-- [ ] Every endpoint has Method, Path, and at least one example
+- [ ] Every endpoint file is linked from `index.md` endpoints table
+- [ ] `index.md` TOC links resolve to existing files (correct relative paths)
+- [ ] Every endpoint file has Method, Path, and at least one example
 - [ ] All field tables use `M`/`O` for Mandatory column
 - [ ] Nested objects each have their own sub-table
 - [ ] Error Responses table covers all possible HTTP status codes
-- [ ] Table of Contents links match actual heading anchors
-- [ ] Version number in document header is up to date
+- [ ] Breadcrumb navigation uses correct relative paths
+- [ ] JSON examples are valid (no trailing commas, correct types)
+- [ ] Version number in `index.md` header is up to date

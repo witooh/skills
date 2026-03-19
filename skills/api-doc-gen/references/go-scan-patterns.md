@@ -191,3 +191,73 @@ Extract each case as an error response entry in the doc.
 4. **Find request/response structs** → `Grep` for struct types used in handlers
 5. **Find error mapping** → look for status code assignments in handler error paths
 6. **Find domain entities** → if response wraps an entity, trace to `entity.go`
+7. **Scan handler directory** → determine endpoint grouping (see below)
+
+## Handler Directory Scanning
+
+After detecting routes, scan the handler directory to determine endpoint grouping for multi-file output.
+
+### Finding the Handler Base Directory
+
+Common locations (search in order):
+1. `internal/delivery/http/handler/`
+2. `internal/handler/`
+3. `internal/<domain>/handler/`
+4. `handler/`
+
+Use `Glob` with `**/handler/` to find it. Pick the one that contains subdirectories with `.go` files.
+
+### Mapping Directory to Groups
+
+Each subdirectory under the handler base = one group:
+
+```
+handler/
+├── consent/           → group "consent"
+│   ├── handler.go     → skip (constructor/setup)
+│   ├── request.go     → skip (shared structs)
+│   ├── response.go    → skip (shared structs)
+│   ├── accept.go      → endpoint file
+│   └── get.go         → endpoint file
+├── channel/           → group "channel"
+│   ├── handler.go     → skip
+│   └── create.go      → endpoint file
+└── health/            → group "health"
+    ├── handler.go     → skip
+    └── health.go      → endpoint file
+```
+
+### Excluded Files
+
+Skip these — they are not endpoint handlers:
+- `handler.go` — constructor, `NewHandler()`, route registration
+- `request.go`, `response.go`, `dto.go` — shared struct definitions
+- `*_test.go` — test files
+- `middleware.go` — middleware definitions
+
+### Function Name to Filename
+
+Convert the handler's exported receiver method name from PascalCase to kebab-case:
+
+| Function Name | File Name |
+|---------------|-----------|
+| `AcceptConsent` | `accept-consent.md` |
+| `GetConsentHistory` | `get-consent-history.md` |
+| `CreateChannel` | `create-channel.md` |
+| `GetAllChannels` | `get-all-channels.md` |
+
+To find the function name, look for the exported receiver method in each Go file:
+```go
+func (h *ConsentHandler) AcceptConsent(c *gin.Context) { ... }
+//                        ^^^^^^^^^^^^^^ this is the function name
+```
+
+### Single-File Handler Edge Case
+
+If a group directory contains only `handler.go` (no separate action files), extract all exported receiver methods from `handler.go` itself — each method becomes a separate endpoint doc file.
+
+### Flat Structure Fallback
+
+If the handler directory has no subdirectories (all `.go` files at the top level), group by the first path segment after the API version prefix:
+- `/api/v1/consent/*` routes → group "consent"
+- `/api/v1/channel/*` routes → group "channel"
