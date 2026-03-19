@@ -77,7 +77,7 @@ Scan the `docs/api/` directory to build the page list. No heading-based parsing 
 ### Scanning Steps
 
 1. **Read `index.md`** — extract service name (from H1), overview paragraph, and Common Error Responses section
-2. **List subdirectories** — each subdirectory = one domain group (e.g., `consent/` → "Consent")
+2. **List subdirectories** — each subdirectory = one domain group (e.g., `consent/` → "Consent"). Skip `health/` — health check endpoints are infrastructure-only and not synced to Confluence.
 3. **List `.md` files per subdirectory** — each file = one API endpoint page
 4. **Extract page title per endpoint** — read the H1 heading (`# <Endpoint Name>`) from each file
 5. **Extract page content per endpoint** — use the full file content, but:
