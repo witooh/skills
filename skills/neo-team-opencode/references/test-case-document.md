@@ -43,6 +43,7 @@ HTTP 201
 **Expected Result:** Product is saved with denomination = THB
 **Test Data:** `denomination: "THB"`
 **Precondition:** None
+**Traces To:** AC-001
 
 ---
 
@@ -81,6 +82,7 @@ HTTP 200
 **Expected Result:** HTTP 200, account status = OPEN, denomination = THB
 **Test Data:** `account_id: "ACC-001"`, `denomination: "THB"`
 **Precondition:** TC-001 must pass
+**Traces To:** AC-002
 
 ---
 
@@ -122,6 +124,7 @@ HTTP 200
 **Expected Result:** HTTP 200, transaction status = ACCEPTED
 **Test Data:** `amount: 1000`, `denomination: "THB"`
 **Precondition:** TC-002 must pass
+**Traces To:** AC-003
 
 ---
 
@@ -157,17 +160,39 @@ HTTP 400
 **Expected Result:** HTTP 400, error = "Invalid denomination"
 **Test Data:** `amount: 100`, `denomination: "USD"`
 **Precondition:** TC-002 must pass
+**Traces To:** AC-004
+
+---
+
+## Workflow Chain (Optional — Per Test Suite)
+
+When a test suite requires calling APIs to create prerequisite data before the actual test cases can run, document the API call chain here. QA uses this table to generate `{feature}.precondition.ts` code (see [`e2e-playwright.md`](e2e-playwright.md)).
+
+Include this section when test cases have `Precondition: TC-XXX must pass` that involves calling APIs to create data. Skip if the only preconditions are static data or configuration.
+
+### Test Suite 2: Transaction Validation — Prerequisite API Calls
+
+| Step | Method | Endpoint       | Body / Ref                                                                                   | Capture      |
+|------|--------|----------------|----------------------------------------------------------------------------------------------|--------------|
+| 1    | POST   | /v1/products   | `{ "name": "Savings Account", "denomination": "THB" }`                                      | -> productId |
+| 2    | POST   | /v1/accounts   | `{ "product_id": "{productId}", "denomination": "THB", "customer_id": "CUST-001" }`         | -> accountId |
+
+**Conventions:**
+- Steps run in order; each step can reference captured values from previous steps using `{variableName}`
+- `Body / Ref` can be inline JSON or a path to a fixture file (e.g., `__fixtures__/customer.json`)
+- `Capture` column uses `-> fieldName` to indicate which response field to store for later use
+- Teardown runs in reverse step order (step 2 first, then step 1)
 
 ---
 
 ## Test Case Summary
 
-| ID     | Suite                  | Description                                    | Precondition |
-| ------ | ---------------------- | ---------------------------------------------- | ------------ |
-| TC-001 | Product Configuration  | Configure primary denomination                 | None         |
-| TC-002 | Product Configuration  | Open account with configured denomination      | TC-001       |
-| TC-003 | Transaction Validation | Accept transaction in primary denomination     | TC-002       |
-| TC-004 | Transaction Validation | Reject transaction in non-primary denomination | TC-002       |
+| ID     | Suite                  | Description                                    | Precondition | Traces To |
+| ------ | ---------------------- | ---------------------------------------------- | ------------ | --------- |
+| TC-001 | Product Configuration  | Configure primary denomination                 | None         | AC-001    |
+| TC-002 | Product Configuration  | Open account with configured denomination      | TC-001       | AC-002    |
+| TC-003 | Transaction Validation | Accept transaction in primary denomination     | TC-002       | AC-003    |
+| TC-004 | Transaction Validation | Reject transaction in non-primary denomination | TC-002       | AC-004    |
 
 **Total Test Cases:** 4
 

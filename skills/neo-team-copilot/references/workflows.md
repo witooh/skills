@@ -2,7 +2,7 @@
 
 Each workflow lists the pipeline steps with explicit context-passing notes. Follow the order strictly — parallel steps are marked.
 
-**Doc First principle:** Every workflow with code changes includes a **QA Test Spec** step before Developer. QA generates a test case document following the [`test-case-document.md`](test-case-document.md) template (GIVEN/WHEN/THEN format with test steps, expected results, test data, and preconditions). Developer uses this document to implement and write tests. For complex tasks, Developer uses TDD mode (Red-Green-Refactor per test case). For simple tasks, Developer implements normally and uses the spec as reference.
+**Doc First principle:** Every workflow with code changes includes a **QA Test Spec** step before Developer. QA generates a test case document following the [`test-case-document.md`](test-case-document.md) template (GIVEN/WHEN/THEN format with test steps, expected results, test data, preconditions, and Workflow Chain for API dependencies). Developer uses this document to implement and write tests. For complex tasks, Developer uses TDD mode (Red-Green-Refactor per test case). For simple tasks, Developer implements normally and uses the spec as reference. During the Review Loop, QA converts test cases into executable E2E API tests following the [`e2e-playwright.md`](e2e-playwright.md) guide.
 
 **Execution Report:** During the Review Loop, after QA runs E2E tests, QA generates an execution report following the [`test-execution-report.md`](test-execution-report.md) template — mapping each test case to its actual result, status, and defect references.
 
@@ -215,7 +215,7 @@ Review Loop:
 
 ┌─→ 1. code-reviewer + security + qa → review conventions, security, and test coverage (ALL PARALLEL)
 │      To all: Developer's changed files + project conventions
-│      QA additionally: run E2E tests → generate execution report (test-execution-report.md template)
+│      QA additionally: generate E2E test code if not yet written (see [`e2e-playwright.md`](e2e-playwright.md)) → run E2E tests → generate execution report (test-execution-report.md template)
 │
 │   2. Evaluate results:
 │      ├── ALL three agents approve → DONE (proceed to next workflow step or Summary)

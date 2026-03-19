@@ -70,7 +70,7 @@ All specialists are spawned via `use_subagent` tool with `command="InvokeSubagen
 | Business Analyst      | `business-analyst`      | haiku                              | [references/business-analyst.md](references/business-analyst.md)           | Requirements, acceptance criteria, edge cases  |
 | Code Reviewer         | `code-reviewer`         | opus                               | [references/code-reviewer.md](references/code-reviewer.md)                 | Convention compliance (read-only)              |
 | Developer             | `developer`             | sonnet                             | [references/developer.md](references/developer.md)                         | Implement features, fix bugs, unit tests       |
-| QA                    | `qa`                    | sonnet                             | [references/qa.md](references/qa.md)                                       | Black-box testing via API, test case docs, execution reports |
+| QA                    | `qa`                    | sonnet                             | [references/qa.md](references/qa.md)                                       | Black-box testing via API, test case docs, E2E test code generation, execution reports |
 | Security              | `security`              | sonnet                             | [references/security.md](references/security.md)                           | Security review, secrets detection             |
 | System Analyzer       | `system-analyzer`       | sonnet                             | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues across all envs — code analysis + live system investigation (read-only) |
 
@@ -264,13 +264,13 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Business Analyst | QA            | **AC document path + AC-IDs** (hard prerequisite — QA cannot start without this). Include: "Read `references/acceptance-criteria.md` template if you need to understand the AC format." |
 | Business Analyst | BA (review)   | AC document (for reviewing QA's test cases in the Test Case Review Loop) |
 | Architect        | Developer     | **Both:** shared design paths (`docs/design/system-design/`) for architecture/modules + feature-specific API contracts (`docs/design/{feature}/api-contracts.md`) + traceability (`docs/design/{feature}/traceability.md`) |
-| Architect        | QA            | **API Contracts** (`docs/design/{feature}/api-contracts.md`) + BA's AC document path + existing API doc path if available (e.g., `docs/api-doc.md`). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
+| Architect        | QA            | **API Contracts** (`docs/design/{feature}/api-contracts.md`) + BA's AC document path + existing API doc path if available (e.g., `docs/api-doc.md`). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports. Read `references/e2e-playwright.md` before generating E2E test code."** |
 | Architect        | Security      | **Shared design paths** (`docs/design/system-design/security-flags.md`) + feature API contracts |
 | QA (test spec)   | BA (review)   | Test case document for BA to review AC coverage (part of Test Case Review Loop) |
 | QA (test spec)   | Developer     | **BA-approved** test case document (test-case-document.md template) — GIVEN/WHEN/THEN test cases with steps, expected results, test data, preconditions, and Traces To AC-IDs. Complex tasks: Developer uses TDD mode. |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |
 | System Analyzer  | Security      | Security-related findings from logs/DB/infra |
-| Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found. After running tests, generate an execution report using the test-execution-report.md template."** |
+| Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project. If E2E tests don't exist yet, generate them following `references/e2e-playwright.md`. Run all E2E tests. After running tests, generate an execution report using the test-execution-report.md template."** |
 | Developer        | Code Reviewer | Changed files list                                    |
 | Developer        | Security      | Changed files, new endpoints, data handling changes   |
 | BA (doc sync)    | Architect (doc sync) | Latest AC document path (updated or confirmed unchanged) |
