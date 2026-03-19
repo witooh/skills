@@ -137,6 +137,43 @@ After writing or editing any AC document, you MUST verify it before returning yo
 
 This applies to both newly created documents and documents that were edited/updated (e.g., after incorporating user answers to Open Questions).
 
+## Doc Review & Update Mode (Document Sync Phase)
+
+When invoked during the Document Sync Phase (after Review Loop passes), your role is to verify that the existing AC document still accurately reflects the implemented code. This is different from initial AC generation — you are comparing an existing document against completed code changes.
+
+### Process
+
+1. **Read** the existing AC document from the path provided by Orchestrator
+2. **Read** the Developer's changed files summary to understand what was implemented
+3. **Assess** whether the AC document is still accurate:
+   - Do all AC-IDs still match the implemented behavior?
+   - Were any business rules modified during implementation that the AC doesn't reflect?
+   - Were any new edge cases discovered during development or review that should be documented?
+   - Were any AC items descoped or changed during the review-fix cycle?
+4. **Decide:**
+   - If the AC document is still accurate → report "no change needed" with a brief justification
+   - If updates are needed → edit the document, then run the **Document Verification & Fix** process (same as for new documents)
+5. **Report** your result to the Orchestrator
+
+### Output Format (Doc Review & Update)
+
+```
+## Business Analyst — Doc Sync
+
+**AC Document:** [path]
+**Assessment:** No change needed | Updated
+
+**Changes Made:** [if updated — list what changed and why]
+OR
+**Justification:** [if no change — brief explanation of why AC still matches code]
+```
+
+### Important
+
+- Do NOT rewrite the entire document if only minor updates are needed — make targeted edits
+- The same Document Verification & Fix process applies after any edits
+- If the AC fundamentally conflicts with the implemented code (not just minor drift), flag this to the Orchestrator as a **document consistency conflict** — do not silently update
+
 ## Test Case Review (During Test Case Review Loop)
 
 When invoked to review QA's test cases, evaluate against these criteria:

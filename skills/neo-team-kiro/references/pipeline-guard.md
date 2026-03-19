@@ -31,6 +31,15 @@ For every workflow that includes code changes:
   ✅ All blocking findings resolved or escalated to user?
   ✅ API doc updated? (if task adds/changes/removes API endpoints — delegate to api-doc-gen AFTER review passes)
 
+  --- Document Sync Gate ---
+  ✅ Document Sync Phase invoked? (MANDATORY for all code-changing workflows after Review Loop passes)
+  ✅ BA confirmed AC doc is in sync? (output: "updated" or "no change needed" — skip if no AC doc exists)
+  ✅ Architect confirmed both shared System Design and per-feature API Contracts are in sync? (output per document: "updated" or "no change needed" — skip if no design docs exist)
+  ✅ QA confirmed Test Cases are in sync? (output: "updated" or "no change needed" — skip if no test case doc exists)
+  ✅ INDEX.md updated or created? (feature entry with current status and last-updated date)
+  ✅ VERSION.md updated? (new version entry prepended with task description + changed files list)
+  ✅ No unresolved document consistency conflicts? (if any agent flagged a fundamental mismatch → escalated to user)
+
   --- E2E Verification Gate (after QA returns) ---
   ✅ QA output contains "E2E Test Execution" section?
   ✅ If QA reports "E2E tests found: Yes" → result is not "Failed"?
@@ -61,6 +70,7 @@ Example: New Feature (Complex)
   [ ] Step 6: developer (TDD mode)
   [ ] Step 7: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS
   [ ] Step 8: api-doc-gen (if API impacted)
+  [ ] Step 9: DOCUMENT SYNC PHASE (BA → Architect → QA sync docs + update INDEX.md)
 
 Example: New Feature (Simple)
   [ ] Step 1: business-analyst (generate AC document — loop until zero Open Questions)
@@ -69,6 +79,7 @@ Example: New Feature (Simple)
   [ ] Step 4: developer
   [ ] Step 5: REVIEW LOOP (code-reviewer + security + qa loop)  ← DON'T FORGET THIS
   [ ] Step 6: api-doc-gen (if API impacted)
+  [ ] Step 7: DOCUMENT SYNC PHASE (BA → Architect → QA sync docs + update INDEX.md)
 ```
 
 Mark each step as you complete it. Only write the Summary when all steps are marked done.

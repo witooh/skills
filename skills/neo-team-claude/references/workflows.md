@@ -286,6 +286,19 @@ Document Sync Phase:
    → Create INDEX.md if it does not exist
    → Add or update the feature entry: feature name, description, status, AC-IDs, last updated date
    → Follow the INDEX.md format defined in SKILL.md (Document Folder Structure Convention)
+
+6. Orchestrator updates docs/design/VERSION.md
+   → Create VERSION.md if it does not exist
+   → Auto-increment version (e.g., v1.2 → v1.3)
+   → Prepend a new entry at the top (latest version first) with:
+     - Version number + date
+     - Task description (what the user asked)
+     - List of changed files (collected from BA/Architect/QA sync outputs)
+   → Format:
+     ## v{X.Y} — {YYYY-MM-DD}
+     **Task:** {user's original request}
+     **Changes:**
+     - {file path} — {what changed}
 ```
 
 **Trust agent judgment:** If an agent reports "no change needed," accept it and move to the next agent. No cross-verification is required.

@@ -40,6 +40,11 @@ You are the **Orchestrator** of a specialized software development agent team. Y
 
 Before delegating anything, read the project's `CLAUDE.md` (or `AGENTS.md`, `CONTRIBUTING.md`). This file defines architecture conventions, coding patterns, and project-specific rules that every specialist needs. Extract the relevant sections and include them in each agent's prompt — this prevents every agent from independently searching for conventions and ensures consistency.
 
+Also read `docs/design/INDEX.md` if it exists. This is the central document registry that lists all system design files and feature documentation with their status and descriptions. Use it to:
+- Identify existing docs that may be affected by the current task
+- Pass relevant doc paths to specialists (e.g., if modifying accept consent, pass `docs/design/accept-consent/acceptance-criteria.md` path to BA)
+- Avoid creating duplicate docs for features that already have documentation
+
 If no convention file exists:
 
 1. Check for `AGENTS.md`, `CONTRIBUTING.md`, or `docs/conventions.md`
@@ -70,6 +75,75 @@ All specialists are spawned via `use_subagent` tool with `command="InvokeSubagen
 | System Analyzer       | `system-analyzer`       | sonnet                             | [references/system-analyzer.md](references/system-analyzer.md)             | Diagnose issues across all envs — code analysis + live system investigation (read-only) |
 
 †**Architect complexity note:** For complex tasks (Refactoring cross-module, multi-service design), the Claude Code variant uses opus. On Kiro, the default model handles all tasks.
+
+## Document Folder Structure Convention
+
+Documentation is organized into three levels: project-level standalone docs, shared system design, and per-feature docs. Use full names — no abbreviations.
+
+```
+docs/
+├── gap-analysis.md                       # Project-level
+├── open-questions.md                     # Project-level
+├── developer-guide.md                    # Project-level
+├── migration-strategy.md                 # Project-level
+├── api-doc.md                            # Generated from code (api-doc-gen skill)
+│
+└── design/                               # All design-related docs
+    ├── INDEX.md                          # Central registry (Orchestrator reads first)
+    ├── VERSION.md                        # Version history (Orchestrator auto-updates)
+    │
+    ├── system-design/                    # Shared across features
+    │   ├── overview.md                   # Architecture overview
+    │   ├── module-design.md              # Entity, repository, service, usecase
+    │   ├── database-schema.md            # DDL, constraints, indexes
+    │   ├── architecture.md               # ER diagram, flows, data flow
+    │   ├── adrs.md                       # Architectural Decision Records
+    │   └── security-flags.md             # Auth, PII, rate limiting
+    │
+    ├── {feature}/                        # Per-feature docs
+    │   ├── acceptance-criteria.md        # AC document (BA)
+    │   ├── api-contracts.md              # API endpoints for this feature (Architect)
+    │   ├── traceability.md               # AC → design element mapping (references system-design/, no duplication)
+    │   ├── test-cases.md                 # Test case document (QA)
+    │   └── test-report.md               # Test execution report (QA, after running tests)
+    │
+    └── {feature-2}/
+        └── ...
+```
+
+**Project-level docs** (`docs/*.md`): standalone documents not tied to any feature — gap analysis, open questions, developer guide, migration strategy. `api-doc.md` is generated from code by the `api-doc-gen` skill, not from design.
+
+**Shared system design** (`docs/design/system-design/`): components shared across features — entity definitions, repositories, database schema, ADRs, architecture flows. Features reference these files instead of duplicating content.
+
+**Per-feature docs** (`docs/design/{feature}/`): each feature folder contains all documents specific to that business operation.
+
+**INDEX.md format** — Description must be written in natural language so the Orchestrator can match user requests to the right feature without users needing to know AC-IDs or file paths:
+```markdown
+# Design Index
+
+## System Design
+| File | Content |
+|------|---------|
+| system-design/overview.md | Architecture overview, modules, key requirements |
+| system-design/module-design.md | Entity, repository, service, usecase definitions |
+| system-design/database-schema.md | DDL, constraints, indexes |
+| system-design/architecture.md | ER diagram, flows |
+| system-design/adrs.md | ADR-001~007 |
+| system-design/security-flags.md | Auth, PII, rate limiting |
+
+## Features
+| Feature | Description | AC Count | Status | Last Updated |
+|---------|-------------|----------|--------|--------------|
+| accept-consent | รับ consent จาก citizen, single/bulk, customer/account scope | 22 | implemented | 2026-03-15 |
+| revoke-consent | ถอน consent, validate status, audit log | 12 | implemented | 2026-03-18 |
+```
+
+**Feature grouping:** BA decides how to group ACs into features based on business operations — each feature should represent a cohesive operation where working on it requires knowing all ACs in the group (e.g., "accept consent" = one feature with all accept-related ACs, "CRUD purpose" = one feature with all purpose management ACs).
+
+**Orchestrator responsibility:** Users will describe what they want in natural language (e.g., "แก้ consent ให้ revoke ต้อง check status ก่อน") — they do NOT know AC-IDs or file paths. The Orchestrator must:
+1. Read `docs/design/INDEX.md` → match the user's request to the right feature by Description
+2. Pass the correct doc paths to specialists (e.g., "Read and update `docs/design/revoke-consent/acceptance-criteria.md`")
+3. If the project already has docs in a different structure, respect the existing convention
 
 ## Task Classification
 
@@ -175,6 +249,10 @@ The role identity block at the top of each query is critical — it tells the su
 
 When delegating to **Business Analyst** or **Architect**, always include this instruction in the prompt: "After writing (or editing) the document, you MUST verify it — re-read from disk, check against the template and quality criteria, and fix any issues before returning." Both specialists have a **Document Verification & Fix** section in their reference files with the full checklist. This applies to all document outputs — new documents, edited documents, and documents updated after Open Questions are resolved.
 
+### Document Sync Phase
+
+After every Review Loop that passes (in all code-changing workflows), run the **Document Sync Phase**. This ensures BA's AC, Architect's System Design, and QA's Test Cases still match the final code. See [`references/workflows.md`](references/workflows.md) for the full process. The sync follows sequential order: BA → Architect → QA (traceability chain). Each agent has a "Doc Review & Update Mode" in their reference file. After all agents complete, update `docs/design/INDEX.md`.
+
 ### What Context to Pass Between Agents
 
 Each agent produces specific outputs that downstream agents need. Extract the relevant parts — don't dump entire outputs verbatim:
@@ -185,9 +263,9 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Business Analyst | Architect     | **AC document path** (hard prerequisite — Architect cannot start without this). Include: "Read `references/system-design.md` template before generating the system design document." |
 | Business Analyst | QA            | **AC document path + AC-IDs** (hard prerequisite — QA cannot start without this). Include: "Read `references/acceptance-criteria.md` template if you need to understand the AC format." |
 | Business Analyst | BA (review)   | AC document (for reviewing QA's test cases in the Test Case Review Loop) |
-| Architect        | Developer     | **System design document path** (hard prerequisite — Developer reads this for API contracts, module design, file structure) |
-| Architect        | QA            | **System design document path** (hard prerequisite — QA reads API contracts from this) + existing API doc path if available (e.g., `docs/api-doc.md`, OpenAPI spec). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
-| Architect        | Security      | **System design document path** + security flags from Architect's output |
+| Architect        | Developer     | **Both:** shared design paths (`docs/design/system-design/`) for architecture/modules + feature-specific API contracts (`docs/design/{feature}/api-contracts.md`) + traceability (`docs/design/{feature}/traceability.md`) |
+| Architect        | QA            | **API Contracts** (`docs/design/{feature}/api-contracts.md`) + BA's AC document path + existing API doc path if available (e.g., `docs/api-doc.md`). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
+| Architect        | Security      | **Shared design paths** (`docs/design/system-design/security-flags.md`) + feature API contracts |
 | QA (test spec)   | BA (review)   | Test case document for BA to review AC coverage (part of Test Case Review Loop) |
 | QA (test spec)   | Developer     | **BA-approved** test case document (test-case-document.md template) — GIVEN/WHEN/THEN test cases with steps, expected results, test data, preconditions, and Traces To AC-IDs. Complex tasks: Developer uses TDD mode. |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |
@@ -195,6 +273,8 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Developer        | QA            | Changed files list, implementation notes. **Always include: "Check for existing E2E tests in the project and run them if found. After running tests, generate an execution report using the test-execution-report.md template."** |
 | Developer        | Code Reviewer | Changed files list                                    |
 | Developer        | Security      | Changed files, new endpoints, data handling changes   |
+| BA (doc sync)    | Architect (doc sync) | Latest AC document path (updated or confirmed unchanged) |
+| Architect (doc sync) | QA (doc sync) | Latest design paths: shared design (`docs/design/system-design/`) + API contracts (`docs/design/{feature}/api-contracts.md`) — updated or confirmed unchanged |
 
 ### Merging Parallel Agent Outputs
 
@@ -223,6 +303,7 @@ Proceed autonomously for standard workflow steps. Pause and ask the user when:
 - **Conflicting requirements**: BA or Architect flags contradictions that need a business decision
 - **Risky changes**: architectural changes that affect multiple services or introduce breaking API changes
 - **Workflow selection uncertainty**: if the task doesn't clearly match any workflow, confirm your classification before proceeding
+- **Document consistency conflict**: during Document Sync, if an agent reports that the AC/Design/Test Cases fundamentally conflict with the implemented code (not just minor drift but a real mismatch), escalate to the user to decide whether to update the doc or change the code
 
 A quick confirmation costs far less than rework from a misunderstood task.
 
@@ -258,10 +339,11 @@ Non-development tasks (questions, explanations, research): answer directly witho
 4. **Always read** the specialist's reference file before composing the delegation prompt
 5. **Always include** project conventions from CLAUDE.md in every delegation prompt
 6. **Never stop after Developer** — if a workflow has verification steps (code-reviewer, security, qa) after Developer, you MUST continue to those steps. Developer completing code is NOT the end of the pipeline.
+7. **Never skip Document Sync phase** — after the Review Loop passes in any code-changing workflow, always run the Document Sync Phase. Even if the task seems small, docs can drift during review-fix cycles.
 
 ## Pipeline Completion Guard
 
-Before writing the Summary, read [`references/pipeline-guard.md`](references/pipeline-guard.md) and run the full checklist. Do NOT write the Summary until all workflow steps are complete.
+Before writing the Summary, read [`references/pipeline-guard.md`](references/pipeline-guard.md) and run the full checklist — including the Document Sync Gate. Do NOT write the Summary until all workflow steps are complete.
 
 **Critical:** The most common mistake is stopping after Developer returns. After Developer completes, ALWAYS check what verification steps remain in the workflow and delegate to them immediately.
 
@@ -286,6 +368,8 @@ Each agent's output under its own heading.]
 **Issues Found:** [any blocker/critical findings from Code Reviewer or Security — empty if none]
 
 **Gaps:** [any agents that were skipped or failed — empty if none]
+
+**Document Sync:** [Completed — BA: updated/no change, Architect: updated/no change, QA: updated/no change, INDEX.md: updated/created, VERSION.md: v{X.Y} | Skipped (reason) | N/A (no docs exist)]
 
 **Next Steps:** [recommended actions if any]
 ```

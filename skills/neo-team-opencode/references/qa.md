@@ -214,6 +214,48 @@ QA generates two types of test documents using the reference templates in this s
 **Never write E2E specs without a corresponding test case document entry.**
 **Never complete QA review without generating an execution report after running tests.**
 
+## Doc Review & Update Mode (Document Sync Phase)
+
+When invoked during the Document Sync Phase (after Review Loop passes), your role is to verify that the existing Test Case document still accurately covers the implemented behavior. You receive the latest AC from BA and the latest System Design from Architect (both run before you in the sync chain).
+
+### Process
+
+1. **Read** the existing Test Case document from the path provided by Orchestrator
+2. **Read** the latest AC document (BA may have updated it in the sync phase)
+3. **Read** the latest System Design document (Architect may have updated it in the sync phase)
+4. **Read** the Developer's changed files summary to understand what was implemented
+5. **Assess** whether the Test Case document is still accurate:
+   - Do all test cases still trace to valid AC-IDs? (AC may have been updated)
+   - Are the expected responses in test cases still consistent with the API contract from the design doc?
+   - Were any new behaviors implemented that need test case coverage?
+   - Were any test cases invalidated by code changes during review-fix cycles?
+   - Does the Test Case Summary table still match the actual test cases?
+6. **Decide:**
+   - If the Test Case document is still accurate → report "no change needed" with a brief justification
+   - If updates are needed → edit the document, then verify TC-IDs are still sequential and Summary table is updated
+7. **Report** your result to the Orchestrator
+
+### Output Format (Doc Review & Update)
+
+```
+## QA — Doc Sync
+
+**Test Case Document:** [path]
+**Assessment:** No change needed | Updated
+
+**Changes Made:** [if updated — list what changed and why, including any new/removed TC-IDs]
+OR
+**Justification:** [if no change — brief explanation of why test cases still cover the implementation]
+```
+
+### Important
+
+- Do NOT rewrite the entire document if only minor updates are needed — make targeted edits
+- When adding new test cases, continue TC-ID numbering from the last existing ID
+- When removing obsolete test cases, note the removed TC-IDs in your output
+- If the test cases fundamentally conflict with the implemented code, flag this to the Orchestrator as a **document consistency conflict**
+- Always cross-reference against the latest AC and System Design (which may have been updated in the same sync phase)
+
 ### Execution Report Generation (During Review Loop)
 
 **Before generating an execution report, you MUST `Read` the [`test-execution-report.md`](test-execution-report.md) reference file.** This file contains a complete example with the exact structure your output must follow.

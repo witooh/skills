@@ -6,6 +6,8 @@ Each workflow lists the pipeline steps with explicit context-passing notes. Foll
 
 **Execution Report:** During the Review Loop, after QA runs E2E tests, QA generates an execution report following the [`test-execution-report.md`](test-execution-report.md) template — mapping each test case to its actual result, status, and defect references.
 
+**Document Sync principle:** Every workflow with code changes includes a **Document Sync Phase** after the Review Loop passes. This phase ensures BA's AC document, Architect's system design, and QA's test cases remain accurate after implementation — because code evolves during development and review cycles. See the "Document Sync Phase" section below.
+
 ## New Feature
 
 ```
@@ -35,6 +37,8 @@ Complex task (Brainstorm + BA + Architect + Plan):
 7. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions
 8. [If task adds/changes API endpoints: delegate to `api-doc-gen` skill to update docs/api-doc.md]
+9. DOCUMENT SYNC PHASE → sync all docs with final code (see Document Sync Phase section)
+   Input: Developer's final changed files + INDEX.md (if exists) + all doc paths from prior steps
 
 Simple task (BA first → Architect):
 1. business-analyst    → clarify requirements, generate AC document (acceptance-criteria.md template)
@@ -58,6 +62,8 @@ Simple task (BA first → Architect):
 5. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions
 6. [If task adds/changes API endpoints: delegate to `api-doc-gen` skill to update docs/api-doc.md]
+7. DOCUMENT SYNC PHASE → sync all docs with final code (see Document Sync Phase section)
+   Input: Developer's final changed files + INDEX.md (if exists) + all doc paths from prior steps
 ```
 
 ## Bug Fix
@@ -77,6 +83,9 @@ Complex bug (multi-file, ambiguous root cause, multiple fix strategies):
 5. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions + System Analyzer's root cause (for QA regression test design)
 6. [If fix changes API endpoints: delegate to `api-doc-gen` skill to update docs/api-doc.md]
+7. DOCUMENT SYNC PHASE → sync all docs with final code (see Document Sync Phase section)
+   Input: Developer's final changed files + INDEX.md (if exists) + all doc paths from prior steps
+   Note: Bug Fix may not have BA/Architect docs — only sync agents whose docs exist for the affected feature
 
 Simple bug (single file, obvious root cause, straightforward fix):
 1. system-analyzer     → diagnose root cause
@@ -88,6 +97,9 @@ Simple bug (single file, obvious root cause, straightforward fix):
 4. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions + System Analyzer's root cause (for QA regression test design)
 5. [If fix changes API endpoints: delegate to `api-doc-gen` skill to update docs/api-doc.md]
+6. DOCUMENT SYNC PHASE → sync all docs with final code (see Document Sync Phase section)
+   Input: Developer's final changed files + INDEX.md (if exists) + all doc paths from prior steps
+   Note: Bug Fix may not have BA/Architect docs — only sync agents whose docs exist for the affected feature
 ```
 
 ## PR Review
@@ -123,6 +135,8 @@ Complex (cross-module, extract service, merge duplicates):
 6. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions
 7. [If refactoring changes API contracts: delegate to `api-doc-gen` skill to update docs/api-doc.md]
+8. DOCUMENT SYNC PHASE → sync all docs with final code (see Document Sync Phase section)
+   Input: Developer's final changed files + INDEX.md (if exists) + all doc paths from prior steps
 
 Simple (single module, extract function, simplify logic):
 1. system-analyzer     → analyze current code + identify dependencies
@@ -137,6 +151,8 @@ Simple (single module, extract function, simplify logic):
 5. REVIEW LOOP         → run the review-fix loop (see Review Loop section)
    Input: Developer's changed files + project conventions
 6. [If refactoring changes API contracts: delegate to `api-doc-gen` skill to update docs/api-doc.md]
+7. DOCUMENT SYNC PHASE → sync all docs with final code (see Document Sync Phase section)
+   Input: Developer's final changed files + INDEX.md (if exists) + all doc paths from prior steps
 ```
 
 ## Requirement Clarification
@@ -152,6 +168,7 @@ Simple (single module, extract function, simplify logic):
 2. architect           → validate technical feasibility
    Context: BA's structured requirements (fully clarified)
    Verification: Architect re-reads generated document, verifies structure + AC traceability + consistency with AC, fixes issues (mandatory before handoff)
+3. Orchestrator updates docs/design/INDEX.md (create if not exists) with the new/updated feature entry
 ```
 
 ## Test Case Review Loop
@@ -228,3 +245,66 @@ Blocking definitions:
 
 Non-blocking findings (Warning/Info/Medium/Low): present to user after the loop completes and ask whether to fix or skip.
 ```
+
+---
+
+## Document Sync Phase
+
+After the Review Loop passes in any code-changing workflow, this phase ensures all documents still match the final implementation. Code evolves during development and review cycles — AC might have been partially re-scoped, design decisions might have changed, test cases might need new scenarios. This phase catches those drifts.
+
+**Sequential order is mandatory:** BA → Architect → QA. Each agent reads the output of the previous one, preserving the traceability chain (AC → Design → Test Cases).
+
+```
+Document Sync Phase:
+
+1. Orchestrator reads docs/design/INDEX.md (if exists) to identify potentially affected features
+   → Also gathers: Developer's final changed files, all doc paths from prior pipeline steps
+   → Determines which document-owning agents have existing docs for the affected feature(s)
+
+2. business-analyst (doc sync) → review AC document against final code
+   Context: AC document path + Developer's changed files summary
+   Mode: Doc Review & Update (see business-analyst.md reference)
+   Output: "updated" (with path to updated doc) OR "no change needed" (with justification)
+   IF updated → Document Verification & Fix applies (same as new document)
+   IF no AC doc exists for this feature → skip
+
+3. architect (doc sync) → review both shared System Design AND per-feature API Contracts against final code + latest AC
+   Context: shared design paths (`docs/design/system-design/`) + feature API contracts (`docs/design/{feature}/api-contracts.md`) + Developer's changed files summary + BA's latest AC (from step 2)
+   Mode: Doc Review & Update (see architect.md reference)
+   Output: per-document assessment — "updated" or "no change needed" for each (shared design + API contracts separately)
+   IF updated → Document Verification & Fix applies (same as new document)
+   IF no design docs exist for this feature → skip
+
+4. qa (doc sync) → review Test Cases against final code + latest AC + latest Design
+   Context: test case doc path (`docs/design/{feature}/test-cases.md`) + Developer's changed files summary + BA's latest AC + Architect's latest API contracts (`docs/design/{feature}/api-contracts.md`)
+   Mode: Doc Review & Update (see qa.md reference)
+   Output: "updated" (with path to updated doc) OR "no change needed" (with justification)
+   IF updated → Verification applies (TC-IDs sequential, Summary table matches)
+   IF no Test Case doc exists for this feature → skip
+
+5. Orchestrator updates docs/design/INDEX.md
+   → Create INDEX.md if it does not exist
+   → Add or update the feature entry: feature name, description, status, AC-IDs, last updated date
+   → Follow the INDEX.md format defined in SKILL.md (Document Folder Structure Convention)
+
+6. Orchestrator updates docs/design/VERSION.md
+   → Create VERSION.md if it does not exist
+   → Auto-increment version (e.g., v1.2 → v1.3)
+   → Prepend a new entry at the top (latest version first) with:
+     - Version number + date
+     - Task description (what the user asked)
+     - List of changed files (collected from BA/Architect/QA sync outputs)
+   → Format:
+     ## v{X.Y} — {YYYY-MM-DD}
+     **Task:** {user's original request}
+     **Changes:**
+     - {file path} — {what changed}
+```
+
+**Trust agent judgment:** If an agent reports "no change needed," accept it and move to the next agent. No cross-verification is required.
+
+**Document consistency conflict:** If any agent reports that the document fundamentally conflicts with the implemented code (not just minor drift but a real mismatch that cannot be resolved by updating the doc), the Orchestrator must escalate to the user to decide whether to update the doc or change the code.
+
+**Agent failure:** If a doc sync agent fails or returns empty output, log the gap in the Summary but do NOT block the pipeline. Document Sync is a quality gate, but the code has already passed the Review Loop.
+
+**PR Review workflow:** Excluded from Document Sync — PR Review only reviews code, it does not change it.

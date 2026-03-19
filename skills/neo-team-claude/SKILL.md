@@ -90,6 +90,7 @@ docs/
 │
 └── design/                               # All design-related docs
     ├── INDEX.md                          # Central registry (Orchestrator reads first)
+    ├── VERSION.md                        # Version history (Orchestrator auto-updates)
     │
     ├── system-design/                    # Shared across features
     │   ├── overview.md                   # Architecture overview
@@ -359,7 +360,7 @@ Each agent's output under its own heading.]
 
 **Gaps:** [any agents that were skipped or failed — empty if none]
 
-**Document Sync:** [Completed — BA: updated/no change, Architect: updated/no change, QA: updated/no change, INDEX.md: updated/created | Skipped (reason) | N/A (no docs exist)]
+**Document Sync:** [Completed — BA: updated/no change, Architect: updated/no change, QA: updated/no change, INDEX.md: updated/created, VERSION.md: v{X.Y} | Skipped (reason) | N/A (no docs exist)]
 
 **Next Steps:** [recommended actions if any]
 ```
