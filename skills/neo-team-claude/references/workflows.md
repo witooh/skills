@@ -268,15 +268,15 @@ Document Sync Phase:
    IF updated → Document Verification & Fix applies (same as new document)
    IF no AC doc exists for this feature → skip
 
-3. architect (doc sync) → review System Design against final code + latest AC
-   Context: System design doc path + Developer's changed files summary + BA's latest AC (from step 2)
+3. architect (doc sync) → review both shared System Design AND per-feature API Contracts against final code + latest AC
+   Context: shared design paths (`docs/design/system-design/`) + feature API contracts (`docs/design/{feature}/api-contracts.md`) + Developer's changed files summary + BA's latest AC (from step 2)
    Mode: Doc Review & Update (see architect.md reference)
-   Output: "updated" (with path to updated doc) OR "no change needed" (with justification)
+   Output: per-document assessment — "updated" or "no change needed" for each (shared design + API contracts separately)
    IF updated → Document Verification & Fix applies (same as new document)
-   IF no System Design doc exists for this feature → skip
+   IF no design docs exist for this feature → skip
 
 4. qa (doc sync) → review Test Cases against final code + latest AC + latest Design
-   Context: Test case doc path + Developer's changed files summary + BA's latest AC + Architect's latest design
+   Context: test case doc path (`docs/design/{feature}/test-cases.md`) + Developer's changed files summary + BA's latest AC + Architect's latest API contracts (`docs/design/{feature}/api-contracts.md`)
    Mode: Doc Review & Update (see qa.md reference)
    Output: "updated" (with path to updated doc) OR "no change needed" (with justification)
    IF updated → Verification applies (TC-IDs sequential, Summary table matches)

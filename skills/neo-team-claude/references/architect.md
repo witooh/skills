@@ -97,20 +97,25 @@ This applies to both newly created documents and documents that were edited/upda
 
 ## Doc Review & Update Mode (Document Sync Phase)
 
-When invoked during the Document Sync Phase (after Review Loop passes), your role is to verify that the existing System Design document still accurately reflects the implemented code. You receive the latest AC from BA (who runs before you in the sync chain).
+When invoked during the Document Sync Phase (after Review Loop passes), your role is to verify that your design documents still accurately reflect the implemented code. You own TWO types of documents:
+- **Shared system design** (`docs/design/system-design/`) — module design, database schema, architecture, ADRs, security flags
+- **Per-feature API contracts** (`docs/design/{feature}/api-contracts.md`) + traceability (`docs/design/{feature}/traceability.md`)
+
+You receive the latest AC from BA (who runs before you in the sync chain).
 
 ### Process
 
-1. **Read** the existing System Design document from the path provided by Orchestrator
-2. **Read** the latest AC document (BA may have updated it in the previous sync step)
-3. **Read** the Developer's changed files summary to understand what was implemented
-4. **Assess** whether the System Design document is still accurate:
-   - Do API contracts still match the implemented endpoints (paths, methods, request/response schemas, status codes)?
+1. **Read** the latest AC document (BA may have updated it in the previous sync step)
+2. **Read** the Developer's changed files summary to understand what was implemented
+3. **Assess shared system design** (`docs/design/system-design/`):
    - Does the module design still match the implemented file structure and interfaces?
-   - Were any architectural decisions changed during implementation that the design doesn't reflect?
+   - Does the database schema still match the actual schema?
+   - Were any architectural decisions changed that ADRs don't reflect?
+4. **Assess per-feature API contracts** (`docs/design/{feature}/api-contracts.md`):
+   - Do API contracts still match the implemented endpoints (paths, methods, request/response schemas, status codes)?
    - Does the AC Traceability table still map correctly to actual design elements?
-5. **Decide:**
-   - If the System Design is still accurate → report "no change needed" with a brief justification
+5. **Decide per document:**
+   - If still accurate → report "no change needed" with a brief justification
    - If updates are needed → edit the document, then run the **Document Verification & Fix** process (same as for new documents)
 6. **Report** your result to the Orchestrator
 
@@ -119,20 +124,29 @@ When invoked during the Document Sync Phase (after Review Loop passes), your rol
 ```
 ## Architect — Doc Sync
 
-**System Design Document:** [path]
-**Assessment:** No change needed | Updated
+**Shared Design (`docs/design/system-design/`):**
+- module-design.md: No change needed | Updated — [details]
+- database-schema.md: No change needed | Updated — [details]
+- architecture.md: No change needed | Updated — [details]
+- adrs.md: No change needed | Updated — [details]
+- security-flags.md: No change needed | Updated — [details]
 
-**Changes Made:** [if updated — list what changed and why]
-OR
-**Justification:** [if no change — brief explanation of why design still matches code]
+**API Contracts (`docs/design/{feature}/api-contracts.md`):**
+Assessment: No change needed | Updated — [details]
+
+**Traceability (`docs/design/{feature}/traceability.md`):**
+Assessment: No change needed | Updated — [details]
 ```
+
+Only include files that were assessed — skip files that are clearly unrelated to the code changes.
 
 ### Important
 
-- Do NOT rewrite the entire document if only minor updates are needed — make targeted edits
+- Do NOT rewrite entire documents if only minor updates are needed — make targeted edits
 - The same Document Verification & Fix process applies after any edits
 - If the design fundamentally conflicts with the implemented code, flag this to the Orchestrator as a **document consistency conflict**
 - Always cross-reference against the latest AC from BA (which may have been updated in the same sync phase)
+- Shared design files affect ALL features — be careful with changes that could have cross-feature impact
 
 ## Constraints
 

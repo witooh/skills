@@ -253,9 +253,9 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Business Analyst | Architect     | **AC document path** (hard prerequisite — Architect cannot start without this). Include: "Read `references/system-design.md` template before generating the system design document." |
 | Business Analyst | QA            | **AC document path + AC-IDs** (hard prerequisite — QA cannot start without this). Include: "Read `references/acceptance-criteria.md` template if you need to understand the AC format." |
 | Business Analyst | BA (review)   | AC document (for reviewing QA's test cases in the Test Case Review Loop) |
-| Architect        | Developer     | **System design document path** (hard prerequisite — Developer reads this for API contracts, module design, file structure) |
-| Architect        | QA            | **System design document path** (hard prerequisite — QA reads API contracts from this) + existing API doc path if available (e.g., `docs/api-doc.md`, OpenAPI spec). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
-| Architect        | Security      | **System design document path** + security flags from Architect's output |
+| Architect        | Developer     | **Both:** shared design paths (`docs/design/system-design/`) for architecture/modules + feature-specific API contracts (`docs/design/{feature}/api-contracts.md`) + traceability (`docs/design/{feature}/traceability.md`) |
+| Architect        | QA            | **API Contracts** (`docs/design/{feature}/api-contracts.md`) + BA's AC document path + existing API doc path if available (e.g., `docs/api-doc.md`). **Always include template paths: "Read `references/test-case-document.md` before generating test cases. Read `references/test-execution-report.md` before generating execution reports."** |
+| Architect        | Security      | **Shared design paths** (`docs/design/system-design/security-flags.md`) + feature API contracts |
 | QA (test spec)   | BA (review)   | Test case document for BA to review AC coverage (part of Test Case Review Loop) |
 | QA (test spec)   | Developer     | **BA-approved** test case document (test-case-document.md template) — GIVEN/WHEN/THEN test cases with steps, expected results, test data, preconditions, and Traces To AC-IDs. Complex tasks: Developer uses TDD mode. |
 | System Analyzer  | Developer     | Root cause analysis, affected files with line numbers, evidence chain, recommended fix |
@@ -264,7 +264,7 @@ Each agent produces specific outputs that downstream agents need. Extract the re
 | Developer        | Code Reviewer | Changed files list                                    |
 | Developer        | Security      | Changed files, new endpoints, data handling changes   |
 | BA (doc sync)    | Architect (doc sync) | Latest AC document path (updated or confirmed unchanged) |
-| Architect (doc sync) | QA (doc sync) | Latest system design document path (updated or confirmed unchanged) |
+| Architect (doc sync) | QA (doc sync) | Latest design paths: shared design (`docs/design/system-design/`) + API contracts (`docs/design/{feature}/api-contracts.md`) — updated or confirmed unchanged |
 
 ### Merging Parallel Agent Outputs
 
