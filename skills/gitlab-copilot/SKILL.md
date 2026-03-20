@@ -1,6 +1,17 @@
 ---
 name: gitlab-copilot
-description: Interact with GitLab via the glab CLI. Supports five MR workflows — Read (summarize), Review (full code/security/QA review), Fix (review + implement), CI Fix (fix pipeline failures), and Feedback (address review comments). Trigger whenever the user provides a GitLab MR URL or says anything like "อ่าน MR", "ดู MR", "check MR", "review MR", "ช่วย review MR นี้", "ตรวจ MR", "แก้ตาม MR", "fix MR", "fix CI", "fix pipeline", "แก้ pipeline", "แก้ตาม comment", "แก้ตาม feedback", "address feedback", or just pastes a GitLab MR URL. Also supports listing MRs, viewing MR status, checking CI/CD pipelines, approving MRs, and other glab operations. Trigger on "check pipeline", "list open MRs", "pipeline failed", or any GitLab-related task.
+description: >
+  Interact with GitLab via the glab CLI. Supports six MR workflows — Create (สร้าง MR),
+  Read (summarize), Review (full code/security/QA review), Fix (review + implement),
+  CI Fix (fix pipeline failures), and Feedback (address review comments).
+  Trigger whenever the user provides a GitLab MR URL or says anything like
+  "สร้าง MR", "create MR", "open MR", "เปิด MR",
+  "อ่าน MR", "ดู MR", "check MR", "review MR", "ช่วย review MR นี้",
+  "ตรวจ MR", "แก้ตาม MR", "fix MR", "fix CI", "fix pipeline", "แก้ pipeline",
+  "แก้ตาม comment", "แก้ตาม feedback", "address feedback", or just pastes a GitLab MR URL.
+  Also supports listing MRs, viewing MR status, checking CI/CD pipelines, approving MRs,
+  and other glab operations. Trigger on "check pipeline", "list open MRs", "pipeline failed",
+  or any GitLab-related task.
 compatibility:
   environment: copilot-cli
   tools:
@@ -14,7 +25,7 @@ compatibility:
 
 # GitLab Skill (Copilot CLI)
 
-Use the `glab` CLI to interact with GitLab. Supports five MR workflows (Read → Review → Fix → CI Fix → Feedback) plus general glab operations.
+Use the `glab` CLI to interact with GitLab. Supports six MR workflows (Create → Read → Review → Fix → CI Fix → Feedback) plus general glab operations.
 
 ## URL Parsing
 
@@ -27,10 +38,11 @@ These two values power most glab commands: `glab mr <cmd> <mr_id> --repo <repo_r
 
 ## Intent Detection
 
-When given a GitLab MR URL, determine the user's intent before selecting a workflow. There are five distinct workflows — **Read** is the lightest (just summarize), **Review** runs full specialist agents, **Fix** reviews then implements, **CI Fix** targets pipeline failures, and **Feedback** addresses reviewer comments. Default to Read when no strong signal indicates the user wants more.
+Determine the user's intent before selecting a workflow. There are six distinct workflows — **Create** creates a new MR from the current branch, **Read** is the lightest (just summarize), **Review** runs full specialist agents, **Fix** reviews then implements, **CI Fix** targets pipeline failures, and **Feedback** addresses reviewer comments. Default to Read when the user provides a MR URL with no strong signal indicating they want more.
 
 | Signal in User Request | Workflow |
 |------------------------|----------|
+| "สร้าง MR", "create MR", "open MR", "เปิด MR", "สร้าง merge request" | **MR Create** — create a new MR from the current branch with team defaults |
 | "อ่าน", "ดู", "check", "สรุป", "summary", bare URL with no action verb | **MR Read** — fetch MR info + diff, then summarize. No specialist agents. |
 | "review", "ตรวจ", "ช่วย review", "review ให้หน่อย" | **MR Review** — full code/security/QA review via 3 parallel specialist agents, post findings as comment |
 | "แก้", "fix", "แก้ตาม", "แก้ issue", "implement", "ทำตาม" | **MR Fix** — review first, then auto-chain to /neo-team-copilot to implement fixes |
@@ -38,11 +50,12 @@ When given a GitLab MR URL, determine the user's intent before selecting a workf
 | "address feedback", "แก้ตาม comment", "แก้ตาม feedback", "resolve threads", "ตอบ review" | **MR Feedback** — parse unresolved review threads, implement fixes, resolve |
 
 **Decision rule:**
-1. If the user's message mentions CI/pipeline failure → **MR CI Fix**
-2. If the user's message mentions feedback/comments to address → **MR Feedback**
-3. If the user's message contains a fix/แก้ keyword (not CI/feedback-specific) → **MR Fix**
-4. If the user's message explicitly says "review" or "ตรวจ" → **MR Review**
-5. Everything else (bare URL, "อ่าน", "ดู", "check", "สรุป", or ambiguous) → **MR Read** (lightest option, no side effects)
+1. If the user's message asks to create/open a new MR (no existing MR URL) → **MR Create**
+2. If the user's message mentions CI/pipeline failure → **MR CI Fix**
+3. If the user's message mentions feedback/comments to address → **MR Feedback**
+4. If the user's message contains a fix/แก้ keyword (not CI/feedback-specific) → **MR Fix**
+5. If the user's message explicitly says "review" or "ตรวจ" → **MR Review**
+6. Everything else (bare URL, "อ่าน", "ดู", "check", "สรุป", or ambiguous) → **MR Read** (lightest option, no side effects)
 
 ---
 
@@ -55,6 +68,68 @@ This skill delegates review work to three specialist agents. Their detailed inst
 | Code Reviewer | `.agents/skills/neo-team-copilot/references/code-reviewer.md` |
 | Security | `.agents/skills/neo-team-copilot/references/security.md` |
 | QA | `.agents/skills/neo-team-copilot/references/qa.md` |
+
+---
+
+## MR Create Workflow
+
+Create a new MR from the current branch. No MR URL is needed — this workflow detects the current branch and creates a MR targeting the default branch.
+
+```
+1. Verify current branch and uncommitted changes
+2. Push branch to remote if needed
+3. Create MR with team defaults
+4. Report MR URL to user
+```
+
+### Step 1: Verify Branch
+
+```bash
+git branch --show-current
+git status --short
+```
+
+If there are uncommitted changes, warn the user and ask whether to proceed or commit first. If the current branch is `main` or `master`, warn the user — they likely need to create a feature branch first.
+
+### Step 2: Push Branch
+
+```bash
+git push -u origin <current_branch>
+```
+
+If the branch is already pushed and up to date, skip this step.
+
+### Step 3: Create MR
+
+```bash
+glab mr create --fill --remove-source-branch --squash-before-merge
+```
+
+- `--fill` auto-fills title and description from commit messages
+- `--remove-source-branch` deletes source branch after merge (team default)
+- `--squash-before-merge` squash commits when MR is accepted (team default)
+
+If the user provides additional options (e.g., title, description, assignee, reviewer, target branch), append them:
+
+```bash
+glab mr create --fill --remove-source-branch --squash-before-merge \
+  --title "<title>" --description "<desc>" \
+  --assignee "<user>" --reviewer "<user>" \
+  --target-branch "<branch>"
+```
+
+### Step 4: Report
+
+After creation, show the user the MR URL and key details:
+
+```
+✅ สร้าง MR สำเร็จ
+- MR: !<mr_id> — <title>
+- Branch: <source> → <target>
+- URL: <mr_url>
+- Delete source branch: ✅
+- Squash commits: ✅
+```
 
 ---
 
@@ -593,6 +668,7 @@ Use these directly via `bash` when the user asks for something other than a full
 
 | Task | Command |
 |------|---------|
+| Create MR | `glab mr create --repo <repo_ref> --remove-source-branch --squash-before-merge` |
 | List open MRs | `glab mr list --repo <repo_ref>` |
 | View MR details | `glab mr view <mr_id> --repo <repo_ref>` |
 | Approve MR | `glab mr approve <mr_id> --repo <repo_ref>` |
@@ -600,6 +676,14 @@ Use these directly via `bash` when the user asks for something other than a full
 | List pipelines | `glab ci list --repo <repo_ref>` |
 | Retry a job | `glab ci retry <job_id> --repo <repo_ref>` |
 | Add a note/comment | `glab mr note <mr_id> --repo <repo_ref> -m "<text>"` |
+
+### MR Creation Defaults
+
+When creating a MR with `glab mr create`, always include these flags:
+- `--remove-source-branch` — delete source branch after merge
+- `--squash-before-merge` — squash commits when MR is accepted
+
+These are team defaults and should be applied to every MR creation, whether the user explicitly mentions them or not. The user may add other flags (e.g., `--title`, `--description`, `--assignee`, `--reviewer`) as needed.
 
 For `--repo`, you can omit it if you're already inside the project directory (glab detects the remote automatically).
 
